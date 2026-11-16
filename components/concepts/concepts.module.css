@@ -1,0 +1,1391 @@
+/* Three heroes, three art directions, one stylesheet.
+
+   Everything shared reads its colour from six tokens set on .page per hero, so
+   the nav, the tag, the buttons and the offer block change skin when the hero
+   does and nothing below has to know which one is showing. */
+
+.page {
+  --spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --bg: #050505;
+  --fg: #f2f2ec;
+  --mut: #8f8f86;
+  --line: rgba(255, 255, 255, 0.11);
+  --acc: #d7ff3f;
+  --acc-ink: #0c0f00;
+  --card: #0d0d0c;
+  --tray: rgba(255, 255, 255, 0.035);
+  --lit: rgba(255, 255, 255, 0.09);
+  --shade: rgba(0, 0, 0, 0.6);
+
+  position: relative;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--mut);
+  transition: background-color 0.9s var(--spring);
+}
+.page[data-hero="signal"] {
+  --bg: #06080f;
+  --fg: #eeeae2;
+  --mut: #8b90a0;
+  --line: rgba(200, 215, 255, 0.12);
+  --acc: #ff6a1f;
+  --acc-ink: #160700;
+  --card: #0a0d16;
+  --tray: rgba(200, 215, 255, 0.03);
+  --lit: rgba(220, 230, 255, 0.09);
+}
+.page[data-hero="blind"] {
+  --bg: #f3eee4;
+  --fg: #1c1a17;
+  --mut: #6a645b;
+  --line: rgba(28, 26, 23, 0.13);
+  --acc: #a8401f;
+  --acc-ink: #fff8f0;
+  --card: #fbf8f1;
+  --tray: rgba(28, 26, 23, 0.035);
+  --lit: rgba(255, 255, 255, 0.9);
+  --shade: rgba(70, 48, 24, 0.28);
+}
+.page h1,
+.page h2,
+.page h3 {
+  color: var(--fg);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- nav: the island, with the three heroes as its tabs ------------------- */
+.nav {
+  position: fixed;
+  inset: 1rem 0 auto;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  padding: 0 0.75rem;
+  pointer-events: none;
+}
+.island {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  height: 3.25rem;
+  padding: 0 0.4rem 0 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow:
+    inset 0 1px 0 0 var(--lit),
+    0 24px 50px -28px rgba(0, 0, 0, 0.55);
+  transition: background-color 0.9s var(--spring), border-color 0.9s var(--spring);
+}
+.brand {
+  margin-right: 0.85rem;
+  font-size: 15px;
+  font-weight: 540;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.brand span,
+.foot b span {
+  color: var(--acc);
+}
+.tabs {
+  display: flex;
+  gap: 0.1rem;
+}
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.4rem;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--mut);
+  cursor: pointer;
+  transition: color 0.5s var(--spring), background-color 0.5s var(--spring);
+}
+.tab b {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  opacity: 0.75;
+}
+.tab[aria-selected="true"] {
+  background: color-mix(in srgb, var(--fg) 9%, transparent);
+  color: var(--fg);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tab:hover {
+    color: var(--fg);
+  }
+}
+.page .navCta {
+  margin-left: 0.6rem;
+}
+
+/* ---- shared hero parts ---------------------------------------------------- */
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  height: 100dvh;
+  min-height: 44rem;
+  overflow: hidden;
+  color: var(--mut);
+  animation: heroIn 1.1s var(--spring) both;
+}
+@keyframes heroIn {
+  from {
+    opacity: 0;
+    transform: scale(1.025);
+  }
+}
+.gl {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.44rem 0.95rem 0.44rem 0.72rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--tray);
+  box-shadow: inset 0 1px 0 0 var(--lit);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65625rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--fg) 78%, transparent);
+}
+.tag::before {
+  content: "";
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--acc);
+  box-shadow: 0 0 8px 1px color-mix(in srgb, var(--acc) 60%, transparent);
+}
+
+/* A headline arrives a line at a time, each rising out of a box it cannot be
+   seen inside. */
+.line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.09em;
+  margin-bottom: -0.09em;
+}
+.line > span {
+  display: block;
+  transform: translate3d(0, 108%, 0);
+  animation: lineUp 1.15s var(--spring) forwards;
+}
+.line:nth-child(1) > span { animation-delay: 0.12s; }
+.line:nth-child(2) > span { animation-delay: 0.22s; }
+.line:nth-child(3) > span { animation-delay: 0.32s; }
+@keyframes lineUp {
+  to {
+    transform: none;
+  }
+}
+
+.sub {
+  max-width: 33rem;
+  margin-top: 1.6rem;
+  font-size: 1.0625rem;
+  line-height: 1.62;
+  color: var(--mut);
+  animation: softIn 1.1s var(--spring) 0.45s both;
+}
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 2rem;
+  animation: softIn 1.1s var(--spring) 0.55s both;
+}
+@keyframes softIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.5rem, 0);
+  }
+}
+
+/* The global pill, in this hero's accent. Two classes, so it wins over the
+   global .cta without leaning on source order. */
+.page .ctaAcc {
+  background: var(--acc);
+  color: var(--acc-ink);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
+    0 22px 48px -22px color-mix(in srgb, var(--acc) 70%, transparent);
+}
+.page .ctaAcc :global(.cta-icon) {
+  background: color-mix(in srgb, var(--acc-ink) 14%, transparent);
+}
+.page .ctaLine {
+  border: 1px solid var(--line);
+  background: var(--tray);
+  color: var(--fg);
+}
+.page .ctaLine :global(.cta-icon) {
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+/* ==== 01 · GLOW-UP ========================================================== */
+.glow {
+  --g: 0;
+  --px: 0;
+  --py: 0;
+  background: #050505;
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* Enough dark behind the words to read them, none behind the device. */
+.glowShade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(75% 85% at 18% 52%, #050505, rgba(5, 5, 5, 0.82) 50%, transparent 82%),
+    linear-gradient(180deg, rgba(5, 5, 5, 0.85), transparent 20%, transparent 72%, #050505);
+}
+.glowIn {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  align-items: center;
+  gap: 3rem;
+  width: 100%;
+  max-width: 84rem;
+  margin: 0 auto;
+  padding: 6.5rem 2rem 5.5rem;
+}
+.glowH {
+  margin-top: 1.6rem;
+  font-family: var(--font-bric), var(--font-sans), sans-serif;
+  font-stretch: 78%;
+  font-size: clamp(3rem, 7.4vw, 7.4rem);
+  font-weight: 760;
+  line-height: 0.9;
+  letter-spacing: -0.012em;
+  text-transform: uppercase;
+}
+.glowH em {
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--acc);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 2.1rem;
+  animation: softIn 1.1s var(--spring) 0.65s both;
+}
+.chip {
+  --on: clamp(0, calc((var(--g) - var(--at)) * 9), 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.34rem 0.72rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  color: var(--fg);
+  opacity: calc(0.34 + var(--on) * 0.66);
+}
+.chip i {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--acc);
+  transform: scale(var(--on));
+}
+
+.deviceWrap {
+  justify-self: center;
+  width: min(100%, 24.5rem);
+  animation: softIn 1.3s var(--spring) 0.3s both;
+}
+/* The tray, the screen in it on a concentric radius, and a lean that follows
+   the pointer. */
+.device {
+  --hx: 50%;
+  --hy: 50%;
+  --diag: 760px;
+  position: relative;
+  aspect-ratio: 392 / 540;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 2.1rem;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: 0 80px 140px -50px #000;
+  transform: perspective(1300px) rotateY(calc(-10deg + var(--px) * 6deg)) rotateX(calc(4deg + var(--py) * -5deg));
+  transition: transform 0.9s var(--spring);
+  touch-action: none;
+}
+.device::before {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(215, 255, 63, 0.3), transparent 72%);
+  opacity: var(--g);
+}
+.deviceCore {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 1.6rem;
+  background: #f6f6fb;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.bf,
+.af {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  letter-spacing: 0;
+}
+/* The pass: a circle that opens from where the finger is. */
+.af {
+  clip-path: circle(calc(var(--g) * var(--diag)) at var(--hx) var(--hy));
+}
+.rim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--hx) var(--hy),
+    transparent calc(var(--g) * var(--diag) - 6px),
+    rgba(215, 255, 63, 0.95) calc(var(--g) * var(--diag) - 1px),
+    rgba(215, 255, 63, 0.25) calc(var(--g) * var(--diag) + 3px),
+    transparent calc(var(--g) * var(--diag) + 26px)
+  );
+  opacity: calc(min(var(--g) * 12, 1) * min((1 - var(--g)) * 12, 1));
+}
+
+/* Before. Deliberately the default: system font, violet banner, three equal
+   cards, grey text that fails contrast, two buttons fighting. */
+.bf {
+  background: #f6f6fb;
+  font-family: system-ui, sans-serif;
+  color: #111;
+}
+.bfHero {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  padding: 1.7rem 1rem 1.4rem;
+  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  color: #fff;
+  text-align: center;
+}
+.bfHero b { font-size: 1.05rem; font-weight: 700; }
+.bfHero span { font-size: 0.72rem; opacity: 0.85; }
+.bfHero i {
+  margin-top: 0.4rem;
+  padding: 0.42rem 1.1rem;
+  border-radius: 999px;
+  background: #fff;
+  color: #7c3aed;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 600;
+}
+.bfCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.85rem;
+}
+.bfCards div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem 0.4rem;
+  border-radius: 0.6rem;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+.bfCards em { font-size: 1.25rem; font-style: normal; }
+.bfCards b { font-size: 0.7rem; }
+.bfCards span { font-size: 0.55rem; line-height: 1.3; color: #b9bcc8; }
+.bfList {
+  display: grid;
+  gap: 0.42rem;
+  padding: 0 0.85rem;
+}
+.bfList div {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.58rem 0.7rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: #fff;
+  font-size: 0.68rem;
+  color: #b0b4c0;
+}
+.bfList u { color: #3b82f6; text-decoration: none; }
+.bfCta {
+  margin: auto 0.85rem 0.85rem;
+  padding: 0.68rem;
+  border-radius: 0.5rem;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* After. Same app, same three tasks: the list comes first because the list is
+   the product, the worst item is on top, and there is one button. */
+.af {
+  padding: 1.35rem 1.3rem 1.15rem;
+  background: #f7f4ee;
+  font-family: var(--font-sans), sans-serif;
+  color: #16150f;
+}
+.afTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: #7b766b;
+}
+.afTop b { font-size: 0.84rem; font-weight: 600; letter-spacing: -0.015em; color: #16150f; }
+.page .af h3 {
+  max-width: 10ch;
+  margin: 1.35rem 0 1.05rem;
+  font-family: var(--font-bric), var(--font-sans), sans-serif;
+  font-size: 1.75rem;
+  font-weight: 640;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: #16150f;
+}
+.af ul { margin: 0; padding: 0; list-style: none; }
+.af li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.74rem 0;
+  border-top: 1px solid rgba(22, 21, 15, 0.09);
+}
+.af li > span {
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 1.5px solid rgba(22, 21, 15, 0.32);
+  border-radius: 50%;
+}
+.af li b { display: block; font-size: 0.8rem; font-weight: 560; letter-spacing: -0.01em; }
+.af li small { font-size: 0.66rem; color: #6f6a60; }
+.af li em {
+  padding: 0.2rem 0.52rem;
+  border-radius: 999px;
+  background: rgba(22, 21, 15, 0.07);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.56rem;
+  font-style: normal;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #4d4a42;
+}
+.af li[data-late] em { background: #16150f; color: #f7f4ee; }
+.af li[data-late] > span { border-color: #c2410c; }
+.afStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(22, 21, 15, 0.09);
+}
+.afStats b { display: block; font-family: var(--font-mono), monospace; font-size: 1rem; font-weight: 500; }
+.afStats small { font-size: 0.6rem; color: #6f6a60; }
+.afFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.95rem;
+}
+.afFoot b {
+  padding: 0.62rem 1.15rem;
+  border-radius: 999px;
+  background: #16150f;
+  color: #f7f4ee;
+  font-size: 0.76rem;
+  font-weight: 560;
+}
+.afFoot span { font-size: 0.7rem; color: #6f6a60; text-decoration: underline; text-underline-offset: 3px; }
+
+/* The same action for a keyboard, a finger or a screen reader: a real button,
+   whose fill is the hold's own progress. */
+.hold {
+  position: absolute;
+  left: 50%;
+  bottom: 1.5rem;
+  z-index: 3;
+  overflow: hidden;
+  height: 2.5rem;
+  padding: 0 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(12, 12, 11, 0.8);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg);
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+.holdFill {
+  position: absolute;
+  inset: 0;
+  background: var(--acc);
+  transform-origin: left center;
+  transform: scaleX(var(--g));
+}
+.holdText {
+  position: relative;
+  mix-blend-mode: difference;
+}
+
+/* The pointer's own meter. Trails it a little, fills as you hold. */
+.ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  display: none;
+  width: 5.4rem;
+  height: 5.4rem;
+  margin: -2.7rem 0 0 -2.7rem;
+  pointer-events: none;
+  /* A dark lens, so the meter reads over the white screen as well as the wall. */
+  border-radius: 50%;
+  background: rgba(5, 5, 5, 0.42);
+  opacity: 0;
+  transition: opacity 0.4s var(--spring), transform 0.16s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--acc) calc(var(--g) * 360deg), rgba(255, 255, 255, 0.2) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.25px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.25px));
+  transition: transform 0.5s var(--spring);
+}
+.ring span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.glow[data-holding="true"] .ring::before {
+  transform: scale(0.78);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ring { display: block; }
+  .glow[data-cur="on"] .ring { opacity: 1; }
+}
+
+/* ==== 02 · SIGNAL =========================================================== */
+.signal {
+  background: radial-gradient(90% 75% at 68% 36%, #0f1627 0%, #06080f 62%);
+}
+.sigGrid {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    linear-gradient(rgba(200, 215, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 215, 255, 0.045) 1px, transparent 1px);
+  background-size: 76px 76px;
+  -webkit-mask-image: radial-gradient(75% 70% at 66% 40%, #000, transparent);
+  mask-image: radial-gradient(75% 70% at 66% 40%, #000, transparent);
+}
+.sigMeta {
+  position: absolute;
+  top: 5.6rem;
+  right: max(2rem, calc(50% - 41rem));
+  display: flex;
+  gap: 1.4rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.sigMeta span:nth-child(2) {
+  color: var(--acc);
+}
+.sigIn {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 86rem;
+  margin: 0 auto;
+  padding: 6.5rem 2rem 3rem;
+}
+.sigIn > .tag {
+  align-self: flex-start;
+}
+.sigH {
+  margin-top: 1.5rem;
+  font-family: var(--font-bric), var(--font-sans), sans-serif;
+  font-stretch: 100%;
+  font-size: clamp(2.9rem, 6vw, 5.6rem);
+  font-weight: 320;
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+}
+.sigH em {
+  font-style: normal;
+  font-weight: 640;
+  color: var(--acc);
+}
+.sigRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2.5rem;
+}
+.sigPanel {
+  display: grid;
+  justify-items: end;
+  gap: 1rem;
+  animation: softIn 1.1s var(--spring) 0.6s both;
+}
+.sigCaption {
+  max-width: 22rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  text-align: right;
+  color: var(--fg);
+  animation: capIn 0.9s var(--spring) both;
+}
+@keyframes capIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.8rem, 0);
+  }
+}
+
+/* A segmented control whose thumb slides rather than jumps. Used by hero 02
+   for the three arrangements and by hero 03 for today / fixed. */
+.seg {
+  --n: 3;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  padding: 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--tray);
+  box-shadow: inset 0 1px 0 0 var(--lit);
+}
+.seg::before {
+  content: "";
+  position: absolute;
+  top: 0.3rem;
+  bottom: 0.3rem;
+  left: 0.3rem;
+  width: calc((100% - 0.6rem) / var(--n));
+  border-radius: 999px;
+  background: var(--fg);
+  transform: translateX(calc(var(--i) * 100%));
+  transition: transform 0.7s var(--spring);
+}
+.seg button {
+  position: relative;
+  height: 2.5rem;
+  padding: 0 1.25rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 520;
+  white-space: nowrap;
+  color: var(--mut);
+  cursor: pointer;
+  transition: color 0.5s var(--spring);
+}
+.seg button[aria-selected="true"] {
+  color: var(--bg);
+}
+
+/* ==== 03 · SHOP IT BLIND ==================================================== */
+.blind {
+  background:
+    radial-gradient(60% 60% at 78% 40%, #faf6ee, transparent 70%),
+    #f3eee4;
+}
+.blindIn {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 4.5rem;
+  width: 100%;
+  max-width: 84rem;
+  margin: 0 auto;
+  padding: 6.5rem 2rem 3rem;
+}
+.blindH {
+  margin-top: 1.6rem;
+  font-family: var(--font-fraunces), var(--font-display), Georgia, serif;
+  font-size: clamp(3rem, 6.5vw, 6.5rem);
+  font-weight: 360;
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+}
+.blindH em {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--acc);
+}
+.fine {
+  margin-top: 1.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--mut);
+  animation: softIn 1.1s var(--spring) 0.65s both;
+}
+
+.stage {
+  display: grid;
+  gap: 1.15rem;
+  animation: softIn 1.3s var(--spring) 0.3s both;
+}
+.shopShell {
+  --px: 0;
+  --py: 0;
+  padding: 0.5rem;
+  border: 1px solid rgba(28, 26, 23, 0.08);
+  border-radius: 2rem;
+  background: rgba(28, 26, 23, 0.035);
+  box-shadow: 0 60px 90px -60px rgba(70, 48, 24, 0.5);
+  transform: perspective(1400px) rotateY(calc(var(--px) * 3deg)) rotateX(calc(var(--py) * -2.5deg));
+  transition: transform 0.9s var(--spring);
+}
+.shop {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: #fbf8f1;
+  box-shadow:
+    inset 0 1px 0 0 #fff,
+    inset 0 0 0 1px rgba(28, 26, 23, 0.05);
+  color: #1c1a17;
+}
+.shopInner {
+  padding: 1rem 1.35rem 1.45rem;
+  transition: filter 0.7s var(--spring), opacity 0.7s var(--spring);
+}
+.shop[data-mode="low"] .shopInner { filter: blur(2.6px) contrast(0.8); }
+.shop[data-mode="cvd"] .shopInner { filter: url(#kyre-deut); }
+.shop[data-mode="sr"] .shopInner { opacity: 0; }
+
+.shopNav {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(28, 26, 23, 0.08);
+  font-size: 0.74rem;
+  color: #6a645b;
+}
+.shopNav b {
+  margin-right: auto;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #1c1a17;
+}
+.shopNav i { display: grid; }
+.shopNav svg { width: 1rem; height: 1rem; }
+
+.skip {
+  position: absolute;
+  left: 1.35rem;
+  top: 3.3rem;
+  z-index: 2;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0.4rem;
+  background: #1c1a17;
+  color: #fbf8f1;
+  font-size: 0.7rem;
+  opacity: 0;
+  transform: translate3d(0, -0.4rem, 0);
+  transition: opacity 0.4s var(--spring), transform 0.4s var(--spring);
+}
+.skip[data-focus="true"] { opacity: 1; transform: none; }
+
+.shopBody {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 1.5rem;
+  padding-top: 1.1rem;
+}
+.art svg { display: block; width: 100%; height: auto; }
+.steam path { animation: steam 3.4s ease-in-out infinite alternate; }
+.steam path:last-child { animation-delay: -1.7s; }
+@keyframes steam {
+  from { opacity: 0.15; transform: translate3d(0, 4px, 0); }
+  to { opacity: 0.7; transform: translate3d(0, -4px, 0); }
+}
+
+.kicker {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8b8479;
+}
+.page .info h3 {
+  margin-top: 0.35rem;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(1.5rem, 2.3vw, 2rem);
+  font-weight: 420;
+  letter-spacing: -0.03em;
+  color: #1c1a17;
+}
+
+/* Everything from here down has two looks: how most stores ship it, and how
+   it reads once it is fixed. Same markup, same layout, same place. */
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+}
+.price b,
+.price s,
+.price em,
+.sizes span,
+.add,
+.swatches span,
+.optLabel {
+  transition:
+    color 0.6s var(--spring),
+    background-color 0.6s var(--spring),
+    border-color 0.6s var(--spring),
+    opacity 0.6s var(--spring);
+}
+.price b { font-size: 1.35rem; font-weight: 400; color: #c9c1b3; }
+.price s { font-size: 0.8rem; color: #d6cfc2; }
+.price em { font-size: 0.7rem; font-style: normal; color: #d9534f; }
+.shop[data-fixed="true"] .price b { font-weight: 620; color: #1c1a17; }
+.shop[data-fixed="true"] .price s { color: #6a645b; }
+.shop[data-fixed="true"] .price em {
+  padding: 0.14rem 0.5rem;
+  border-radius: 999px;
+  background: #1c1a17;
+  font-weight: 560;
+  color: #fbf8f1;
+}
+
+.optLabel {
+  height: 0;
+  margin-top: 0.85rem;
+  overflow: hidden;
+  font-size: 0.72rem;
+  font-weight: 560;
+  opacity: 0;
+}
+.shop[data-fixed="true"] .optLabel { height: 1.3rem; opacity: 1; }
+.swatches {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+  padding: 0.2rem;
+  border-radius: 999px;
+}
+.swatches span {
+  display: grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 2px solid transparent;
+  border-radius: 50%;
+}
+.swatches svg { width: 0.7rem; height: 0.7rem; opacity: 0; transition: opacity 0.5s var(--spring); }
+/* Today the chosen colour is one shade of ring away from the others. */
+.swatches span[data-on="true"] { box-shadow: 0 0 0 1px rgba(28, 26, 23, 0.14); }
+.shop[data-fixed="true"] .swatches span[data-on="true"] {
+  border-color: #fbf8f1;
+  box-shadow: 0 0 0 2px #1c1a17;
+}
+.shop[data-fixed="true"] .swatches span[data-on="true"] svg { opacity: 1; }
+
+/* Available is green, sold out is red, and nothing else says so. */
+.sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.8rem;
+}
+.sizes span {
+  position: relative;
+  padding: 0.32rem 0.62rem;
+  border: 1.5px solid #58b368;
+  border-radius: 0.45rem;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  color: #9a9388;
+}
+.sizes span[data-out] { border-color: #e2685c; }
+.sizes small {
+  display: none;
+}
+.shop[data-fixed="true"] .sizes span {
+  border-color: rgba(28, 26, 23, 0.28);
+  color: #1c1a17;
+}
+.shop[data-fixed="true"] .sizes span[data-on] {
+  border-color: #1c1a17;
+  background: #1c1a17;
+  color: #fbf8f1;
+}
+.shop[data-fixed="true"] .sizes span[data-out] {
+  border-style: dashed;
+  color: #6a645b;
+  text-decoration: line-through;
+}
+.shop[data-fixed="true"] .sizes small {
+  display: inline;
+  margin-left: 0.4rem;
+  font-size: 0.6rem;
+  text-decoration: none;
+}
+
+.add {
+  display: grid;
+  place-items: center;
+  height: 2.9rem;
+  margin-top: 1.05rem;
+  border: 1px solid #e2dbcf;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #cbc3b5;
+}
+.shop[data-fixed="true"] .add {
+  border-color: #1c1a17;
+  background: #1c1a17;
+  font-size: 0.92rem;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: #fbf8f1;
+}
+
+/* Focus. Today there is none to see, which is the finding; fixed, it is the
+   loudest thing on the card. */
+.shop[data-fixed="true"] [data-focus="true"] {
+  outline: 2.5px solid var(--acc);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+.shop[data-fixed="true"] .add[data-focus="true"],
+.shop[data-fixed="true"] .swatches[data-focus="true"] {
+  border-radius: 999px;
+}
+.tabChip {
+  position: absolute;
+  left: 2rem;
+  bottom: 2.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.36rem 0.8rem 0.36rem 0.4rem;
+  border-radius: 999px;
+  background: #1c1a17;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.66rem;
+  white-space: nowrap;
+  color: #fbf8f1;
+  animation: chipIn 0.6s var(--spring) both;
+}
+.tabChip kbd {
+  padding: 0.12rem 0.42rem;
+  border-radius: 999px;
+  background: rgba(251, 248, 241, 0.16);
+  font: inherit;
+}
+.tabChip span { color: #f0a18c; }
+@keyframes chipIn {
+  from { opacity: 0; transform: translate3d(0, 0.8rem, 0); }
+}
+
+/* Eyes closed: the card goes dark and what is left is what gets read out. */
+.srPane {
+  position: absolute;
+  inset: 0;
+  padding: 1.5rem 1.7rem;
+  background: #1c1a17;
+  color: #f3eee4;
+  animation: paneIn 0.7s var(--spring) both;
+}
+@keyframes paneIn {
+  from { opacity: 0; }
+}
+.srHead {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1.15rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #a39c90;
+}
+.wave { display: flex; align-items: center; gap: 2px; height: 0.9rem; }
+.wave i {
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--acc);
+  filter: brightness(1.7);
+  animation: wave 0.9s ease-in-out infinite alternate;
+}
+.wave i:nth-child(2) { animation-delay: -0.3s; }
+.wave i:nth-child(3) { animation-delay: -0.6s; }
+.wave i:nth-child(4) { animation-delay: -0.15s; }
+@keyframes wave {
+  from { transform: scaleY(0.25); }
+  to { transform: scaleY(1); }
+}
+.srLines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+}
+.shop[data-fixed="true"] .srLines {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+}
+.srLine {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  font-weight: 340;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: #8d867a;
+  opacity: 0;
+  animation: srIn 0.7s var(--spring) forwards;
+  animation-delay: calc(var(--i) * 300ms + 250ms);
+}
+.shop[data-fixed="true"] .srLine {
+  font-size: clamp(0.95rem, 1.35vw, 1.15rem);
+  color: #f3eee4;
+  animation-delay: calc(var(--i) * 420ms + 250ms);
+}
+@keyframes srIn {
+  from { opacity: 0; transform: translate3d(0, 0.6rem, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+.verdict {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(1.15rem, 1.7vw, 1.45rem);
+  font-style: italic;
+  font-weight: 360;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  animation: capIn 0.8s var(--spring) both;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.modes button {
+  height: 2.2rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--mut);
+  cursor: pointer;
+  transition:
+    color 0.5s var(--spring),
+    background-color 0.5s var(--spring),
+    border-color 0.5s var(--spring);
+}
+.modes button[aria-selected="true"] {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* ---- the offer, under whichever hero is showing --------------------------- */
+.offer {
+  padding: clamp(7rem, 13vw, 10rem) 1.25rem;
+}
+.offerIn {
+  max-width: 76rem;
+  margin: 0 auto;
+}
+.offerH {
+  max-width: 14ch;
+  margin-top: 1.75rem;
+  font-family: var(--font-bric), var(--font-sans), sans-serif;
+  font-size: clamp(2.3rem, 5.2vw, 4.4rem);
+  font-weight: 560;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+.page[data-hero="blind"] .offerH {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 380;
+}
+.bento {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 4rem;
+}
+@media (min-width: 900px) {
+  .bento { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .cellWide { grid-column: span 7; }
+  .cellNarrow { grid-column: span 5; }
+}
+.shell {
+  height: 100%;
+  padding: 0.42rem;
+  border: 1px solid var(--line);
+  border-radius: 2rem;
+  background: var(--tray);
+  box-shadow: 0 60px 110px -70px var(--shade);
+}
+.core {
+  position: relative;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  list-style: none;
+  padding: clamp(1.5rem, 3vw, 2.75rem);
+  border-radius: calc(2rem - 0.42rem);
+  background: var(--card);
+  box-shadow:
+    inset 0 1px 1px 0 var(--lit),
+    inset 0 0 0 1px color-mix(in srgb, var(--fg) 5%, transparent);
+}
+.item {
+  display: grid;
+  grid-template-columns: 2.6rem 1fr;
+  padding: 1.35rem 0;
+  border-top: 1px solid var(--line);
+}
+.item:first-child { padding-top: 0; border-top: 0; }
+.item:last-child { padding-bottom: 0; }
+.item > span {
+  padding-top: 0.3rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--acc);
+}
+.item h3 {
+  font-size: 1.3rem;
+  font-weight: 540;
+  letter-spacing: -0.03em;
+}
+.item p {
+  max-width: 30rem;
+  margin-top: 0.4rem;
+  line-height: 1.6;
+  color: var(--mut);
+}
+.priceCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.priceGlow {
+  position: absolute;
+  right: -30%;
+  bottom: -45%;
+  width: 110%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--acc) 26%, transparent), transparent 72%);
+  pointer-events: none;
+}
+.priceLabel,
+.priceTime {
+  position: relative;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.priceBig {
+  position: relative;
+  margin: 0.9rem 0 0.7rem;
+  font-family: var(--font-bric), var(--font-sans), sans-serif;
+  font-size: clamp(2.4rem, 4.6vw, 3.9rem);
+  font-weight: 620;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--fg);
+}
+.priceTime { color: var(--acc); }
+.priceHook {
+  position: relative;
+  flex: 1;
+  max-width: 22rem;
+  margin: 2.2rem 0 2rem;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--fg);
+}
+.priceCard :global(.cta) { position: relative; }
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 78.5rem;
+  margin: 0 auto;
+  padding: 0 1.25rem 2.5rem;
+  font-size: 13px;
+  color: var(--mut);
+}
+.foot b { font-weight: 540; color: var(--fg); }
+.foot a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- narrow: one column, nothing leaning, nothing overlapping ------------- */
+@media (max-width: 899px) {
+  .hero {
+    height: auto;
+    min-height: 100dvh;
+  }
+  .glowIn,
+  .blindIn {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.75rem;
+    padding: 6rem 1rem 5.5rem;
+  }
+  .glowShade {
+    background: linear-gradient(180deg, rgba(5, 5, 5, 0.9), rgba(5, 5, 5, 0.72) 55%, #050505);
+  }
+  .device,
+  .shopShell {
+    transform: none;
+  }
+  .sigIn {
+    justify-content: flex-start;
+    padding: calc(8rem + 48vw) 1rem 2.5rem;
+  }
+  .tag {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+  }
+  .sigMeta {
+    top: 5rem;
+    right: 1rem;
+    left: 1rem;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .sigMeta span:last-child { display: none; }
+  .sigRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2rem;
+  }
+  .sigPanel { justify-items: stretch; }
+  .sigCaption { max-width: none; text-align: left; }
+  .controls { flex-direction: column; align-items: stretch; }
+}
+@media (max-width: 767px) {
+  .tab { padding: 0 0.7rem; }
+  .tab span { display: none; }
+  .tab[aria-selected="true"] span { display: inline; }
+  .page .navCta { display: none; }
+  .island { padding-right: 0.4rem; }
+  .shopBody { grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr); gap: 1rem; }
+  .shopNav span { display: none; }
+  .shell { border-radius: 1.5rem; }
+  .core { border-radius: calc(1.5rem - 0.42rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .line > span,
+  .sub,
+  .ctas,
+  .chips,
+  .deviceWrap,
+  .stage,
+  .sigPanel,
+  .sigCaption,
+  .fine,
+  .verdict,
+  .srLine,
+  .srPane,
+  .tabChip {
+    animation: none;
+  }
+  .line > span { transform: none; }
+  .srLine { opacity: 1; }
+  .steam path,
+  .wave i {
+    animation: none;
+  }
+  .device,
+  .shopShell {
+    transform: none;
+  }
+}

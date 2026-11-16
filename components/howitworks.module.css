@@ -1,0 +1,327 @@
+/* Three cards, each carrying a drawing that builds itself the first time it
+   scrolls into view and stays reactive to the pointer afterwards.
+
+   Entry is driven by a `data-play` attribute rather than :hover alone, because
+   a touch visitor never hovers and would otherwise get three static diagrams —
+   the animation is the explanation, so it cannot be desktop-only. Hover then
+   adds what only a mouse can: a light that follows it, and parallax. */
+
+.section {
+  padding-top: clamp(7rem, 14vw, 11rem);
+}
+
+/* Size and colour come from the page's own .display and .lede; these only
+   place them. */
+.heading {
+  margin: 2rem 0 0;
+  max-width: 15ch;
+}
+
+.lede {
+  margin: 1.75rem 0 0;
+  max-width: 34rem;
+}
+
+/* Three equal cards side by side is the most-flagged generated layout there is,
+   and it was also squeezing each drawing into 240px of width. Alternating
+   full-width rows fix both: the rhythm stops being a grid, and the artwork gets
+   roughly triple the area, which is what these drawings needed to read. */
+.steps {
+  position: relative;
+  list-style: none;
+  margin: 6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6.5rem;
+}
+
+/* ---------- the thread ----------
+   Stretched to the full height of the three steps with preserveAspectRatio
+   "none", so one path definition fits whatever height the copy ends up at. The
+   stroke stays 1.5 device pixels because of vector-effect; that is safe here
+   precisely because nothing about this stroke is dashed by length — the dash is
+   normalised by pathLength, which is unit-free. */
+.thread {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.threadLive {
+  stroke-dasharray: 1;
+  /* Driven by the section's own scroll progress, so the line cannot run ahead
+     of the step the visitor is actually reading.
+
+     Spread across almost the whole range. It used to finish at p 0.64, which on
+     top of a progress value that itself completed half a screen in meant the
+     thread was solid before step two was on screen — the line stopped being a
+     progress indicator and became a decoration. */
+  stroke-dashoffset: calc(1 - clamp(0, calc((var(--p, 0) - 0.04) / 0.88), 1));
+}
+
+/* The thread runs behind the copy, and both sit above it. */
+.row { z-index: 1; }
+
+@media (max-width: 859px) {
+  /* Stacked, the alternating curve has nothing to alternate between. */
+  .thread { display: none; }
+}
+
+.row {
+  display: grid;
+  gap: 1.75rem;
+  align-items: center;
+}
+@media (min-width: 860px) {
+  .row {
+    grid-template-columns: 1fr 1.2fr;
+    gap: 5.5rem;
+  }
+  /* Every other row reads right-to-left, so the eye zig-zags down the section
+     instead of scanning three identical columns.
+
+     of-type, not child: the thread SVG is also a child of the list, and
+     counting it flipped the parity of all three steps. */
+  .row:nth-of-type(even) > .text { order: 2; }
+  .row:nth-of-type(even) > .card { order: 1; }
+}
+
+.text { position: relative; }
+
+/* The step number carries the sequence, so nothing else has to. */
+.num {
+  display: block;
+  margin: 0 0 0.9rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  color: #6a635c;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  font-weight: 540;
+  letter-spacing: -0.035em;
+  color: #f4f0ea;
+}
+.body {
+  margin: 0.85rem 0 0;
+  max-width: 30rem;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: #99918a;
+}
+
+.when {
+  display: inline-block;
+  margin-top: 1.4rem;
+  padding: 0.32rem 0.8rem;
+  border: 1px solid rgba(245, 238, 230, 0.1);
+  border-radius: 999px;
+  background: rgba(245, 238, 230, 0.03);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: #99918a;
+}
+
+/* ---------- the drawing ---------- */
+.card {
+  --mx: 50%;
+  --my: 30%;
+  --px: 0;
+  --py: 0;
+
+  /* The tray. The drawing sits in a core a few pixels inside it, on concentric
+     radii, and the whole object leans a couple of degrees toward the pointer —
+     enough to read as a thing with a face and an edge, not enough to notice
+     doing it. */
+  --gap: 0.42rem;
+  --r: 2rem;
+  position: relative;
+  padding: var(--gap);
+  border: 1px solid rgba(245, 238, 230, 0.075);
+  border-radius: var(--r);
+  background: rgba(245, 238, 230, 0.026);
+  box-shadow: 0 60px 120px -70px rgba(0, 0, 0, 0.95);
+  transform: perspective(1200px) rotateX(calc(var(--py) * -2.4deg)) rotateY(calc(var(--px) * 3.2deg));
+  transition: transform 900ms cubic-bezier(0.32, 0.72, 0, 1), border-color 500ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.card:hover { border-color: rgba(245, 238, 230, 0.15); }
+
+.core {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: calc(var(--r) - var(--gap));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 38%),
+    #100f0e;
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 0 1px rgba(245, 238, 230, 0.045);
+}
+@media (max-width: 767px) {
+  .card { --r: 1.5rem; --gap: 0.34rem; transform: none; }
+}
+
+.spot {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    300px 300px at var(--mx) var(--my),
+    rgba(231, 221, 205, 0.09),
+    transparent 62%
+  );
+  transition: opacity 420ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .card:hover .spot { opacity: 1; }
+}
+
+.art {
+  position: relative;
+  z-index: 1;
+  padding: clamp(0.75rem, 2.4vw, 1.75rem);
+  /* Tiny. The drawing should sit behind glass, not slide around on it. */
+  transform: translate3d(calc(var(--px) * -5px), calc(var(--py) * -4px), 0);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- card 1: teardown ----------
+   The trail draws itself while a short travelling dash rides the same path as
+   the cursor. pathLength="1" normalises both, so one set of numbers drives any
+   path and nothing is measured at runtime. */
+.trail {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 2100ms cubic-bezier(0.45, 0, 0.25, 1) 250ms;
+}
+.card[data-play="true"] .trail { stroke-dashoffset: 0; }
+
+/* A 3% segment of the path, walked from start to end. Reads as the pointer. */
+.comet {
+  stroke-dasharray: 0.03 0.97;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition: stroke-dashoffset 2100ms cubic-bezier(0.45, 0, 0.25, 1) 250ms,
+    opacity 200ms ease 250ms;
+}
+.card[data-play="true"] .comet { stroke-dashoffset: 0.03; opacity: 1; }
+
+/* Lands only once the hunt is over. */
+.landing {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  transform: scale(2.2);
+  transition: opacity 420ms ease 2250ms, transform 620ms cubic-bezier(0.22, 1, 0.36, 1) 2250ms;
+}
+.card[data-play="true"] .landing { opacity: 1; transform: scale(1); }
+
+.mark {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 520ms cubic-bezier(0.22, 1, 0.36, 1) 2500ms;
+}
+.card[data-play="true"] .mark { stroke-dashoffset: 0; }
+
+.timer {
+  opacity: 0;
+  transition: opacity 500ms ease 1500ms;
+}
+.card[data-play="true"] .timer { opacity: 1; }
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover .landing { animation: breathe 1.8s ease-in-out infinite; }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+/* ---------- card 2: rebuild ---------- */
+.rail {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1000ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card[data-play="true"] .rail { stroke-dashoffset: 0; }
+
+.node,
+.pass {
+  opacity: 0;
+  transition: opacity 500ms ease, transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pass { transform: translateX(-10px); }
+.node { transform: scale(0.4); transform-box: fill-box; transform-origin: center; }
+.card[data-play="true"] .node { opacity: 1; transform: scale(1); }
+.card[data-play="true"] .pass { opacity: 1; transform: translateX(0); }
+
+/* ---------- card 3: ship ---------- */
+/* Removals recede rather than vanish — the lines are still in the history. */
+.del {
+  opacity: 1;
+  transition: opacity 600ms ease;
+}
+.card[data-play="true"] .del { opacity: 0.38; }
+
+.add {
+  opacity: 0;
+  transition: opacity 460ms ease;
+}
+.card[data-play="true"] .add { opacity: 1; }
+
+/* The added code writes itself in, left to right. */
+.addBar {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card[data-play="true"] .addBar { transform: scaleX(1); }
+
+.mergeRow {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 460ms ease 1150ms,
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1) 1150ms;
+}
+.card[data-play="true"] .mergeRow { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Every drawing lands on its finished state at once; nothing loops. */
+  .card,
+  .art,
+  .trail,
+  .comet,
+  .landing,
+  .mark,
+  .timer,
+  .rail,
+  .node,
+  .pass,
+  .del,
+  .add,
+  .addBar,
+  .mergeRow {
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+  .landing { animation: none !important; }
+  .card { transform: none; }
+  .spot { display: none; }
+}

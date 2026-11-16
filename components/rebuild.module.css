@@ -1,0 +1,650 @@
+/* The hero's centrepiece. One tap, and the same run data gets re-executed in
+   front of you.
+
+   A drag-to-wipe slider asks the visitor to do the work of finding the
+   difference and rewards them with a hard edge between two states that never
+   actually meet. This plays the transformation instead: rows reorder, the
+   timeout surfaces, latency becomes visible, bare strings become states.
+   Watching an interface become good is the pitch; scrubbing a seam is a party
+   trick.
+
+   Structure is HTML, iconography is SVG. An all-SVG scene scales its own text
+   with the viewport — at 375px a 13px label renders at 5px — so the layout
+   stays in the DOM where text is responsive, and SVG does what only SVG can:
+   glyphs that draw themselves.
+
+   Everything is choreographed off one `data-state` attribute with
+   transition-delay, so there is no animation loop, no rAF and no re-render per
+   frame. React flips one boolean and CSS runs the whole sequence. */
+
+.scene {
+  --rh: 56px;
+  /* One curve for travel (a soft, overshoot-free settle), one for fades.
+     Mixing easings is what makes motion read as assembled rather than
+     defaulted. */
+  --travel: 780ms cubic-bezier(0.22, 1, 0.36, 1);
+  --fade: 400ms cubic-bezier(0.33, 1, 0.68, 1);
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(245, 238, 230, 0.09);
+  border-radius: 14px;
+  background: #121110;
+  box-shadow:
+    0 40px 110px -30px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px rgba(245, 238, 230, 0.02);
+}
+
+/* Light gathers on the panel only once it is worth looking at. */
+.depth {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 76% at 50% -12%, rgba(231, 221, 205, 0.16), transparent 62%),
+    linear-gradient(180deg, rgba(245, 238, 230, 0.035), transparent 26%);
+  transition: opacity var(--fade);
+}
+
+/* ---------- header ---------- */
+.bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 44px;
+  padding: 0 0.9rem;
+  border-bottom: 1px solid rgba(245, 238, 230, 0.07);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  color: #7a736c;
+}
+
+.project {
+  color: #99918a;
+  transition: color var(--fade);
+}
+.scene[data-state="after"] .project { color: #f4f0ea; }
+
+/* Both states of a mutable label are stacked and cross-faded, so text never
+   reflows and the columns never jump. */
+.swap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+}
+.swapOut,
+.swapIn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  transition: opacity var(--fade);
+}
+.swapIn {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  translate: 0 -50%;
+}
+.swapRight .swapIn {
+  left: auto;
+  right: 0;
+}
+.scene[data-state="before"] .swapIn { opacity: 0; }
+.scene[data-state="after"] .swapOut { opacity: 0; }
+
+.live {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid rgba(231, 221, 205, 0.32);
+  border-radius: 999px;
+  background: rgba(231, 221, 205, 0.1);
+  color: #e7ddcd;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- rows + chart ---------- */
+.main {
+  display: flex;
+  align-items: stretch;
+}
+
+/* Fixed height and absolutely positioned rows, because reordering is the whole
+   idea and `order` does not transition. */
+.rows {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: calc(var(--rh) * 5);
+}
+
+/* The table says which call. The chart says since when, which is the question
+   a founder asks second and which no row in a table can answer. */
+.side {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  width: 238px;
+  padding: 0.7rem 0.85rem 0.6rem;
+  border-left: 1px solid rgba(245, 238, 230, 0.07);
+}
+
+.sideHead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+}
+.sideLabel { color: #8a837c; }
+.sideWin { margin-left: auto; color: #6a635c; }
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 0.55rem;
+  overflow: visible;
+}
+
+/* The reveal is a clipping rect that scales, not a dash offset: dash maths
+   resolves against the rendered scale and breaks at anything but 1x, and a clip
+   also reveals the area fill, which a stroke dash never could. */
+.reveal {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 1250ms cubic-bezier(0.33, 1, 0.68, 1) 220ms;
+}
+.scene[data-state="after"] .reveal { transform: scaleX(1); }
+
+/* Before, the plot is a flat line: honest, because their console does not
+   record this at all. It retracts to the left as the real series arrives. */
+.flat {
+  transform-box: fill-box;
+  transform-origin: right center;
+  transition: transform 900ms cubic-bezier(0.33, 1, 0.68, 1) 220ms,
+    opacity 500ms ease 220ms;
+}
+.scene[data-state="after"] .flat { transform: scaleX(0); opacity: 0; }
+
+.peak {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 420ms ease 1350ms,
+    transform 620ms cubic-bezier(0.22, 1, 0.36, 1) 1350ms;
+}
+.scene[data-state="after"] .peak { opacity: 1; transform: scale(1); }
+
+.axis {
+  font-family: var(--font-mono), monospace;
+  opacity: 0;
+  transition: opacity 400ms ease 900ms;
+}
+.scene[data-state="after"] .axis { opacity: 1; }
+
+.sideFoot {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+.sideTotal {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: #8a837c;
+  transition: color var(--fade) 200ms;
+}
+.scene[data-state="after"] .sideTotal { color: #ff8b7d; }
+.sideNote {
+  display: block;
+  margin-top: 0.1rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.625rem;
+  color: #6a635c;
+}
+
+.row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: var(--rh);
+  padding: 0 0.9rem;
+  transition: transform var(--travel);
+  transition-delay: var(--d, 0ms);
+  will-change: transform;
+}
+
+/* Rows physically travel to their new position. This is the moment that
+   carries the claim: nothing was added, the order was decided. */
+.scene[data-state="before"] .row { transform: translateY(calc(var(--rh) * var(--i0))); }
+.scene[data-state="after"] .row { transform: translateY(calc(var(--rh) * var(--i1))); }
+
+/* Everything inside a row waits for that row to arrive. */
+.row .glow,
+.row .rail,
+.row .gOut,
+.row .gIn,
+.row .draw,
+.row .fn,
+.row .ms,
+.row .barTrack,
+.row .barFill,
+.row .raw,
+.row .pill,
+.row .cost {
+  transition-delay: calc(var(--d, 0ms) + 130ms);
+}
+
+.rule {
+  position: absolute;
+  left: 0.9rem;
+  right: 0.9rem;
+  bottom: 0;
+  height: 1px;
+  background: rgba(245, 238, 230, 0.055);
+}
+
+/* The failing row gets depth and an accent rail — the two cheapest signals
+   that something here is not like the others. */
+.glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(239, 90, 76, 0.14),
+    rgba(239, 90, 76, 0.03) 55%,
+    transparent 80%
+  );
+  transition: opacity var(--fade);
+}
+
+.rail {
+  position: absolute;
+  left: 0;
+  top: 7px;
+  bottom: 7px;
+  width: 2px;
+  border-radius: 999px;
+  background: #ef5a4c;
+  box-shadow: 0 0 14px 0 rgba(239, 90, 76, 0.55);
+  transform-origin: center;
+  transition: opacity var(--fade), transform var(--travel);
+}
+
+.scene[data-state="before"] .glow { opacity: 0; }
+.scene[data-state="before"] .rail { opacity: 0; transform: scaleY(0.15); }
+
+/* ---------- the glyph ---------- */
+/* Before, every row carries the same anonymous mark: you cannot tell them
+   apart, which is the point. After, each one becomes its own state and draws
+   itself in.
+
+   Stroke length is normalised with pathLength="1", so the dash animation needs
+   no getTotalLength() and no vector-effect — the combination that silently
+   breaks dash maths at any scale other than 1x. */
+.glyph {
+  position: relative;
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+.glyph svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.gOut,
+.gIn {
+  transition: opacity var(--fade), transform var(--fade);
+  transform-origin: center;
+}
+.draw {
+  stroke-dasharray: 1;
+  transition: stroke-dashoffset 720ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scene[data-state="before"] .gIn { opacity: 0; transform: scale(0.55) rotate(-30deg); }
+.scene[data-state="before"] .draw { stroke-dashoffset: 1; }
+.scene[data-state="after"] .gOut { opacity: 0; transform: scale(0.55); }
+.scene[data-state="after"] .draw { stroke-dashoffset: 0; }
+
+/* ---------- name ---------- */
+.name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5ch;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+.prefix {
+  flex: none;
+  color: #6a635c;
+}
+/* Colour only — a weight change would reflow the text and shift the row. */
+.fn {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #8a837c;
+  transition: color var(--fade);
+}
+.scene[data-state="after"] .fn { color: #f4f0ea; }
+
+/* ---------- latency ---------- */
+.barCell {
+  flex: none;
+  width: 132px;
+}
+.barTrack {
+  position: relative;
+  /* A span in a block parent stays inline and drops its height, which renders
+     the bar at zero width no matter what the fill is scaled to. */
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(245, 238, 230, 0.07);
+  transition: opacity var(--fade);
+}
+/* Bars draw from the left rather than appearing. */
+.barFill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  transform-origin: left center;
+  transition: transform var(--travel);
+}
+.scene[data-state="before"] .barTrack { opacity: 0; }
+.scene[data-state="before"] .barFill { transform: scaleX(0); }
+.scene[data-state="after"] .barFill { transform: scaleX(var(--w, 1)); }
+
+.ms {
+  flex: none;
+  width: 56px;
+  text-align: right;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: #8a837c;
+  transition: color var(--fade);
+}
+.scene[data-state="after"] .row[data-kind="ok"] .ms { color: #f4f0ea; }
+.scene[data-state="after"] .row[data-kind="bad"] .ms { color: #ef5a4c; }
+.scene[data-state="after"] .row[data-kind="warn"] .ms { color: #cc9440; }
+
+/* ---------- cost ----------
+   The column the founder is actually looking for. It carries no weight at all
+   in the "before" state, because that is the honest depiction: the dashboard
+   they have today has nowhere to put this number. */
+.cost {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  width: 100px;
+  transition: opacity var(--fade), transform var(--fade);
+}
+.costVal {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 0.4rem;
+  border-radius: 5px;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: #6a635c;
+  white-space: nowrap;
+  transition: background var(--fade), color var(--fade);
+}
+/* Four rows cost pocket change and one costs a hire. The outlier is allowed to
+   shout, because that contrast is the whole point of the column. */
+.scene[data-state="after"] .row[data-kind="bad"] .costVal {
+  background: rgba(239, 90, 76, 0.16);
+  color: #ff8b7d;
+  font-weight: 600;
+}
+.scene[data-state="before"] .cost { opacity: 0; transform: translateX(8px); }
+
+/* ---------- status ---------- */
+.status {
+  position: relative;
+  flex: none;
+  width: 92px;
+  height: 22px;
+}
+.raw,
+.pill {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  transition: opacity var(--fade), transform var(--fade);
+}
+.raw {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+  color: #8a837c;
+}
+.pill {
+  gap: 0.4rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transform-origin: center right;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.scene[data-state="before"] .pill { opacity: 0; transform: scale(0.82); }
+.scene[data-state="after"] .raw { opacity: 0; transform: translateX(6px); }
+
+/* ---------- footer ---------- */
+/* Both footers occupy the same grid cell, so the strip is always as tall as the
+   taller of the two and the panel never changes height between states — while
+   still letting the chips wrap onto a second line on a narrow screen. */
+.foot {
+  display: grid;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.9rem;
+  border-top: 1px solid rgba(245, 238, 230, 0.06);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+}
+.footRaw,
+.verdict {
+  grid-area: 1 / 1;
+  align-self: center;
+}
+.footRaw {
+  display: flex;
+  gap: 0.9rem;
+  color: #7a736c;
+  transition: opacity var(--fade);
+}
+.verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.55rem;
+}
+/* The one number on the panel that is allowed to be loud. Everything else on
+   this screen is 11px mono; this is the size of the problem. */
+.verdictNum {
+  font-size: 1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: #ff8b7d;
+}
+.verdictText {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  color: #d6d0c7;
+}
+.verdictMeta {
+  flex-basis: 100%;
+  color: #99918a;
+}
+.verdictNum,
+.verdictText,
+.verdictMeta {
+  transition: opacity var(--fade), transform var(--fade);
+}
+.scene[data-state="before"] .verdictNum,
+.scene[data-state="before"] .verdictText,
+.scene[data-state="before"] .verdictMeta {
+  opacity: 0;
+  transform: translateY(7px);
+}
+.scene[data-state="after"] .footRaw { opacity: 0; }
+/* The strip itself picks up a warning cast once it has something to warn about. */
+.scene[data-state="after"] .foot { background: rgba(239, 90, 76, 0.05); }
+.foot { transition: background var(--fade); }
+
+/* ---------- controls ---------- */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 1.5rem;
+}
+
+.cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding: 0 1.1rem;
+  border: 1px solid rgba(231, 221, 205, 0.4);
+  border-radius: 999px;
+  background: rgba(231, 221, 205, 0.12);
+  color: #f4f0ea;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 510;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 160ms ease, border-color 160ms ease, box-shadow 220ms ease;
+}
+.cta:hover {
+  transform: translateY(-1px);
+  background: rgba(231, 221, 205, 0.2);
+  border-color: rgba(231, 221, 205, 0.65);
+  box-shadow: 0 8px 28px -8px rgba(231, 221, 205, 0.8);
+}
+.cta:active { transform: translateY(0) scale(0.985); }
+
+/* One unprompted signal that this is tappable, retired the moment it is. */
+.halo {
+  position: absolute;
+  inset: -1px;
+  border-radius: 999px;
+  border: 1px solid rgba(231, 221, 205, 0.85);
+  pointer-events: none;
+  animation: halo 2.6s cubic-bezier(0.22, 1, 0.36, 1) 0.9s infinite;
+}
+@keyframes halo {
+  0% { opacity: 0.75; transform: scale(1); }
+  55%, 100% { opacity: 0; transform: scale(1.22); }
+}
+
+.ctaIcon {
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cta[aria-pressed="true"] .ctaIcon { transform: rotate(-180deg); }
+
+/* Fixed height so swapping the sentence never nudges the page. */
+.caption {
+  position: relative;
+  width: 100%;
+  min-height: 1.25rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: #7a736c;
+}
+/* Outside .scope, so it carries its own timing rather than inheriting --fade. */
+.caption span {
+  position: absolute;
+  inset: 0;
+  transition: opacity 400ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* Column priority as the panel narrows: name, status and cost survive; the bar
+   goes first and the raw latency second. Dropping the engineer's number before
+   the founder's number is the point of the panel, not a compromise. */
+/* The chart takes 238px out of the row width, so the latency bar has to give up
+   its column earlier than it used to. */
+@media (max-width: 1180px) {
+  .barCell { display: none; }
+}
+
+/* Below this the chart stops being a side column and becomes a footer strip,
+   rather than disappearing — it is carrying the "since when" of the argument
+   and a phone needs that as much as a laptop does. */
+@media (max-width: 900px) {
+  .main { flex-direction: column; }
+  /* Once the axis turns vertical, `flex: 1` resolves its basis against height
+     and collapses this to zero — and every row inside is absolutely positioned,
+     so they escape and land on top of the chart. The height has to be restated
+     explicitly here. */
+  .rows { flex: none; height: calc(var(--rh) * 5); }
+  .side {
+    width: auto;
+    border-left: 0;
+    border-top: 1px solid rgba(245, 238, 230, 0.07);
+  }
+}
+
+@media (max-width: 640px) {
+  .scene { --rh: 50px; }
+  .row { gap: 0.3rem; padding: 0 0.7rem; }
+  .rule { left: 0.7rem; right: 0.7rem; }
+  .prefix { display: none; }
+  .ms { display: none; }
+  /* Every pixel the fixed columns give back goes to the function name. A row
+     reading "vector_sea…" has lost the one word the row exists to say. */
+  .name { font-size: 0.75rem; }
+  .cost { width: 76px; }
+  .costVal { padding: 0 0.3rem; }
+  .status { width: 76px; }
+  .pill { padding: 0 0.45rem; gap: 0.3rem; }
+  .bar { padding: 0 0.7rem; }
+  .foot { padding: 0.5rem 0.7rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The end state, immediately. The point is the difference, not the motion. */
+  .scene *,
+  .cta,
+  .caption span {
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+  .halo { animation: none; }
+  .cta:hover, .cta:active { transform: none; }
+}

@@ -1,0 +1,177 @@
+/* Same four slots. Different four numbers, and one of them twice the size of
+   the others — which is the whole argument the page is making. */
+const LIVE_STATS = [
+  { label: "Burning", value: `${usd(BURN)}/mo`, lead: true, note: "+212% in 7d", tone: "bad" },
+  { label: "Failing", value: "1 call", kind: "bad", note: "of 8 · was 0", tone: "bad" },
+  { label: "p95 latency", value: "12.4s", kind: "warn", note: "budget 0.9s", tone: "warn" },
+  { label: "Users hit", value: "18", note: "3 churned", tone: "bad" },
+];
+
+function Rebuilt() {
+  const ordered = [...RUNS].sort((a, b) => a.at[1] - b.at[1]);
+
+  return (
+    <div className={styles.app}>
+      <Sidebar />
+      <div className={styles.appMain}>
+        <AppBar>
+          <span className={styles.barHead}>Runs</span>
+          <span className={styles.barSub}>eight calls, last hour</span>
+        </AppBar>
+
+        <div className={styles.stats}>
+          {LIVE_STATS.map((s, n) => (
+            <div
+              key={s.label}
+              className={`${styles.stat} ${s.lead ? styles.statLead : ""}`}
+              data-kind={s.kind}
+              style={{ ["--r" as string]: n }}
+            >
+              <span className={styles.statLabel}>{s.label}</span>
+              <span className={styles.statVal}>{s.value}</span>
+              {/* Every tile says what its number is measured against. A figure
+                  with nothing beside it is the thing the broken screen already
+                  had four of. */}
+              <span className={styles.statNote} data-tone={s.tone}>
+                {s.note}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className={styles.split}>
+          <div className={styles.table}>
+            {ordered.map((r, n) => (
+              <div
+                key={r.fn}
+                className={`${styles.tr} ${styles.trR}`}
+                data-kind={r.kind}
+                style={{ ["--w" as string]: scaleOf(r.seconds), ["--r" as string]: n }}
+              >
+                {r.kind === "bad" && <span className={styles.railMark} />}
+                <Glyph kind={r.kind} />
+                <span className={styles.cName}>
+                  <span className={styles.prefix}>{r.prefix}</span>
+                  <span className={styles.fn}>{r.fn}</span>
+                </span>
+                <span className={styles.cBar}>
+                  <span className={styles.barTrack}>
+                    <span
+                      className={styles.barFill}
+                      style={{ background: `linear-gradient(90deg, ${TONE[r.kind].wash}, ${TONE[r.kind].fg})` }}
+                    />
+                  </span>
+                </span>
+                <span className={styles.cNum} data-kind={r.kind}>
+                  {r.seconds.toFixed(2)}s
+                </span>
+                {/* Direction, not just level. A call at 5.2s is a question; a
+                    call at 5.2s and rising 41% a week is an answer. Toned by
+                    size rather than by sign, because latency going up is bad
+                    news however the number is spelled. */}
+                <span className={styles.cTrend} data-kind={trendKind(r.deltaPct) ?? undefined}>
+                  {trend(r.deltaPct)}
+                  <span className={styles.arrow} aria-hidden>
+                    {arrow(r.deltaPct)}
+                  </span>
+                </span>
+                {/* How many of the eighteen it reached. Cost says what it is
+                    worth fixing; this says who is waiting. */}
+                <span className={styles.cUsers}>
+                  <span className={styles.usersBar}>
+                    <span className={styles.usersFill} style={{ ["--u" as string]: r.users / 18 }} />
+                  </span>
+                  {r.users}
+                </span>
+                <span className={styles.cCost}>
+                  <span className={styles.costVal}>{usd(r.usd)}/mo</span>
+                </span>
+                <span className={styles.cStatus}>
+                  <span className={styles.pill} style={{ background: TONE[r.kind].wash, color: TONE[r.kind].fg }}>
+                    <span className={styles.pillDot} />
+                    {r.label}
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* The panel that was empty. It answers "since when", which is the
+              question a founder asks second and no row in a table can carry.
+
+              pathLength="1" on the line so the draw-in is one unit long
+              whatever the window is: the dash numbers below never have to know
+              how many pixels the curve turned out to be. Flat fill on the area
+              rather than a gradient, because a <defs> id would be duplicated
+              across every copy of this markup. */}
+          <aside className={styles.side}>
+            <div className={styles.sideHead}>
+              <span>Burn per hour</span>
+              <span className={styles.sideWin}>24h</span>
+            </div>
+            <svg viewBox={`0 0 ${CHART.w} 116`} className={styles.chart} aria-hidden>
+              <path d={`M3 ${CHART.base}h${CHART.w - 6}`} stroke="rgba(245,238,230,0.10)" />
+              {/* The line it was not supposed to cross, and the label saying so.
+                  A curve climbing off the top of a panel is a shape; a curve
+                  climbing past a marked budget is a number someone owns. */}
+              <g className={styles.chartBudget}>
+                <path
+                  d={`M3 ${cy(BUDGET).toFixed(1)}h${CHART.w - 6}`}
+                  stroke="rgba(204,148,64,0.5)"
+                  strokeDasharray="3 3"
+                />
+                <text
+                  x={CHART.w - 3}
+                  y={cy(BUDGET) - 4}
+                  fontSize="7.5"
+                  textAnchor="end"
+                  fill="rgba(204,148,64,0.8)"
+                  style={MONO}
+                >
+                  budget {usd(BUDGET)}/h
+                </text>
+              </g>
+              <path d={AREA} fill="rgba(239,90,76,0.16)" className={styles.chartArea} />
+              <path
+                d={LINE}
+                pathLength={1}
+                fill="none"
+                stroke="#ef5a4c"
+                strokeWidth="1.7"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                className={styles.chartLine}
+              />
+              <g className={styles.chartPeak}>
+                <path
+                  d={`M${cx(PEAK_AT).toFixed(1)} ${cy(PEAK).toFixed(1)}V${CHART.base}`}
+                  stroke="rgba(239,90,76,0.45)"
+                  strokeDasharray="2 2"
+                />
+                <circle cx={cx(PEAK_AT)} cy={cy(PEAK)} r="3.2" fill="#ef5a4c" />
+                <circle cx={cx(PEAK_AT)} cy={cy(PEAK)} r="6.5" fill="none" stroke="rgba(239,90,76,0.3)" />
+              </g>
+              <text x="3" y="113" fontSize="7.5" fill="rgba(245,238,230,0.28)" style={MONO}>
+                24h ago
+              </text>
+              <text x={CHART.w - 3} y="113" fontSize="7.5" textAnchor="end" fill="rgba(245,238,230,0.28)" style={MONO}>
+                now
+              </text>
+            </svg>
+            <div className={styles.sideFoot}>
+              <span className={styles.sideTotal}>{usd(BURN)}</span>
+              <span className={styles.sideNote}>and still climbing</span>
+            </div>
+          </aside>
+        </div>
+
+        <div className={styles.verdict}>
+          <span className={styles.verdictNum}>{usd(BURN)}/mo</span>
+          <span className={styles.verdictText}>burned on slow and failed calls</span>
+          <span className={styles.verdictMeta}>18 users hit this · 3 stopped using the product</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+

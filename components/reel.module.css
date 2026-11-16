@@ -1,0 +1,1995 @@
+/* One camera move, driven by one number.
+
+   `useScrollProgress` writes --p (0→1) on .reel. Every phase below is a slice
+   of that range pulled out with clamp(), then eased in calc().
+
+   The beats deliberately do not run together. Everything moving at once read as
+   confetti. The copy leaves against a dashboard that is only coming into focus,
+   the break happens to a screen with nothing else on it, and the annotations
+   get a stretch of runway where the only thing that changes is that you can
+   read them.
+
+   One constraint runs through the file: opacity, filter, overflow and clip-path
+   all force `transform-style: flat`. Any of them on an ancestor kills the 3D
+   beneath it, so fades live on leaves.
+
+   The old screen itself is not in here. It is a WebGL pane (./shatter), fed the
+   same --p from the same hook on the same frame, and the phase arithmetic below
+   is repeated there in three lines. */
+
+.reel {
+  --p: 0;
+
+  position: relative;
+  height: 560vh;
+  background: #0a0908;
+}
+
+/* ---- phases ------------------------------------------------------------- */
+.viewport {
+  /* the copy leaves, growing toward the lens, and the dashboard sharpens */
+  --exit: clamp(0, calc((var(--p) - 0.02) / 0.16), 1);
+  /* the pane cracks — the jolt fires at 0.198, just ahead of this — fissures
+     light and the callouts write themselves in, then a hold */
+  --diag: clamp(0, calc((var(--p) - 0.21) / 0.11), 1);
+  /* it breaks and the camera goes through it. One way now: the pieces leave and
+     do not come back */
+  --fly: clamp(0, calc((var(--p) - 0.4) / 0.17), 1);
+  --card: clamp(0, calc((var(--p) - 0.48) / 0.08), 1);
+  --cardOut: clamp(0, calc((var(--p) - 0.62) / 0.06), 1);
+  /* the console comes up from under the frame and levels out */
+  --rise: clamp(0, calc((var(--p) - 0.64) / 0.2), 1);
+  /* The rebuild has no phase here on purpose. It is not scrubbed: crossing
+     p = 0.87 sets data-fix on the section and it plays itself. See the block
+     further down. */
+
+  /* smoothstep — t²(3-2t) — for the long moves. Ease-out is the wrong curve for
+     anything scrubbed by a scrollbar: it is built to leave fast and settle, so
+     against a linear scroll input it spends most of the move in the first third
+     of the runway and leaves the reader scrolling through the aftermath. */
+  --exitE: calc(var(--exit) * var(--exit) * (3 - 2 * var(--exit)));
+  --flyE: calc(var(--fly) * var(--fly) * (3 - 2 * var(--fly)));
+  --riseE: calc(var(--rise) * var(--rise) * (3 - 2 * var(--rise)));
+
+  /* Short punctuation, not travel: ease-out cubic, by hand. */
+  --crackE: calc(1 - (1 - var(--diag)) * (1 - var(--diag)) * (1 - var(--diag)));
+  --cardE: calc(1 - (1 - var(--card)) * (1 - var(--card)) * (1 - var(--card)));
+
+  /* The old screen's box. Its shape is the capture's — the canvas maps a
+     picture onto it, and a picture stretched to a different ratio is the first
+     thing anyone would see — so it is as big as it can be inside 87vw × 76svh
+     at that ratio and no bigger. Declared here rather than on the stage because
+     the caption above it has to know where its top edge is. */
+  --ar: 1.9886;
+  --cap: 1252.8;
+  --stW: min(87vw, 1280px, calc(min(76svh, 780px) * var(--ar)));
+  --stH: calc(var(--stW) / var(--ar));
+
+  position: sticky;
+  top: 0;
+  /* The whole window. The header floats over the scene now instead of taking a
+     bar off the top of it. */
+  height: 100svh;
+  overflow: hidden;
+  background: #0a0908;
+}
+
+/* ---- the room ------------------------------------------------------------
+   Two washes wider than the viewport, drifting on their own clocks. Neither is
+   scroll-driven and neither has an edge you can find — a radial that reaches
+   transparent well inside its own box is light falling across a surface, where
+   a small one is a purple circle, which is the tell. */
+/* Above the scrim, not below it. At rest the scrim is opaque — the dashboard is
+   not the subject yet and should not be visible at all — so the light has to
+   live in front of it or there is nothing on screen but a headline on black. */
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  /* Brightest while it is the only thing in the room; steps back once the
+     dashboard arrives and has something to say. */
+  opacity: calc(1 - var(--exit) * 0.55);
+}
+
+/* The track leans with the pointer; the wash inside it drifts on its own clock.
+   Two properties, two elements, because one transform cannot do both. */
+.track1,
+.track2 {
+  position: absolute;
+  inset: 0;
+  display: block;
+  /* Long and heavily eased: the light should follow the hand a beat late, the
+     way something large and far away does. */
+  transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* The promotion belongs here rather than on the washes, because this is the
+     thing that actually moves — and it only moves when the pointer does, so the
+     layer is composited on demand instead of on every frame of the document's
+     life. */
+  will-change: transform;
+}
+.track1 { transform: translate3d(calc(var(--px, 0) * 34px), calc(var(--py, 0) * 24px), 0); }
+.track2 { transform: translate3d(calc(var(--px, 0) * -56px), calc(var(--py, 0) * -38px), 0); }
+
+/* A ruled ground. One image, painted once, never animated — the whole cost is
+   the initial raster and a composite. It is the cheapest thing on this page and
+   it does more for the opening frame than any of the light does, because an
+   empty dark rectangle has no scale and a ruled one does.
+
+   Masked to transparent well inside the frame. A grid that runs to the edges is
+   a background image; a grid that fades out is a surface the light happens to
+   be falling on. */
+.mesh {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background-image:
+    linear-gradient(rgba(245, 238, 230, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 238, 230, 0.055) 1px, transparent 1px);
+  background-size: 68px 68px;
+  -webkit-mask-image: radial-gradient(64% 56% at 50% 42%, #000 4%, transparent 74%);
+  mask-image: radial-gradient(64% 56% at 50% 42%, #000 4%, transparent 74%);
+  opacity: calc(1 - var(--exit));
+}
+
+/* A shaft from above the frame, aimed at the headline. The washes below are
+   ambient — they have no source and are not supposed to — so without one
+   directional light the frame is evenly grey everywhere, which is the actual
+   complaint when a dark hero looks flat. */
+.beam {
+  position: absolute;
+  left: 50%;
+  top: -22vh;
+  display: block;
+  width: 68vw;
+  height: 82vh;
+  translate: -50% 0;
+  background: radial-gradient(52% 50% at 50% 0%, rgba(238, 228, 210, 0.11), transparent 68%);
+  opacity: calc(1 - var(--exit) * 0.8);
+}
+
+/* These used to drift on 41s and 57s loops. Measured, that cost twenty-three
+   milliseconds of every frame — not of the hero, of the document, forever,
+   because an element with an infinite animation forces a composite on every
+   frame whether or not anything has visibly changed, and these were the two
+   largest layers on the page at roughly two megapixels each.
+
+   What it bought was a twenty-vw translation spread over forty-one seconds,
+   which nobody has ever seen. The light still moves: the tracks above lean with
+   the pointer, on demand, and that is motion a reader can actually connect to
+   something they did.
+
+   Boxed tighter as well. A radial that reaches transparent at 72% of its own
+   box leaves the outer quarter as fully transparent pixels that still have to
+   be blended. */
+.wash1,
+.wash2 {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+}
+/* Key light, warm, high and left. */
+.wash1 {
+  left: -11vw;
+  top: -23vw;
+  width: 70vw;
+  height: 70vw;
+  background: radial-gradient(
+    closest-side,
+    rgba(255, 236, 205, 0.19),
+    rgba(231, 221, 205, 0.08) 46%,
+    transparent 78%
+  );
+}
+/* Fill, cool, low and right. Two temperatures is the difference between a lit
+   room and a lamp. */
+.wash2 {
+  right: -17vw;
+  bottom: -27vw;
+  width: 78vw;
+  height: 78vw;
+  background: radial-gradient(
+    closest-side,
+    rgba(126, 164, 220, 0.16),
+    rgba(126, 164, 220, 0.06) 48%,
+    transparent 76%
+  );
+}
+/* A soft key sitting where the headline is, breathing on a long cycle — the one
+   ambient movement left in the room now that the drift is gone, and worth about
+   five milliseconds a frame.
+
+   Kept, but paid for: promoted, so the fade is the compositor's own and does not
+   re-rasterise the field's stack of gradients underneath it, and boxed down to
+   roughly half the pixels it used to cover, since that cost is area. */
+.wash3 {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 58vw;
+  height: 34vw;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 244, 224, 0.11), transparent 72%);
+  animation: breathe 13s ease-in-out infinite alternate;
+  will-change: opacity;
+}
+@keyframes breathe {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+/* A vignette, so the frame has edges the way a photograph does and the eye is
+   put where the sentence is. Sits above the washes and below everything else in
+   the field. */
+.field::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(125% 95% at 50% 42%, transparent 28%, rgba(3, 3, 5, 0.62) 100%);
+}
+/* A hairline where the light stops. Cheap, and it gives the empty half of the
+   frame something to be measured against. */
+.field::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 68%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 238, 230, 0.07) 30%,
+    rgba(245, 238, 230, 0.07) 70%,
+    transparent
+  );
+}
+
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+.camera {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  /* The whole reason plates can pass the lens instead of just scaling. */
+  perspective: 1150px;
+  perspective-origin: 50% 46%;
+  transform-style: preserve-3d;
+}
+
+/* One jolt, one-shot, fired by crossing a mark rather than by scroll position.
+
+   Tied to --p a shake never ends. Stop scrolling halfway through the break and
+   the amplitude freezes at whatever it was and the camera vibrates there until
+   you move — which is not a shake, it is a fault. This fires on its own clock
+   and is over on its own.
+
+   It belongs to the cracking, not to the scattering. Fired at 0.198 — just
+   ahead of --diag opening at 0.21 — and run over 980ms, it is the impact that
+   fractures the glass and it is still decaying while the fissures draw
+   themselves in. It used to sit at 0.345, immediately before the pieces parted,
+   which put the hit a whole beat after the damage it was supposed to cause.
+
+   Mild. It started at 15px, which for a camera that is supposed to be a camera
+   reads as the page itself glitching; then 7, and now 4. At this amplitude it
+   is felt more than seen, which is what a hit through a lens should be.
+
+   `both` so the last keyframe holds; the last keyframe is zero, so a finished
+   jolt leaves nothing behind. */
+.reel[data-jolt="break"] .camera {
+  animation: breakJolt 980ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+/* The pane fracturing: one hit, then a long ring-down under the cracks as they
+   spread. Decays, because everything does. */
+@keyframes breakJolt {
+  0% { transform: translate3d(0, 0, 0); }
+  6% { transform: translate3d(-4px, 2px, 0); }
+  15% { transform: translate3d(3px, -3px, 0); }
+  25% { transform: translate3d(-3px, -1px, 0); }
+  36% { transform: translate3d(2px, 2px, 0); }
+  48% { transform: translate3d(-2px, -1px, 0); }
+  60% { transform: translate3d(1px, 1px, 0); }
+  72% { transform: translate3d(-1px, -1px, 0); }
+  86% { transform: translate3d(1px, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* The pane's own canvas. Inside the camera so the jolt takes it too. */
+.gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Where the floor runs out. At rest the pane lies back under the headline and
+   is cut off by the bottom of the frame; a lit object cropped by a hard edge
+   reads as a screenshot, and faded into the dark it reads as distance. Gone
+   once the pane has stood up, because by then nothing reaches the edge. */
+.floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: 22%;
+  pointer-events: none;
+  background: linear-gradient(0deg, #0a0908 4%, rgba(10, 9, 8, 0.6) 42%, transparent);
+  opacity: calc(1 - var(--exit));
+}
+
+/* ---- the old screen -------------------------------------------------------
+   The pane itself is drawn in the canvas. This box is its footprint in the
+   markup: it gives the canvas something to measure, and it carries the three
+   red callouts, which have to be read rather than shattered and so stay text. */
+.stage {
+  /* The title rail in the capture, at whatever size the capture is drawn. */
+  --rail: calc(var(--stW) * 34 / var(--cap));
+
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: var(--stW);
+  height: var(--stH);
+}
+
+/* The flat picture. Only ever seen where the canvas is not: for the moment
+   before three.js has arrived, and for good in a browser with no WebGL. There
+   it does what it can — stands in for the screen, then leaves toward the lens
+   — without pretending to break. */
+.paneImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  transform: scale(calc((0.94 + 0.06 * var(--exitE)) * (1 + var(--flyE) * 0.9)));
+  opacity: calc(var(--exit) * clamp(0, calc(1 - var(--fly) * 1.6), 1));
+}
+.reel[data-gl="on"] .paneImg { display: none; }
+
+/* Grey pips, not traffic lights. Red-amber-green would make this a screenshot
+   of a Mac instead of a window. */
+.rail {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: var(--rail);
+  padding: 0 0.85rem;
+  border-bottom: 1px solid rgba(245, 238, 230, 0.07);
+  background: rgba(245, 238, 230, 0.022);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  color: #6a635c;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(245, 238, 230, 0.13);
+}
+.railName {
+  margin: 0 auto;
+  padding-left: 3rem;
+  letter-spacing: 0.04em;
+}
+/* Comes on with the rebuild, because that is when it becomes true. */
+.railLive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid rgba(231, 221, 205, 0.28);
+  border-radius: 999px;
+  color: #e7ddcd;
+  opacity: 0;
+}
+.glass[data-side="after"] .railLive {
+  animation: fadeIn 320ms ease 1100ms both;
+}
+
+/* ---- the console, on glass ----------------------------------------------
+   Comes up from under the frame hinged on its own bottom edge: lying back and
+   low at the start, square to the lens and level by the end. A screen being
+   stood up rather than a screen fading in.
+
+   Its own wrapper outside .stage, because the stage is scaled almost twice over
+   as the camera goes through the break and none of that belongs here. Sits a
+   little above centre so there is floor underneath it to reflect in. */
+.glassWrap {
+  --rail: 34px;
+
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(87vw, 1280px);
+  height: min(70%, 720px);
+  pointer-events: none;
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+  transform: translate3d(0, calc(-4% + (1 - var(--riseE)) * 56vh), calc((1 - var(--riseE)) * -340px))
+    rotateX(calc((1 - var(--riseE)) * 62deg));
+}
+
+/* The lean. A couple of degrees toward the pointer once the slab is standing,
+   scaled by --riseE so it has no say while the rise is still happening. Eased
+   on its own clock — long, so the glass follows the hand a beat late, the way
+   something with weight does — which is why it is not on the scrubbed wrapper
+   above: a transition there would trail the scroll.
+
+   The fade lives here too rather than on the wrapper. Opacity flattens the 3D
+   of everything under it, and under the wrapper is this element's rotation. */
+.glassTilt {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(calc(var(--py, 0) * var(--riseE) * -1.5deg))
+    rotateY(calc(var(--px, 0) * var(--riseE) * 2.4deg));
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glassTilt > * { opacity: clamp(0, calc(var(--rise) * 3.4), 1); }
+
+/* The thickness. Two more outlines of the same shape, set back along the
+   slab's own normal: square-on they hide exactly behind the face, and lying
+   back at the start of the rise they fan out below it as a visible edge. The
+   nearer one is also the tray the face sits in — a hairline shell a few pixels
+   proud of the glass all round, which is what stops a dark panel on a dark
+   ground reading as a rectangle. */
+.slab {
+  position: absolute;
+  inset: -7px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 23px;
+  background: rgba(255, 255, 255, 0.022);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  transform: translateZ(-9px);
+}
+.slab + .slab {
+  inset: -3px;
+  border-color: rgba(170, 205, 255, 0.1);
+  border-radius: 19px;
+  background: rgba(120, 160, 220, 0.03);
+  transform: translateZ(-20px);
+}
+
+/* Glass without a backdrop-filter. A backdrop root is a full-viewport readback
+   on every frame of the entire scroll, not only where the blur is non-zero — it
+   cost 36ms of a 96ms frame the last time it was here — and what sits behind
+   this panel is empty dark space, so there is nothing for it to blur anyway.
+   What actually reads as glass is the lit top edge, the fall-off down the face
+   and the fact that you can see a little of the room through it. */
+.glass {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.014) 24%,
+      rgba(255, 255, 255, 0) 58%
+    ),
+    linear-gradient(180deg, rgba(18, 20, 27, 0.88), rgba(10, 11, 15, 0.94));
+  box-shadow:
+    0 60px 120px -44px rgba(0, 0, 0, 0.95),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+/* A real reflection where the engine has one. The faux floor below was light
+   standing in for a mirror because a second copy of the console in the DOM is
+   a hundred and thirty nodes; this is the same console composited twice, for
+   free, and it moves when the rows do. Firefox keeps the stand-in. */
+@supports (-webkit-box-reflect: below) {
+  .glass {
+    -webkit-box-reflect: below 12px linear-gradient(transparent 58%, rgba(255, 255, 255, 0.2));
+  }
+}
+
+/* The room in the face of the glass: one soft band, diagonal, that crosses the
+   panel as it levels and shifts again as it leans. A reflection that moves when
+   the object does is most of what makes a flat thing read as a surface. */
+.sheen {
+  position: absolute;
+  inset: -20% -40%;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(
+    104deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.035) 46%,
+    rgba(255, 255, 255, 0.075) 50%,
+    rgba(255, 255, 255, 0.03) 54%,
+    transparent 62%
+  );
+  transform: translate3d(calc((var(--riseE) * 92% - 62%) + var(--px, 0) * -5%), 0, 0);
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glassRail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+}
+
+/* One face at a time, remounted on every toggle, so the entrance below replays
+   from its first frame each time rather than dissolving between two layouts
+   that were already finished. */
+.face {
+  position: absolute;
+  left: 0;
+  top: var(--rail);
+  width: 100%;
+  height: calc(100% - var(--rail));
+}
+/* The Live pill is a claim about the rebuilt console. Over the old one it would
+   be describing a screen that does not have it. */
+.glass[data-side="before"] .railLive { opacity: 0; }
+
+/* ---- the floor --------------------------------------------------------- */
+/* The panel's reflection, as light rather than as a second copy of the panel.
+
+   A real mirror here would mean another two dashboards in the DOM — about a
+   hundred and thirty nodes — and the frame only has room to show its top
+   hundred-odd pixels before the mask has taken it to nothing. At that size the
+   difference between a mirrored table and an echo of the panel's own tone is
+   not visible, and one of them is free.
+
+   Flipped about its own bottom edge so the bright top edge of the panel lands
+   directly under the panel, which is where a reflection is brightest. */
+.reflect {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  top: 100%;
+  height: 46%;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(198, 214, 238, 0.13), rgba(198, 214, 238, 0) 15%),
+    linear-gradient(180deg, rgba(26, 30, 41, 0.42), rgba(12, 13, 18, 0) 62%);
+  /* One radial doing both fades. A linear one down the page left the sides
+     square, so the reflection read as a lighter rectangle sitting under the
+     panel with two visible vertical edges — a floor does not have edges. */
+  -webkit-mask-image: radial-gradient(78% 96% at 50% 0%, #000 8%, transparent 76%);
+  mask-image: radial-gradient(78% 96% at 50% 0%, #000 8%, transparent 76%);
+}
+/* Vertical streaks, the way a polished floor smears a lit object downward. */
+.reflect::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 46px,
+    rgba(190, 214, 250, 0.05) 46px 47px
+  );
+}
+/* And the bloom the panel casts on the floor it is standing on. */
+.reflect::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: -8%;
+  height: 58%;
+  background: radial-gradient(58% 100% at 50% 0%, rgba(156, 186, 235, 0.13), transparent 72%);
+}
+/* The rebuilt state is burning money and says so in red; the floor under it
+   picks that up. */
+.glass[data-side="after"] ~ .reflect::after {
+  background:
+    radial-gradient(58% 100% at 50% 0%, rgba(156, 186, 235, 0.12), transparent 72%),
+    radial-gradient(26% 76% at 26% 0%, rgba(239, 90, 76, 0.12), transparent 74%);
+}
+
+/* ---- the annotations -----------------------------------------------------
+   On their own layer above the plates rather than inside them, because these
+   have to be read rather than shattered.
+
+   Each writes itself: the dot lands, the leader draws out, then the label wipes
+   in from the leader's end. A wipe rather than a fade — a fade reads as an
+   element appearing, a wipe reads as something being written. */
+.notes,
+.notesFix {
+  position: absolute;
+  left: 0;
+  top: var(--rail);
+  width: 100%;
+  height: calc(100% - var(--rail));
+  z-index: 3;
+  pointer-events: none;
+  font-family: var(--font-mono), monospace;
+}
+
+/* Red is the only saturated colour on the page outside the demo itself, and it
+   is here for the same reason it is there: this is the failure. */
+.notes {
+  --tone: #ef5a4c;
+  --edge: rgba(239, 90, 76, 0.42);
+  --wash: rgba(239, 90, 76, 0.07);
+  opacity: calc(1 - clamp(0, calc(var(--fly) * 3), 1));
+}
+
+/* Green, once, and quieter. Same three places, answered. */
+.notesFix {
+  --tone: #5da572;
+  --edge: rgba(93, 165, 114, 0.45);
+  --wash: rgba(93, 165, 114, 0.08);
+}
+/* Bare labels: a shorter leader and no body copy, so they annotate the finished
+   console rather than covering it. */
+.notesFix .noteLine { width: 26px; }
+.notesFix .noteBox { padding: 0.22rem 0.5rem; }
+.notesFix .noteHead { font-size: 0.75rem; }
+
+.note {
+  --anchor: 0%;
+  --aE: calc(var(--a) * var(--a) * (3 - 2 * var(--a)));
+
+  position: absolute;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  transform: translate(var(--anchor), -50%);
+}
+.noteL {
+  --anchor: -100%;
+  flex-direction: row-reverse;
+}
+
+/* Three notes at 0.3 apart needs the multiplier to clear 1.6. */
+.notes .note {
+  --a: clamp(0, calc((var(--diag) * 1.9) - (var(--n, 0) * 0.3)), 1);
+}
+/* Last of all, well after the wipe has passed — a green tick over a screen
+   still half-dissolved is a claim about a layout that is not on screen yet. On
+   the trigger's clock like the rest of the rebuild, so these come in written
+   rather than scrubbed. */
+.notesFix .noteDot,
+.notesFix .noteLine,
+.notesFix .noteBox {
+  --d: calc(1750ms + var(--n, 0) * 130ms);
+}
+.notesFix .noteDot { transform: scale(0); }
+.notesFix .noteLine { transform: scaleX(0); }
+.notesFix .noteBox { clip-path: inset(0 0 0 100%); }
+[data-side="after"] .notesFix .noteDot {
+  animation: dotIn 380ms cubic-bezier(0.22, 1, 0.36, 1) var(--d) both;
+}
+[data-side="after"] .notesFix .noteLine {
+  animation: lineIn 320ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--d) + 120ms) both;
+}
+[data-side="after"] .notesFix .noteBox {
+  animation: writeIn 380ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--d) + 260ms) both;
+}
+@keyframes dotIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+@keyframes lineIn {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes writeIn {
+  from { clip-path: inset(0 0 0 100%); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* Looks only. The two layers animate on different clocks — red scrubbed by
+   --diag, green played by the trigger — so the moving properties below are
+   scoped to `.notes` rather than left generic.
+
+   Leaving them generic is what put three green labels on the broken screen:
+   `.noteL .noteBox` and `.notesFix .noteBox` are both two classes, the generic
+   one came later and won, and it resolves against an --a the green notes no
+   longer define. An invalid var() in clip-path computes to `none`, which is not
+   "hidden" — it is "no clip at all". */
+.noteDot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 0 3px var(--wash), 0 0 12px 0 var(--tone);
+}
+.noteLine {
+  flex: none;
+  width: 44px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--tone), var(--edge));
+  transform-origin: left center;
+}
+.noteL .noteLine {
+  transform-origin: right center;
+  background: linear-gradient(270deg, var(--tone), var(--edge));
+}
+
+.noteBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--edge);
+  border-radius: 7px;
+  background: rgba(10, 9, 8, 0.93);
+}
+
+/* Red: scrubbed, so the reader writes them by scrolling. */
+.notes .noteDot { transform: scale(var(--aE)); }
+.notes .noteLine { transform: scaleX(var(--aE)); }
+.notes .noteBox { clip-path: inset(0 calc((1 - var(--aE)) * 100%) 0 0); }
+.notes .noteL .noteBox { clip-path: inset(0 0 0 calc((1 - var(--aE)) * 100%)); }
+.noteHead {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tone);
+}
+.noteBody {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: #b3aaa1;
+}
+
+/* ---- the headline -------------------------------------------------------
+   Its own perspective so paint order against nine flying plates is settled by
+   z-index rather than depth sorting. Nothing between here and .word may carry
+   an opacity, filter or overflow, or the words lose their Z. */
+.copy {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Above centre. The bottom third of the frame belongs to the pane lying back
+     under the headline, and a block centred on the window would sit on it. */
+  padding: 0 1.5rem 17svh;
+  text-align: center;
+  perspective: 1000px;
+  /* The panel is decoration; only the buttons take clicks. */
+  pointer-events: none;
+}
+
+/* Nothing behind the words at all. This carried a bordered panel once, then a
+   radial veil meant to be the same idea without an edge — and the veil was
+   worse, because a gradient that fades to nothing still shows its boundary the
+   moment there is light behind it to darken. It read as a dark ellipse sitting
+   across the middle of the hero.
+
+   The scrim below is opaque at rest, so there is nothing behind the headline to
+   separate it from; once there is, the copy has already gone. */
+.copyInner {
+  position: relative;
+  max-width: 70rem;
+  padding: 0 1rem;
+  transform-style: preserve-3d;
+  /* The whole block pushes toward the lens as it goes, so the copy does not
+     merely fade — it comes past you. At 0.28 the growth was there but you had
+     to be told to look for it. */
+  transform: scale(calc(1 + var(--exitE) * 0.72));
+  will-change: transform;
+}
+/* Everything in the panel leaves on its own ramp, supporting copy first and the
+   headline last — the buttons and the sub have nothing to say once the screen
+   is the subject, and leaving them for last stranded one line of body text
+   alone on a black screen.
+
+   1.05, not 1.4: at 1.4 a word was invisible by the time it was two thirds of
+   the way out, so the flight was over before you saw it happen. Highest index
+   is the last word at 12, so the multiplier clears 1 + 12 × 0.06. */
+.eyebrow,
+.word,
+.sub,
+.actions,
+.proof {
+  --wa: clamp(0, calc((var(--exit) * 1.75) - (var(--wi, 0) * 0.06)), 1);
+  --waE: calc(1 - (1 - var(--wa)) * (1 - var(--wa)) * (1 - var(--wa)));
+  /* Exactly 1: a word stays legible for its entire flight and reaches zero at
+     the end of it, rather than blinking out two thirds of the way and taking
+     the zoom with it. */
+  opacity: calc(1 - var(--wa));
+  /* Text through a 3D transform rasterises once; without this it resamples and
+     goes soft on the way past. */
+  backface-visibility: hidden;
+  /* Promoted, and this is the whole difference between the exit reading as
+     twenty frames a second and sixty.
+
+     Growing text is the most expensive thing on this page: every frame of the
+     zoom is a fresh glyph rasterisation at a new size, ten words of it, while
+     the scrim, the grid and the stage are all changing underneath. Promoted,
+     each word is rastered once and the scale and fade are the compositor's.
+
+     They cost nothing when idle — these are small layers that exist only at the
+     top of the page — and the softness that comes with scaling a texture is not
+     a defect on type flying past the lens at ten times its own depth. */
+  will-change: transform, opacity;
+}
+
+.eyebrow {
+  --wi: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 1.9rem;
+  padding: 0.44rem 0.95rem 0.44rem 0.72rem;
+  border: 1px solid rgba(245, 238, 230, 0.1);
+  border-radius: 999px;
+  /* A lit rim and a hint of ground. A hairline ring on black is a wireframe;
+     the inset highlight is what makes it a physical pill. */
+  background: rgba(245, 238, 230, 0.032);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.055);
+  color: rgba(245, 238, 230, 0.7);
+  /* Microscopic, tracked wide, in the mono: a label on a piece of equipment
+     rather than a line of copy competing with the headline under it. */
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65625rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transform: translate3d(0, calc(var(--waE) * -12vh), calc(var(--waE) * 420px));
+}
+.pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #e7ddcd;
+  box-shadow: 0 0 8px 1px rgba(231, 221, 205, 0.7);
+}
+
+/* Bigger, tighter, and a shade lighter in weight. The default h1 bold at loose
+   default tracking is why this read as a document heading rather than as a
+   hero: at display size, letterforms need less space between them, not the
+   same amount scaled up with them. */
+.headline {
+  margin: 0;
+  font-size: clamp(2.5rem, 5.7vw, 5rem);
+  font-weight: 540;
+  line-height: 1.03;
+  letter-spacing: -0.04em;
+  color: #f4f0ea;
+  transform-style: preserve-3d;
+}
+
+/* One word, one trajectory: outward from the middle of the line and toward the
+   lens, so the sentence comes apart rather than sliding off. 900px against a
+   1000px perspective is ten times over — big, and still short of the plane
+   where a word would turn inside out. */
+.word {
+  display: inline-block;
+  margin-right: 0.26em;
+  transform: translate3d(
+      calc(var(--waE) * var(--wx, 0px)),
+      calc(var(--waE) * var(--wy, 0px)),
+      calc(var(--waE) * 900px)
+    )
+    rotate(calc(var(--waE) * var(--wr, 0deg)));
+}
+
+.sub {
+  --wi: 1;
+  margin: 1.7rem auto 0;
+  max-width: 35rem;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: #a79f97;
+  transform: translate3d(0, calc(var(--waE) * 14vh), calc(var(--waE) * 520px));
+}
+
+.actions {
+  --wi: 0;
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 2.3rem;
+  pointer-events: auto;
+  /* Down and out rather than through the lens. A button that flies at the
+     camera ends up an invisible full-screen click target sitting over the rest
+     of the scene; this one leaves the frame and .viewport's overflow clips it
+     out of hit testing with it. */
+  transform: translate3d(0, calc(var(--waE) * 46vh), calc(var(--waE) * 380px));
+}
+/* Pills, and the arrow rides in its own disc inside the pill's padding — a
+   button inside the button. The disc is what moves on hover; the label holds
+   still, which is the difference between a control with a mechanism in it and
+   a rectangle that changes colour. */
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  height: 3.15rem;
+  padding: 0 0.42rem 0 1.45rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 520;
+  letter-spacing: -0.012em;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 600ms cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow 600ms cubic-bezier(0.32, 0.72, 0, 1),
+    border-color 400ms cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 400ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+/* Pressed, it gives. */
+.primary:active,
+.secondary:active { transform: scale(0.975); transition-duration: 120ms; }
+
+.btnIcon {
+  display: grid;
+  place-items: center;
+  width: 2.32rem;
+  height: 2.32rem;
+  border-radius: 50%;
+  background: rgba(10, 9, 8, 0.085);
+  transition:
+    transform 600ms cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 400ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.btnIcon svg { width: 0.95rem; height: 0.95rem; }
+
+.primary {
+  /* A hair of top-to-bottom fall, so the button has a lit edge and a shaded
+     one, and a warm spill underneath as though it were the brightest thing in
+     the room — which it is. */
+  background: linear-gradient(180deg, #ffffff, #e7e0d5);
+  color: #0a0908;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+    0 1px 0 0 rgba(0, 0, 0, 0.5),
+    0 22px 48px -22px rgba(231, 221, 205, 0.42);
+}
+.secondary {
+  border: 1px solid rgba(245, 238, 230, 0.12);
+  background: rgba(245, 238, 230, 0.028);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  color: rgba(245, 238, 230, 0.82);
+}
+.secondary .btnIcon { background: rgba(245, 238, 230, 0.07); }
+
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover {
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+      0 1px 0 0 rgba(0, 0, 0, 0.5),
+      0 26px 60px -20px rgba(231, 221, 205, 0.6);
+  }
+  .primary:hover .btnIcon {
+    background: rgba(10, 9, 8, 0.15);
+    transform: translate3d(2px, -1px, 0) scale(1.06);
+  }
+  .secondary:hover {
+    border-color: rgba(245, 238, 230, 0.26);
+    background: rgba(245, 238, 230, 0.05);
+    color: #f4f0ea;
+  }
+  .secondary:hover .btnIcon { transform: translate3d(0, 2px, 0) scale(1.06); }
+}
+
+/* ---- the proof rail ------------------------------------------------------
+   Three figures under the call to action, ruled apart. Leaves with the buttons
+   — --wi 0, the first thing out — because once the screen is the subject there
+   is nothing here worth reading.
+
+   The whole rail takes the pointer, which is the only reason .copy sets
+   pointer-events: none and hands it back one element at a time. */
+.proof {
+  --wi: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 2.6rem auto 0;
+  max-width: 41rem;
+  border-top: 1px solid rgba(245, 238, 230, 0.08);
+  text-align: left;
+  pointer-events: auto;
+  transform: translate3d(0, calc(var(--waE) * 52vh), calc(var(--waE) * 340px));
+}
+.proofCell {
+  position: relative;
+  padding: 0.95rem 0.9rem 0.2rem;
+  transition: background-color 260ms ease;
+}
+.proofCell + .proofCell { border-left: 1px solid rgba(245, 238, 230, 0.08); }
+/* The rule above the cell fills in from the left on hover — the whole
+   interaction, and it costs one scaleX. A cell that only changes colour reads
+   as a link; one that draws reads as something being measured. */
+.proofCell::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, #e7ddcd, rgba(231, 221, 205, 0.25));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .proofCell:hover { background-color: rgba(245, 238, 230, 0.025); }
+  .proofCell:hover::after { transform: scaleX(1); }
+  .proofCell:hover .proofN { color: #f4f0ea; }
+  .proofCell:hover .proofL { color: #99918a; }
+}
+.proofN {
+  margin: 0;
+  font-family: var(--font-mono), monospace;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: #d6d0c7;
+  transition: color 260ms ease;
+}
+.proofU {
+  margin-left: 0.28em;
+  font-size: 0.6em;
+  letter-spacing: 0;
+  color: #6a635c;
+}
+.proofL {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #57514b;
+  transition: color 260ms ease;
+}
+
+/* ---- the frame ----------------------------------------------------------
+   Four corner ticks. Static paint, one layer, and they lean a few pixels with
+   the pointer on the same long easing as the light — enough that the frame
+   reads as something in front of the scene rather than printed on it. */
+.ticks {
+  position: absolute;
+  inset: 5vh 4vw;
+  z-index: 2;
+  pointer-events: none;
+  --tick: linear-gradient(rgba(245, 238, 230, 0.22) 0 0);
+  background:
+    var(--tick) 0 0 / 1px 16px no-repeat, var(--tick) 0 0 / 16px 1px no-repeat,
+    var(--tick) 100% 0 / 1px 16px no-repeat, var(--tick) 100% 0 / 16px 1px no-repeat,
+    var(--tick) 0 100% / 1px 16px no-repeat, var(--tick) 0 100% / 16px 1px no-repeat,
+    var(--tick) 100% 100% / 1px 16px no-repeat, var(--tick) 100% 100% / 16px 1px no-repeat;
+  opacity: calc(1 - var(--exit));
+  transform: translate3d(calc(var(--px, 0) * -7px), calc(var(--py, 0) * -5px), 0);
+  transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---- the captions --------------------------------------------------------
+   In the band above the window — a percentage, not a rem, because that band is
+   whatever is left over after a stage sized `min(76%, 780px)`, and it has to
+   land inside it at every height.
+
+   Both are scrubbed rather than transitioned, including the way out. The second
+   one leaves across p 0.79→0.82, which straddles the rebuild trigger at 0.80 —
+   so it is gone by its own arithmetic instead of being snapped off by the
+   attribute, and no @property registration is needed to make a var fade. */
+.tag {
+  --in: 0;
+  --tone: #ef5a4c;
+
+  position: absolute;
+  left: 50%;
+  /* A fixed distance above the pane, wherever the pane's top edge has landed. */
+  top: calc(50% - var(--stH) / 2 - 2.2rem);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.36rem 0.85rem 0.36rem 0.7rem;
+  border: 1px solid rgba(245, 238, 230, 0.1);
+  border-radius: 999px;
+  /* Opaque. At three quarters it was translucent enough for a plate's table
+     rows to read straight through the words, which put a strikethrough across
+     "nothing rebuilt yet" at the one moment the sentence has to be trusted. */
+  background: #0a0908;
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.9), inset 0 1px 0 0 rgba(255, 255, 255, 0.035);
+  white-space: nowrap;
+  pointer-events: none;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+
+  /* The centring and the movement are separate properties on purpose, and this
+     is not a style preference — it was measured at half the frame budget.
+
+     A percentage inside `transform` resolves against the element's own used
+     size, so a transform that changes every frame is a layout question asked
+     every frame, and this element sits inside a sticky subtree of eleven
+     hundred nodes. Hiding the two captions took the scroll from 103ms a frame
+     to 54; nothing else added this round moved it out of the noise.
+
+     `translate` holds the static half — percentages, resolved once. `transform`
+     holds the moving half in px and in 3D, which is a compositor value, and
+     will-change keeps the opacity ramp off the main thread with it. */
+  translate: -50% -50%;
+  transform: translate3d(0, calc((1 - var(--in)) * 10px), 0);
+  opacity: var(--in);
+  will-change: transform, opacity;
+}
+.tagDot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 10px 0 var(--tone);
+}
+.tagKey { color: #e7ddcd; letter-spacing: 0.01em; }
+.tagVal {
+  padding-left: 0.55rem;
+  border-left: 1px solid rgba(245, 238, 230, 0.12);
+  color: #8a837c;
+}
+
+/* In once the copy is most of the way gone, out just before the tremor. It has
+   to be up for the whole diagnosis, because the red callouts are the detail and
+   this is the sentence they are detail *of*. */
+.tag[data-when="now"] {
+  --in: calc(
+    clamp(0, calc((var(--exit) - 0.5) * 3), 1) *
+      (1 - clamp(0, calc((var(--p) - 0.32) / 0.035), 1))
+  );
+}
+/* ---- the title card ------------------------------------------------------
+   Arrives from depth, holds, then continues past. Two ramps, not one, so the
+   hold is real rather than an easing artefact. */
+.card {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  pointer-events: none;
+  perspective: 1000px;
+  transform: translateZ(calc((var(--cardE) - 1) * 800px + var(--cardOut) * 800px));
+  opacity: calc(min(var(--card), 1 - var(--cardOut)) * 1.4);
+}
+.cardMark {
+  width: 34px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e7ddcd);
+}
+.cardText {
+  font-size: clamp(1.9rem, 4.4vw, 3.1rem);
+  font-weight: 510;
+  letter-spacing: -0.025em;
+  color: #f4f0ea;
+  white-space: nowrap;
+}
+
+/* ---- the dashboard, both states ----------------------------------------- */
+/* Inside a plate these are set to push the dashboard back out to full window
+   size from a plate-sized box; everywhere else they default to filling the
+   parent. Type stays vw-based, so it does not scale with the box. */
+.app {
+  position: absolute;
+  left: var(--ax, 0);
+  top: var(--ay, 0);
+  width: var(--aw, 100%);
+  height: var(--ah, 100%);
+  display: flex;
+  font-size: clamp(11px, 0.92vw, 14px);
+}
+
+.nav {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: clamp(140px, 14vw, 200px);
+  padding: 1rem 0.7rem;
+  border-right: 1px solid rgba(245, 238, 230, 0.07);
+  background: rgba(255, 255, 255, 0.012);
+}
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0 0.4rem;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75em;
+  color: #8a837c;
+}
+.navItem {
+  padding: 0.4rem;
+  border-radius: 5px;
+  font-size: 0.85em;
+  color: #6a635c;
+}
+.navOn { background: rgba(245, 238, 230, 0.05); color: #b3aaa1; }
+
+.liveDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #5da572;
+}
+
+.appMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Centred, not baseline-aligned: the two titles are stacked on top of each
+   other in .barSwap and cross-fade, and they are different heights. */
+.appBar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  height: 11%;
+  padding: 0 1.2rem;
+  border-bottom: 1px solid rgba(245, 238, 230, 0.07);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8em;
+  color: #6a635c;
+}
+
+/* The furniture. Present in both states and identical in both, because the
+   claim is not that the toolbar was wrong — it is that everything under it
+   was. */
+.search {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid rgba(245, 238, 230, 0.07);
+  border-radius: 6px;
+  color: #57514b;
+}
+.searchIcon { flex: none; width: 11px; height: 11px; }
+.chip {
+  padding: 0.2rem 0.55rem;
+  border: 1px solid rgba(245, 238, 230, 0.07);
+  border-radius: 6px;
+  color: #6a635c;
+}
+
+/* ---- the two states -----------------------------------------------------
+   One console, one set of rows, and every difference between "before" and
+   "after" is a transition off [data-side].
+
+   This used to be two components that swapped, and swapping is what it looked
+   like — a slide change. The claim the page is making is that nothing is added
+   between the two screens, only reorganised, and a reorganisation is invisible
+   unless the rows are the same rows and they move.
+
+   `--d` is the row's own delay, taken from its rank, so the table resolves top
+   down rather than all at once. Every use carries a 0ms fallback: the header
+   row is not in `.rows` and has no rank, and one unresolved var() invalidates
+   the whole declaration it appears in. */
+
+/* --- the stat row --- */
+.stats {
+  flex: none;
+  display: flex;
+  gap: 0.55rem;
+  height: 15%;
+  padding: 0.55rem 1.2rem;
+}
+.stat {
+  --d: calc(var(--r, 0) * 55ms);
+
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid rgba(245, 238, 230, 0.06);
+  border-radius: 8px;
+  font-family: var(--font-mono), monospace;
+  transition: flex-grow 620ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms),
+    border-color 420ms ease var(--d, 0ms), background-color 420ms ease var(--d, 0ms);
+}
+/* The lead tile grows into its own importance rather than appearing at a
+   different size — flex-grow interpolates, so the other three give way. */
+[data-side="after"] .stat[data-lead] {
+  flex-grow: 1.7;
+  border-color: rgba(239, 90, 76, 0.28);
+  background-color: rgba(239, 90, 76, 0.06);
+}
+
+/* Two readings of the same tile, stacked and cross-faded. Text cannot be
+   interpolated; two layers of it can. */
+.statFace {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0 0.65rem;
+  transition: opacity 340ms ease var(--d, 0ms);
+}
+.statFace[data-when="after"] { opacity: 0; }
+[data-side="after"] .statFace[data-when="before"] { opacity: 0; }
+[data-side="after"] .statFace[data-when="after"] { opacity: 1; }
+
+.statLabel { font-size: 0.72em; line-height: 1.25; color: #57514b; }
+.statVal {
+  font-size: 1.15em;
+  line-height: 1.2;
+  color: #8a837c;
+  font-variant-numeric: tabular-nums;
+}
+.stat[data-lead] .statFace[data-when="after"] .statVal {
+  font-size: 1.9em;
+  font-weight: 650;
+  color: #ff8b7d;
+}
+.stat[data-kind="bad"] .statFace[data-when="after"] .statVal { color: #ef5a4c; }
+.stat[data-kind="warn"] .statFace[data-when="after"] .statVal { color: #cc9440; }
+
+/* What the number is measured against. A figure on its own is the thing the
+   broken screen already had four of. */
+.statNote { font-size: 0.7em; line-height: 1.25; color: #6a635c; }
+.statNote[data-tone="bad"] { color: #ff8b7d; }
+.statNote[data-tone="warn"] { color: #cc9440; }
+
+/* --- the app bar title --- */
+.barSwap {
+  position: relative;
+  align-self: center;
+  width: 15em;
+  height: 1.7em;
+}
+.barPath,
+.barTitle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  translate: 0 -50%;
+  white-space: nowrap;
+  transition: opacity 320ms ease;
+}
+.barPath { color: #6a635c; }
+.barTitle {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  opacity: 0;
+}
+[data-side="after"] .barPath { opacity: 0; }
+[data-side="after"] .barTitle { opacity: 1; }
+.barHead {
+  font-family: var(--font-sans);
+  font-size: 1.5em;
+  font-weight: 560;
+  letter-spacing: -0.02em;
+  color: #f4f0ea;
+}
+.barSub { color: #8a837c; }
+
+/* --- the table --- */
+.split { display: flex; flex: 1; min-height: 0; }
+
+.table {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0.55rem;
+}
+
+.tr {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.7rem;
+  border-bottom: 1px solid rgba(245, 238, 230, 0.045);
+  font-family: var(--font-mono), monospace;
+  white-space: nowrap;
+}
+/* A percentage, not 26px: the callout anchors are computed from this share of
+   the table, and a pixel header drifts against them as the window resizes. */
+.th {
+  flex: none;
+  height: 5%;
+  border-bottom-color: rgba(245, 238, 230, 0.09);
+  font-size: 0.8em;
+  color: #57514b;
+}
+
+/* The rows are taken out of flow and placed by rank, because changing a rank
+   then becomes a transform the browser can interpolate. In document flow the
+   same reorder is a relayout, which cannot be animated at all — the rows would
+   teleport, which is exactly what "the screen refreshing" looked like. */
+.rows {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.rows .tr {
+  --rank: var(--before, 0);
+  --d: calc(var(--rank) * 46ms);
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 12.5%;
+  transform: translateY(calc(var(--rank) * 100%));
+  transition: transform 640ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms),
+    background 420ms ease var(--d, 0ms);
+}
+[data-side="after"] .rows .tr { --rank: var(--after, 0); }
+[data-side="after"] .rows .tr[data-kind="bad"] {
+  background: linear-gradient(90deg, rgba(239, 90, 76, 0.13), rgba(239, 90, 76, 0.02) 55%, transparent 80%);
+}
+
+.cName {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5ch;
+  overflow: hidden;
+  color: #8a837c;
+  transition: color 420ms ease var(--d, 0ms);
+}
+[data-side="after"] .cName { color: #f4f0ea; }
+.prefix { flex: none; color: #6a635c; }
+.fn { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.cNum {
+  flex: none;
+  width: 5.5em;
+  text-align: right;
+  color: #8a837c;
+  font-variant-numeric: tabular-nums;
+  transition: color 420ms ease var(--d, 0ms);
+}
+[data-side="after"] .cNum[data-kind="ok"] { color: #f4f0ea; }
+[data-side="after"] .cNum[data-kind="bad"] { color: #ef5a4c; }
+[data-side="after"] .cNum[data-kind="warn"] { color: #cc9440; }
+
+/* Direction. Present in both states — the number was always in the table — and
+   toned only once the screen is trying to be read, by size rather than by sign,
+   because latency going up is bad news however the number is spelled. */
+.cTrend {
+  flex: none;
+  width: 4.4em;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.25em;
+  color: #8a837c;
+  font-variant-numeric: tabular-nums;
+  transition: color 420ms ease var(--d, 0ms);
+}
+[data-side="after"] .cTrend { color: #6a635c; }
+[data-side="after"] .cTrend[data-kind="bad"] { color: #ef5a4c; font-weight: 600; }
+[data-side="after"] .cTrend[data-kind="warn"] { color: #cc9440; }
+.arrow {
+  font-size: 0.85em;
+  opacity: 0;
+  transition: opacity 320ms ease var(--d, 0ms);
+}
+[data-side="after"] .arrow { opacity: 0.75; }
+
+/* Reach. The count is in both states; the share of the eighteen is what the
+   rebuilt one adds, and it grows out of nothing rather than appearing. */
+.cUsers {
+  flex: none;
+  width: 4em;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45em;
+  color: #8a837c;
+  font-variant-numeric: tabular-nums;
+}
+.usersBar {
+  flex: none;
+  width: 0;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(245, 238, 230, 0.08);
+  overflow: hidden;
+  transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms);
+}
+[data-side="after"] .usersBar { width: 26px; }
+.usersFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(231, 221, 205, 0.5);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 560ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--d, 0ms) + 160ms);
+}
+[data-side="after"] .usersFill { transform: scaleX(var(--u, 0)); }
+[data-side="after"] .tr[data-kind="bad"] .usersFill { background: #ef5a4c; }
+
+.cCost {
+  flex: none;
+  width: 6.1em;
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 340ms ease var(--d, 0ms);
+}
+[data-side="after"] .cCost { opacity: 1; }
+.costVal {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 0.4rem;
+  border-radius: 5px;
+  font-variant-numeric: tabular-nums;
+  color: #6a635c;
+}
+[data-side="after"] .tr[data-kind="bad"] .costVal {
+  background: rgba(239, 90, 76, 0.16);
+  color: #ff8b7d;
+  font-weight: 600;
+}
+
+/* The same fact twice: "error" is what the log said, the pill is what it meant.
+   Stacked in one cell and cross-faded, so the column reads as one thing
+   changing its mind rather than two columns swapping. */
+.cStatus {
+  position: relative;
+  flex: none;
+  width: 6.5em;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: #8a837c;
+}
+.rawStatus { transition: opacity 260ms ease var(--d, 0ms); }
+[data-side="after"] .rawStatus { opacity: 0; }
+.pill {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 0.95em;
+  font-weight: 500;
+  opacity: 0;
+  /* The centring is in the transform, with the scale, on purpose. Written as a
+     separate `translate` it gets folded into `transform` by the build — and the
+     rebuilt state's own transform then replaces both, which is how every pill
+     ended up half its height below its row. */
+  transform: translateY(-50%) scale(0.75);
+  transition: opacity 300ms ease var(--d, 0ms),
+    transform 460ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms);
+}
+[data-side="after"] .pill { opacity: 1; transform: translateY(-50%); }
+.pillDot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+.glyph {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 300ms ease var(--d, 0ms),
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms);
+}
+[data-side="after"] .glyph { opacity: 1; transform: none; }
+/* pathLength="1" normalises the dash to the shape, so one pair of numbers draws
+   a circle, an arc and a tick without measuring any of them. */
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 200ms ease;
+}
+[data-side="after"] .draw {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 540ms cubic-bezier(0.45, 0, 0.25, 1) calc(var(--d, 0ms) + 120ms);
+}
+
+.railMark {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 999px;
+  background: #ef5a4c;
+  box-shadow: 0 0 14px 0 rgba(239, 90, 76, 0.55);
+  transform: scaleY(0);
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms);
+}
+[data-side="after"] .tr[data-kind="bad"] .railMark { transform: scaleY(1); }
+
+.cBar { flex: none; width: clamp(40px, 5.4vw, 88px); }
+.barTrack {
+  display: block;
+  position: relative;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(245, 238, 230, 0.07);
+  opacity: 0;
+  transition: opacity 300ms ease var(--d, 0ms);
+}
+[data-side="after"] .barTrack { opacity: 1; }
+/* Grows out to its real width just behind the row landing, rather than arriving
+   at it. This is the one that makes eight rows read as eight different numbers
+   instead of eight bars. */
+.barFill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 660ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--d, 0ms) + 150ms);
+}
+[data-side="after"] .barFill { transform: scaleX(var(--w, 1)); }
+
+/* ---- the chart panel -----------------------------------------------------
+   Draws itself after the rows have landed, which is where the eye should
+   finish: it answers the question the table only raises. */
+.side {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  width: clamp(180px, 18vw, 250px);
+  padding: 0.8rem 0.9rem;
+  border-left: 1px solid rgba(245, 238, 230, 0.07);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+[data-side="after"] .side { opacity: 1; transition: opacity 380ms ease 220ms; }
+.sideHead {
+  display: flex;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8em;
+  color: #8a837c;
+}
+.sideWin { margin-left: auto; color: #6a635c; }
+.chart { display: block; width: 100%; height: auto; margin-top: 0.5rem; }
+.chartLine {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 220ms ease;
+}
+/* Wipes with the line rather than fading under it — a fill that appears before
+   its own boundary reads as a bug. */
+.chartArea {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 220ms ease;
+}
+/* The budget is drawn before the curve, so the curve is seen crossing it rather
+   than found already past it. */
+.chartBudget { opacity: 0; transition: opacity 220ms ease; }
+.chartPeak { opacity: 0; transition: opacity 220ms ease; }
+[data-side="after"] .chartLine {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1000ms cubic-bezier(0.4, 0, 0.3, 1) 620ms;
+}
+[data-side="after"] .chartArea {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1000ms cubic-bezier(0.4, 0, 0.3, 1) 620ms;
+}
+[data-side="after"] .chartBudget { opacity: 1; transition: opacity 300ms ease 460ms; }
+[data-side="after"] .chartPeak { opacity: 1; transition: opacity 320ms ease 1500ms; }
+
+.sideFoot { margin-top: auto; }
+.sideTotal {
+  display: block;
+  font-family: var(--font-mono), monospace;
+  font-size: 1.35em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #ff8b7d;
+}
+.sideNote { font-family: var(--font-mono), monospace; font-size: 0.75em; color: #6a635c; }
+
+/* ---- the foot -----------------------------------------------------------
+   One slot, two things to put in it: the panel that should have been telling
+   them it costs money, and the sentence that does. Cross-faded in place, so the
+   height of the console never changes and the rows above it never shift.
+
+   The four bands have to sum to exactly 100% of the content area or the table
+   stops running 26%→84% and every callout anchor drifts. */
+.foot {
+  position: relative;
+  flex: none;
+  height: 16%;
+}
+.deadPanel {
+  position: absolute;
+  left: 1.2rem;
+  right: 1.2rem;
+  top: 0;
+  bottom: 0;
+  padding: 0.8rem;
+  border: 1px solid rgba(245, 238, 230, 0.06);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-mono), monospace;
+  transition: opacity 340ms ease;
+}
+.deadLabel { font-size: 0.8em; color: #57514b; }
+.deadEmpty { margin: auto; font-size: 0.85em; color: #443f3a; }
+[data-side="after"] .deadPanel { opacity: 0; transition: opacity 260ms ease; }
+
+.verdict {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: center;
+  gap: 0.2rem 0.6rem;
+  padding: 0.5rem 1.2rem;
+  border-top: 1px solid rgba(245, 238, 230, 0.07);
+  background: rgba(239, 90, 76, 0.05);
+  font-family: var(--font-mono), monospace;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+[data-side="after"] .verdict { opacity: 1; transition: opacity 380ms ease 760ms; }
+.verdictNum {
+  font-size: 1.3em;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: #ff8b7d;
+}
+.verdictText { font-family: var(--font-sans); font-size: 1em; color: #d6d0c7; }
+.verdictMeta { flex-basis: 100%; font-size: 0.8em; color: #8a837c; }
+
+/* ---- before / after ------------------------------------------------------
+   The only thing on the page a reader can operate, and it arrives with the
+   rebuild. Everything up to here has been an assertion that the second layout
+   is better than the first; this lets them hold the two against each other in
+   the same frame and check — and, because both states are one console, watch
+   the rows travel between them.
+
+   A sliding pill behind two real buttons rather than two buttons that change
+   colour: the movement is what says these are two states of one thing. */
+.toggle {
+  position: absolute;
+  left: 50%;
+  bottom: 2.1rem;
+  z-index: 5;
+  display: flex;
+  gap: 0.15rem;
+  padding: 0.22rem;
+  border: 1px solid rgba(245, 238, 230, 0.1);
+  border-radius: 999px;
+  background: rgba(10, 9, 8, 0.82);
+  box-shadow: 0 20px 44px -24px rgba(0, 0, 0, 0.95), inset 0 1px 0 0 rgba(255, 255, 255, 0.045);
+  /* Nothing to press until there is something to compare. The centring rides
+     in the transform for the same reason the pill's does. */
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(-50%, 12px, 0);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.reel[data-fix="on"] .toggle {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate3d(-50%, 0, 0);
+  transition: opacity 420ms ease 1500ms, transform 520ms cubic-bezier(0.22, 1, 0.36, 1) 1500ms;
+}
+
+.tgBtn {
+  position: relative;
+  z-index: 1;
+  padding: 0.34rem 1.05rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: #8a837c;
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+.tgBtn[aria-pressed="true"] { color: #0a0908; }
+.tgBtn:focus-visible { outline: 2px solid #e7ddcd; outline-offset: 2px; }
+
+.tgPill {
+  position: absolute;
+  top: 0.22rem;
+  bottom: 0.22rem;
+  left: 0.22rem;
+  width: calc(50% - 0.22rem);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff, #e9e3da);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  transition: translate 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.toggle[data-side="after"] .tgPill { translate: 100% 0; }
+
+/* ---- scroll affordance --------------------------------------------------- */
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 1.5rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  translate: -50% 0;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(245, 238, 230, 0.5);
+  /* Gone the moment it has been obeyed. */
+  opacity: calc(1 - clamp(0, calc(var(--p) * 20), 1));
+}
+/* A line that fills downward and lets go, over and over: the gesture, drawn. */
+.hintLine {
+  width: 1px;
+  height: 30px;
+  background: linear-gradient(180deg, transparent, #e7ddcd);
+  transform-origin: 50% 0;
+  animation: drip 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes drip {
+  0% { transform: scaleY(0); opacity: 1; }
+  55% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+
+/* ---- narrow ------------------------------------------------------------- */
+/* A pinned six-screen hero on a phone is six screens of scrolling before the
+   visitor reaches a word they can act on. The runway shortens, and the columns
+   and callouts that cannot survive the width drop out. */
+@media (max-width: 900px) {
+  .reel { height: 340vh; }
+  /* The phone capture: a different layout, so a different shape. */
+  .viewport {
+    --ar: 0.7159;
+    --cap: 398.9;
+    --stW: min(93vw, calc(72svh * var(--ar)));
+  }
+  .glassWrap { width: 93vw; height: min(64%, 560px); }
+  .glass, .reflect { border-radius: 12px; }
+  .slab { inset: -5px; border-radius: 17px; }
+  .slab + .slab { inset: -2px; border-radius: 14px; }
+  .toggle { bottom: 1.4rem; }
+  .tgBtn { padding: 0.3rem 0.85rem; font-size: 0.6875rem; }
+  /* Priority collapse, the same order the console uses: the bar and the side
+     panel go first, then reach, then trend. Cost and status never drop —
+     they are the two columns the whole argument rests on. */
+  .cBar { display: none; }
+  .cUsers { display: none; }
+  .cTrend { display: none; }
+  .side { display: none; }
+  .nav { display: none; }
+  .search { display: none; }
+  .chip:not(:last-child) { display: none; }
+  .stats { gap: 0.35rem; padding: 0.4rem 0.7rem; }
+  .stat { padding: 0 0.45rem; }
+  .statLead .statVal { font-size: 1.4em; }
+  .cCost { width: 5.6em; }
+  .cStatus { width: 5.2em; }
+  .cTrend { width: 4.2em; }
+  .statNote { display: none; }
+  .tr { gap: 0.5rem; padding: 0 0.6rem; }
+  .prefix { display: none; }
+  .railName { padding-left: 0; }
+  .copy { padding: 0 1rem 20svh; }
+  .copyInner { padding: 0; }
+  .headline { font-size: clamp(2.1rem, 9.4vw, 3rem); letter-spacing: -0.034em; line-height: 1.05; }
+  /* Narrow, the line breaks itself and a forced one makes a ragged four. */
+  .headBreak { display: none; }
+  .sub { font-size: 1rem; margin-top: 1.25rem; }
+  .eyebrow { font-size: 0.59375rem; letter-spacing: 0.14em; margin-bottom: 1.4rem; }
+  .actions { margin-top: 1.7rem; }
+  .primary, .secondary { height: 2.9rem; font-size: 0.875rem; padding-left: 1.2rem; }
+  .btnIcon { width: 2.1rem; height: 2.1rem; }
+  .proof { margin-top: 1.9rem; }
+  .proofCell { padding: 0.75rem 0.5rem 0.2rem; }
+  .proofN { font-size: 1.1rem; }
+  .proofL { font-size: 0.6875rem; line-height: 1.4; }
+  .ticks { inset: 3vh 3vw; }
+  .mesh { background-size: 46px 46px; }
+  /* The whole caption will not fit across a phone, and shrinking it to fit is
+     how you get a line nobody reads. The key alone carries the point. */
+  .tagVal { display: none; }
+  .tag { font-size: 0.6875rem; }
+  /* Three callouts with leader lines do not fit beside a 390px table, and
+     shrinking them to fit makes them unreadable, which defeats the point. */
+  .notes, .notesFix { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The hook pins --p to 1, which would otherwise rest the scene on its last
+     frame — with the headline already flown past the lens and invisible. Park
+     the phases on a composite that is actually a hero: the rebuilt console,
+     assembled, with the copy legible on top of it. */
+  .viewport {
+    --exit: 0;
+    --diag: 0;
+    --fly: 0;
+    --card: 0;
+    --cardOut: 1;
+    --rise: 1;
+  }
+  .reel { height: 100svh; }
+  .gl, .floor { display: none; }
+  .stage { display: none; }
+  .hint { display: none; }
+  /* The console is put in its rebuilt state and held there. The component sets
+     the side to "after" on mount under reduced motion — there is no scroll here
+     to cross the mark that would otherwise do it — and everything below simply
+     removes the travel, so the finished layout is what renders on the first
+     frame rather than something that arrives.
+
+     The toggle still works. A click is not motion anybody asked to be spared,
+     and with the transitions off it is an instant swap. */
+  .toggle { opacity: 1; transform: translate3d(-50%, 0, 0); pointer-events: auto; }
+  .glass *,
+  .notesFix *,
+  .glassTilt,
+  .track1,
+  .track2 { transition: none !important; animation: none !important; }
+  .glassTilt { transform: none; }
+  /* The green callouts would sit on the headline with no scroll to separate
+     them, and --exit has to stay at 0 here or the copy leaves with it — which
+     would also leave the cover closed over the console this state exists to
+     show. */
+  .notesFix { display: none; }
+  /* Resolves to zero from its own arithmetic here — but only because the hook
+     pins --p to 1. Stated outright so the composite does not depend on
+     JavaScript having run. */
+  .tag { display: none; }
+  .wash3, .hintLine { animation: none; }
+}
+
+/* A short window has room for the headline and the floor under it, and not
+   for three figures in between. They are supporting evidence; they go first. */
+@media (max-height: 760px) and (min-width: 901px) {
+  .proof { display: none; }
+  .copy { padding-bottom: 20svh; }
+}
+
+/* ---- the photograph ------------------------------------------------------
+   `npm run capture:reel` sets data-capture on <html> and photographs the
+   console in its "before" state: that picture is what the WebGL pane wears.
+   Everything here strips the console back to what the *old* screen looked like
+   — flat, opaque, no glass, no room — because the texture is the screen itself
+   and the pane supplies its own light. */
+:global(html[data-capture]) .field,
+:global(html[data-capture]) .grain,
+:global(html[data-capture]) .ticks,
+:global(html[data-capture]) .gl,
+:global(html[data-capture]) .slab,
+:global(html[data-capture]) .sheen,
+:global(html[data-capture]) .reflect,
+:global(html[data-capture]) .toggle { display: none; }
+:global(html[data-capture]) .glassTilt { transform: none; transition: none; }
+:global(html[data-capture]) .glass {
+  -webkit-box-reflect: unset;
+  border-color: rgba(245, 238, 230, 0.1);
+  background: #0e0d0c;
+  box-shadow: none;
+}

@@ -1,0 +1,270 @@
+.hero {
+  --a1: 231, 221, 205; /* bone — the only mark the site brands with */
+
+  /* Fallbacks for every surface below that reads the pointer. The hook stays
+     silent on touch and under reduced motion, so these are the values most
+     visitors actually see — they have to look composed on their own. */
+  --mx: 50%;
+  --my: 32%;
+  --px: 0;
+  --py: 0;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 6rem 0 5rem;
+  background: #0a0908;
+}
+
+@media (min-width: 768px) {
+  .hero { padding: 8.5rem 0 6.5rem; }
+}
+
+/* z0 — the light.
+
+   The previous version of this file had four saturated blobs drifting behind
+   the copy. Four circles of colour on near-black is the single most recognised
+   machine-generated background on the web, and the reason it reads that way is
+   scale: a blob small enough to see the edge of reads as an object sitting on
+   the page rather than as light falling across it.
+
+   So these are deliberately larger than the viewport. You never meet an edge,
+   only a gradient, which is what light actually does. There are two, they are
+   nearly colourless — one warm, one cool — and all they do is decide which side
+   of the page is warmer. The pointer slides them in opposite directions with
+   different lag, so crossing the hero genuinely changes its temperature rather
+   than dragging a lamp around. */
+.field {
+  position: absolute;
+  inset: -30% -20% auto;
+  height: 130%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Two elements per wash: the outer carries the pointer, the inner carries its
+   idle drift. One element cannot hold a CSS animation and a cursor-driven
+   transform on the same property. */
+.track {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.t1 {
+  transform: translate3d(calc(var(--px) * 90px), calc(var(--py) * 54px), 0);
+  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.t2 {
+  transform: translate3d(calc(var(--px) * -150px), calc(var(--py) * -70px), 0);
+  transition: transform 1500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wash {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+/* Warm, upper left. Sunlight through a window, not a brand colour. */
+.w1 {
+  left: -25%;
+  top: -18%;
+  width: 96vw;
+  height: 62vw;
+  background: radial-gradient(closest-side, rgba(255, 224, 184, 0.16), transparent);
+  animation: breathe1 34s ease-in-out infinite;
+}
+/* Cool, upper right, weaker. Only there to give the warm side something to be
+   warmer than. */
+.w2 {
+  right: -30%;
+  top: -24%;
+  width: 88vw;
+  height: 58vw;
+  background: radial-gradient(closest-side, rgba(142, 172, 224, 0.115), transparent);
+  animation: breathe2 47s ease-in-out infinite;
+}
+
+/* Long, prime-ish periods that never sync into a pose the eye can learn. */
+@keyframes breathe1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(4vw, 2vw, 0) scale(1.1); }
+}
+@keyframes breathe2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.06); }
+  50% { transform: translate3d(-5vw, 3vw, 0) scale(0.96); }
+}
+
+/* Grain, at four times the strength the rest of the page carries it.
+
+   This is the cheapest honest signal on the whole site: generated pages are
+   uniformly clean because nothing in the pipeline ever adds imperfection. A
+   real grain plate over a dark gradient also kills the banding that large soft
+   washes produce on 8-bit displays, so it is doing a technical job as well as
+   an aesthetic one. */
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  /* No blend mode. `overlay` against a near-black ground multiplies down to
+     almost nothing, so the plate has to sit on top at a low flat opacity to be
+     visible at all — which is also how a real grain plate behaves. */
+  opacity: 0.055;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* One hairline closing the section, fading out at both ends rather than
+   stopping dead against the viewport edge. */
+.horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--a1), 0.16) 30%,
+    rgba(var(--a1), 0.16) 70%,
+    transparent
+  );
+}
+
+.inner {
+  position: relative;
+  z-index: 2;
+  margin: 0 auto;
+  max-width: 72rem;
+  padding: 0 1.5rem;
+}
+
+/* ---------- copy ---------- */
+.copy {
+  max-width: 44rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 1.6rem;
+  padding: 0.35rem 0.8rem 0.35rem 0.6rem;
+  border: 1px solid rgba(245, 238, 230, 0.08);
+  border-radius: 999px;
+  background: rgba(245, 238, 230, 0.02);
+  color: rgba(245, 238, 230, 0.6);
+  font-size: 0.8125rem;
+  letter-spacing: -0.008em;
+}
+
+.pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgb(var(--a1));
+  box-shadow: 0 0 8px 1px rgba(var(--a1), 0.7);
+}
+
+.headline {
+  margin: 0;
+  font-size: clamp(2.5rem, 5.6vw, 4rem);
+  color: #f4f0ea;
+}
+
+.sub {
+  margin: 1.5rem auto 0;
+  max-width: 34rem;
+  font-size: 1.0625rem;
+  line-height: 1.62;
+  letter-spacing: -0.011em;
+  color: #99918a;
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2.25rem;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  height: 2.5rem;
+  padding: 0 1.05rem;
+  border: 0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 510;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 160ms ease, border-color 160ms ease, color 160ms ease,
+    box-shadow 220ms ease;
+}
+
+.primary {
+  background: #f4f0ea;
+  color: #0a0908;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.4) inset;
+}
+/* Lift and a real cast shadow. The old version fired a coloured glow out of the
+   button, which is stage lighting: it announces that something is interactive
+   instead of letting the movement say it. */
+.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset,
+    0 10px 26px -10px rgba(0, 0, 0, 0.9);
+}
+.primary:active { transform: translateY(0) scale(0.99); }
+
+.secondary {
+  border: 1px solid rgba(245, 238, 230, 0.1);
+  color: rgba(245, 238, 230, 0.72);
+  background: rgba(245, 238, 230, 0.02);
+}
+.secondary:hover {
+  border-color: rgba(245, 238, 230, 0.2);
+  color: #f4f0ea;
+  transform: translateY(-1px);
+}
+
+/* ---------- the compare panel ---------- */
+.stage {
+  position: relative;
+  margin: 4rem auto 0;
+  max-width: 60rem;
+}
+
+/* light pooling under the panel so it sits in the page rather than on it */
+.stage::before {
+  content: "";
+  position: absolute;
+  inset: 12% 8% -8%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--a1), 0.3), transparent 72%);
+  filter: blur(46px);
+}
+
+@media (max-width: 640px) {
+  .stage { margin-top: 2.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary, .secondary { transition: none; }
+  .primary:hover, .secondary:hover, .primary:active { transform: none; }
+  /* The light stays, the weather stops, and the field holds still. */
+  .wash { animation: none; }
+  .track { transform: none !important; transition: none; }
+}

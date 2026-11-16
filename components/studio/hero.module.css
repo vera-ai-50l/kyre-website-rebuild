@@ -1,0 +1,727 @@
+/* The hero is one pinned scene scrubbed by --p (0…1 over the section's height).
+
+   0.02–0.18  the headline leaves through the lens; the old screen stands up
+   0.198      the hit (a one-shot shake, on its own clock)
+   0.21–0.32  the crack runs; the callouts write themselves in
+   0.40–0.57  the pieces leave and the camera goes through where they were
+   0.48–0.68  one line of text, in and out
+   0.60       the pane's face is swapped for the new screen, out of sight
+   0.64–0.84  the new screen rises from under the frame and levels out
+   0.76       it is up: its contents arrive, the Before/After switch appears
+
+   The same arithmetic is repeated in glass/scene.ts, which draws the pane. */
+
+.reel {
+  --p: 0;
+  --room: #e7e8eb;
+  position: relative;
+  height: 560vh;
+  background: var(--room);
+}
+
+.viewport {
+  --exit: clamp(0, calc((var(--p) - 0.02) / 0.16), 1);
+  --diag: clamp(0, calc((var(--p) - 0.21) / 0.11), 1);
+  --fly: clamp(0, calc((var(--p) - 0.4) / 0.17), 1);
+  --card: clamp(0, calc((var(--p) - 0.48) / 0.08), 1);
+  --cardOut: clamp(0, calc((var(--p) - 0.62) / 0.06), 1);
+  --rise: clamp(0, calc((var(--p) - 0.64) / 0.2), 1);
+
+  /* smoothstep for the long moves: ease-out against a linear scrollbar spends
+     the whole move in the first third of the runway. */
+  --exitE: calc(var(--exit) * var(--exit) * (3 - 2 * var(--exit)));
+  --flyE: calc(var(--fly) * var(--fly) * (3 - 2 * var(--fly)));
+  --riseE: calc(var(--rise) * var(--rise) * (3 - 2 * var(--rise)));
+  --cardE: calc(1 - (1 - var(--card)) * (1 - var(--card)) * (1 - var(--card)));
+
+  /* The old screen's box. Its shape is the capture's (glass/plates.ts): the
+     canvas maps a picture onto it, so it is as big as it can be inside
+     87vw × 76svh at that ratio and no bigger. */
+  --ar: 1.9886;
+  --stW: min(87vw, 1280px, calc(min(76svh, 780px) * var(--ar)));
+  --stH: calc(var(--stW) / var(--ar));
+
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--room);
+}
+
+/* ---- the room ---------------------------------------------------------------
+   A daylight studio rather than a dark stage. Three washes far wider than the
+   frame, each a colour you would have to be told was there, drifting on their
+   own clocks; a ruled floor that fades out long before the edges. */
+.field { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.field::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #f3f3f5 0%, #e9eaed 46%, var(--room) 100%);
+}
+.wash1,
+.wash2,
+.wash3 {
+  position: absolute;
+  width: 90vmax;
+  height: 90vmax;
+  border-radius: 50%;
+  will-change: transform;
+}
+.wash1 {
+  left: -34vmax;
+  top: -46vmax;
+  background: radial-gradient(closest-side, rgba(203, 196, 255, 0.5), rgba(203, 196, 255, 0) 100%);
+  animation: drift1 26s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+.wash2 {
+  right: -40vmax;
+  top: -30vmax;
+  background: radial-gradient(closest-side, rgba(255, 214, 196, 0.55), rgba(255, 214, 196, 0) 100%);
+  animation: drift2 32s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+.wash3 {
+  left: 12vmax;
+  bottom: -62vmax;
+  background: radial-gradient(closest-side, rgba(196, 232, 226, 0.6), rgba(196, 232, 226, 0) 100%);
+  animation: drift1 38s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate-reverse;
+}
+@keyframes drift1 {
+  to { transform: translate3d(9vmax, 6vmax, 0) scale(1.12); }
+}
+@keyframes drift2 {
+  to { transform: translate3d(-10vmax, 8vmax, 0) scale(0.92); }
+}
+/* Daylight through a window somewhere off to the left: three soft bars of
+   it lying across the room at an angle, moving about as fast as an afternoon. */
+.mesh {
+  position: absolute;
+  inset: -30% -20%;
+  background: linear-gradient(
+    100deg,
+    transparent 0 24%,
+    rgba(255, 255, 255, 0.62) 29% 37%,
+    transparent 42% 45%,
+    rgba(255, 255, 255, 0.44) 49% 55%,
+    transparent 60% 63%,
+    rgba(255, 255, 255, 0.28) 66% 70%,
+    transparent 76%
+  );
+  -webkit-mask-image: linear-gradient(180deg, transparent 8%, #000 42%, #000 62%, transparent 96%);
+  mask-image: linear-gradient(180deg, transparent 8%, #000 42%, #000 62%, transparent 96%);
+  transform: skewX(-22deg);
+  animation: sun 34s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  will-change: transform;
+}
+@keyframes sun {
+  from { transform: skewX(-22deg) translate3d(-5vw, 0, 0); }
+  to { transform: skewX(-22deg) translate3d(7vw, 0, 0); }
+}
+
+/* Registration marks in the corners, the way a proof has them. */
+.ticks {
+  position: absolute;
+  inset: 5.2rem 2rem 2rem;
+  pointer-events: none;
+  --t: rgba(11, 12, 15, 0.28);
+  background:
+    linear-gradient(var(--t), var(--t)) 0 0 / 14px 1px,
+    linear-gradient(var(--t), var(--t)) 0 0 / 1px 14px,
+    linear-gradient(var(--t), var(--t)) 100% 0 / 14px 1px,
+    linear-gradient(var(--t), var(--t)) 100% 0 / 1px 14px,
+    linear-gradient(var(--t), var(--t)) 0 100% / 14px 1px,
+    linear-gradient(var(--t), var(--t)) 0 100% / 1px 14px,
+    linear-gradient(var(--t), var(--t)) 100% 100% / 14px 1px,
+    linear-gradient(var(--t), var(--t)) 100% 100% / 1px 14px;
+  background-repeat: no-repeat;
+}
+
+/* ---- the camera ------------------------------------------------------------ */
+.camera {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  perspective: 1150px;
+  perspective-origin: 50% 46%;
+  transform-style: preserve-3d;
+}
+/* One hit, fired by crossing a mark and run on its own clock. Tied to --p a
+   shake never ends: stop scrolling mid-break and it vibrates until you move. */
+.reel[data-jolt="break"] .camera {
+  animation: jolt 900ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+@keyframes jolt {
+  0% { transform: translate3d(0, 0, 0); }
+  6% { transform: translate3d(-4px, 2px, 0); }
+  15% { transform: translate3d(3px, -3px, 0); }
+  26% { transform: translate3d(-3px, -1px, 0); }
+  38% { transform: translate3d(2px, 2px, 0); }
+  52% { transform: translate3d(-2px, -1px, 0); }
+  68% { transform: translate3d(1px, 1px, 0); }
+  84% { transform: translate3d(-1px, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+.gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* What the standing pane puts on the floor. A light room needs it: without a
+   shadow the screen is a sticker. */
+.shadow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--stW) * 0.94);
+  height: 90px;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(24, 28, 48, 0.34), rgba(24, 28, 48, 0) 70%);
+  filter: blur(12px);
+  transform: translate3d(-50%, calc(var(--stH) / 2 - 22px), -60px);
+  opacity: calc(var(--exitE) * (1 - clamp(0, calc(var(--fly) * 2.4), 1)));
+}
+
+/* Where the floor runs out under the pane while it lies back. */
+.floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: 24%;
+  pointer-events: none;
+  background: linear-gradient(0deg, var(--room) 6%, rgba(231, 232, 235, 0.6) 46%, rgba(231, 232, 235, 0));
+  opacity: calc(1 - var(--exit));
+}
+
+/* ---- the old screen's footprint -------------------------------------------- */
+.stage {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: var(--stW);
+  height: var(--stH);
+}
+/* The flat picture: seen only before three.js arrives, and for good where
+   there is no WebGL. It stands in, then leaves toward the lens. */
+.paneImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  transform: scale(calc((0.94 + 0.06 * var(--exitE)) * (1 + var(--flyE) * 0.9)));
+  opacity: calc(var(--exit) * clamp(0, calc(1 - var(--fly) * 1.6), 1));
+}
+.reel[data-gl="on"] .paneImg { display: none; }
+
+/* ---- callouts ---------------------------------------------------------------
+   Text, on a layer of its own, because these have to be read rather than
+   shattered. A dot on the thing, a rule, a label. */
+.notes,
+.notesFix {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.notes { opacity: calc(1 - clamp(0, calc(var(--fly) * 3), 1)); }
+.note {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  transform: translate(0, -50%);
+}
+.noteL { flex-direction: row-reverse; transform: translate(-100%, -50%); }
+.noteDot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 26%, transparent);
+}
+.noteLine { flex: none; width: 34px; height: 1px; background: var(--tone); transform-origin: 0 50%; }
+.noteL .noteLine { transform-origin: 100% 50%; }
+.noteBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.8rem 0.55rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+.noteBox b {
+  font-family: var(--font-gmono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* On the old screen: white labels, a red dot. Scrubbed in by the crack. */
+.notes { --tone: #ff4a1f; }
+.notes .note { --a: clamp(0, calc((var(--diag) * 1.9) - (var(--n, 0) * 0.3)), 1); }
+.notes .noteDot { transform: scale(var(--a)); }
+.notes .noteLine { transform: scaleX(var(--a)); }
+.notes .noteBox {
+  background: #fff;
+  color: #3d4048;
+  box-shadow: 0 14px 30px -14px rgba(10, 12, 24, 0.55);
+  opacity: var(--a);
+  transform: translate3d(calc((1 - var(--a)) * 10px), 0, 0);
+}
+.notes .noteL .noteBox { transform: translate3d(calc((1 - var(--a)) * -10px), 0, 0); }
+.notes .noteBox b { color: #d13610; }
+
+/* On the new one: ink labels, played once the screen has arrived. */
+.notesFix { --tone: #0b0c0f; top: 34px; }
+.notesFix .noteBox { background: #0b0c0f; color: rgba(255, 255, 255, 0.72); }
+.notesFix .noteBox b { color: #fff; }
+.notesFix .noteLine { width: 26px; }
+.notesFix .noteDot { background: #ff4a1f; box-shadow: 0 0 0 4px rgba(255, 74, 31, 0.2); }
+.notesFix .note { opacity: 0; }
+.reel[data-live="on"] .notesFix .note {
+  animation: noteIn 700ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  animation-delay: calc(2100ms + var(--n, 0) * 160ms);
+}
+@keyframes noteIn {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+/* ---- the new screen ---------------------------------------------------------
+   Rises from under the frame, lying back, and levels out. */
+.glassWrap {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(87vw, 1280px);
+  height: min(70%, 720px);
+  pointer-events: none;
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+  transform: translate3d(0, calc(-3% + (1 - var(--riseE)) * 56vh), calc((1 - var(--riseE)) * -340px))
+    rotateX(calc((1 - var(--riseE)) * 62deg));
+}
+/* The lean toward the pointer, on its own long clock so the glass follows the
+   hand a beat late. Fades live here, on leaves: opacity on the wrapper would
+   flatten the 3D under it. */
+.glassTilt {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(calc(var(--py, 0) * var(--riseE) * -1.4deg)) rotateY(calc(var(--px, 0) * var(--riseE) * 2.2deg));
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glassTilt > * { opacity: clamp(0, calc(var(--rise) * 3.4), 1); }
+
+/* The tray the screen sits in: an outer shell a few pixels proud all round,
+   set back along the pane's own normal so it reads as thickness on the way up. */
+.slab {
+  position: absolute;
+  inset: -9px;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow:
+    inset 0 0 0 1px rgba(11, 12, 15, 0.06),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+    0 70px 120px -50px rgba(24, 28, 48, 0.5),
+    0 24px 44px -24px rgba(24, 28, 48, 0.28);
+  transform: translateZ(-10px);
+}
+.glass {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #fcfcfa;
+  box-shadow: 0 0 0 1px rgba(11, 12, 15, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  container-type: inline-size;
+  pointer-events: auto;
+}
+.glass[data-side="before"] { background: #0f172a; }
+
+/* The window's title strip. Part of the photograph, so part of the glass. */
+.rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(11, 12, 15, 0.07);
+  background: #f2f2f0;
+  font-family: var(--font-gmono), monospace;
+  font-size: 0.6875rem;
+  color: #7a7e86;
+}
+.rail i { width: 9px; height: 9px; border-radius: 50%; background: rgba(11, 12, 15, 0.13); }
+.rail span { margin-left: 10px; }
+.rail em {
+  margin-left: auto;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.625rem;
+}
+.glass[data-side="before"] .rail {
+  border-color: rgba(148, 163, 184, 0.14);
+  background: #0b1120;
+  color: #64748b;
+}
+.glass[data-side="before"] .rail i { background: rgba(148, 163, 184, 0.3); }
+.face { position: absolute; left: 0; top: 34px; width: 100%; height: calc(100% - 34px); }
+
+/* The pane on the floor: a soft pool of its own shade, not a mirror. */
+.reflect {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: 100%;
+  height: 90px;
+  background: radial-gradient(50% 60% at 50% 0%, rgba(24, 28, 48, 0.22), rgba(24, 28, 48, 0) 72%);
+  filter: blur(10px);
+}
+
+/* ---- the copy ---------------------------------------------------------------
+   It does not fade out, it leaves: every word on its own path toward and past
+   the lens, the block growing as it goes. */
+.copy {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem 19svh;
+  text-align: center;
+  perspective: 1000px;
+  pointer-events: none;
+}
+.copyInner {
+  position: relative;
+  max-width: 82rem;
+  transform-style: preserve-3d;
+  transform: scale(calc(1 + var(--exitE) * 0.72));
+  will-change: transform;
+}
+.copyInner > *,
+.word {
+  --wa: clamp(0, calc((var(--exit) * 1.75) - (var(--wi, 0) * 0.06)), 1);
+  --waE: calc(1 - (1 - var(--wa)) * (1 - var(--wa)) * (1 - var(--wa)));
+  backface-visibility: hidden;
+}
+.eyebrow,
+.sub,
+.actions,
+.micro,
+.facts,
+.word {
+  opacity: calc(1 - var(--wa));
+  will-change: transform, opacity;
+}
+.headline { --wi: 0; }
+.eyebrow {
+  --wi: 2;
+  margin-bottom: 2rem;
+  transform: translate3d(0, calc(var(--waE) * -12vh), calc(var(--waE) * 420px));
+}
+.headline {
+  margin: 0;
+  font-family: var(--font-mona), system-ui, sans-serif;
+  font-size: clamp(2.5rem, 5.35vw, 5.3rem);
+  font-weight: 620;
+  font-stretch: 112%;
+  line-height: 0.96;
+  letter-spacing: -0.052em;
+  color: #0b0c0f;
+  transform-style: preserve-3d;
+}
+.line { display: block; }
+.line:first-child { color: #8b8f98; }
+.word {
+  display: inline-block;
+  margin-right: 0.22em;
+  transform: translate3d(calc(var(--waE) * var(--wx, 0vw)), calc(var(--waE) * var(--wy, 0vh)), calc(var(--waE) * 640px))
+    rotate(calc(var(--waE) * var(--wr, 0deg)));
+}
+.word:last-child { margin-right: 0; }
+.sub {
+  --wi: 5;
+  max-width: 41rem;
+  margin: 1.7rem auto 0;
+  font-size: clamp(1.02rem, 1.32vw, 1.2rem);
+  line-height: 1.5;
+  letter-spacing: -0.012em;
+  color: #4b4f58;
+  transform: translate3d(0, calc(var(--waE) * 8vh), calc(var(--waE) * 380px));
+}
+.actions {
+  --wi: 7;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: 2.1rem;
+  pointer-events: auto;
+  transform: translate3d(0, calc(var(--waE) * 14vh), calc(var(--waE) * 340px));
+}
+.micro {
+  --wi: 8;
+  margin: 1rem 0 0;
+  font-size: 0.8125rem;
+  color: #6a6e77;
+  transform: translate3d(0, calc(var(--waE) * 16vh), calc(var(--waE) * 300px));
+}
+/* Once the copy has gone it must not eat clicks meant for the scene. */
+.reel[data-jolt="break"] .actions { pointer-events: none; }
+
+/* ---- captions over the scene ------------------------------------------------ */
+.tag {
+  position: absolute;
+  left: 50%;
+  top: calc(50% - var(--stH) / 2 - 3.3rem);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.42rem 0.9rem 0.42rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(11, 12, 15, 0.07), 0 10px 24px -14px rgba(24, 28, 48, 0.4);
+  font-family: var(--font-gmono), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #3d4048;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate3d(-50%, calc((1 - var(--in)) * 10px), 0);
+  opacity: var(--in);
+}
+.tag i { width: 6px; height: 6px; border-radius: 50%; background: #ff4a1f; }
+.tag[data-when="now"] {
+  --in: calc(clamp(0, calc((var(--p) - 0.15) / 0.04), 1) * (1 - clamp(0, calc((var(--p) - 0.37) / 0.03), 1)));
+}
+.tag[data-when="then"] {
+  --in: 0;
+  top: calc(50% - min(70svh, 720px) / 2 - 5.2rem);
+  transition: opacity 500ms cubic-bezier(0.32, 0.72, 0, 1), transform 700ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tag[data-when="then"] i { background: #17804a; }
+.reel[data-live="on"] .tag[data-when="then"] { --in: 1; transition-delay: 500ms; }
+
+.card {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  margin: 0;
+  pointer-events: none;
+  perspective: 1000px;
+  opacity: calc(min(var(--card), 1 - var(--cardOut)) * 1.4);
+}
+.cardText {
+  font-family: var(--font-mona), system-ui, sans-serif;
+  font-size: clamp(2.1rem, 5.4vw, 4.6rem);
+  font-weight: 620;
+  font-stretch: 112%;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: #0b0c0f;
+  text-align: center;
+  transform: translateZ(calc((var(--cardE) - 1) * 800px + var(--cardOut) * 800px));
+}
+.cardText span { color: #8b8f98; }
+.cardMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-gmono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: #4b4f58;
+  transform: translateZ(calc((var(--cardE) - 1) * 500px + var(--cardOut) * 500px));
+}
+.cardMeta i { width: 7px; height: 7px; border-radius: 50%; background: #17804a; }
+
+/* ---- before / after -------------------------------------------------------- */
+.toggle {
+  position: absolute;
+  left: 50%;
+  bottom: 1.9rem;
+  z-index: 5;
+  display: flex;
+  padding: 0.24rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: inset 0 0 0 1px rgba(11, 12, 15, 0.08), 0 18px 40px -20px rgba(24, 28, 48, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(-50%, 12px, 0);
+  transition: opacity 200ms cubic-bezier(0.32, 0.72, 0, 1), transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.reel[data-live="on"] .toggle {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate3d(-50%, 0, 0);
+  transition: opacity 420ms cubic-bezier(0.32, 0.72, 0, 1) 1500ms, transform 620ms cubic-bezier(0.32, 0.72, 0, 1) 1500ms;
+}
+.tgBtn {
+  position: relative;
+  z-index: 1;
+  min-width: 5.4rem;
+  padding: 0.5rem 1.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-family: var(--font-gmono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: #6a6e77;
+  cursor: pointer;
+  transition: color 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.tgBtn[aria-pressed="true"] { color: #fff; }
+.tgBtn:focus-visible { outline: 2px solid #ff4a1f; outline-offset: 2px; }
+.tgPill {
+  position: absolute;
+  top: 0.24rem;
+  bottom: 0.24rem;
+  left: 0.24rem;
+  width: calc(50% - 0.24rem);
+  border-radius: 999px;
+  background: #0b0c0f;
+  transition: transform 460ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.toggle[data-side="after"] .tgPill { transform: translate3d(100%, 0, 0); }
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 1.4rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  transform: translate3d(-50%, 0, 0);
+  font-family: var(--font-gmono), monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #6a6e77;
+  opacity: calc(1 - clamp(0, calc(var(--p) * 20), 1));
+  pointer-events: none;
+}
+.hint i {
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(180deg, transparent, #0b0c0f);
+  transform-origin: 50% 0;
+  animation: drip 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes drip {
+  0% { transform: scaleY(0); opacity: 1; }
+  55% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+
+/* ---- narrow ------------------------------------------------------------------ */
+@media (max-width: 900px) {
+  .reel { height: 340vh; }
+  .viewport {
+    --ar: 0.7141;
+    --stW: min(93vw, calc(72svh * var(--ar)));
+  }
+  .glassWrap { width: 93vw; height: min(64%, 560px); }
+  .glass { border-radius: 12px; }
+  .slab { inset: -6px; border-radius: 18px; }
+  /* safe: on a short phone the block starts under the nav instead of sliding up behind it */
+  .copy { justify-content: safe center; padding: 5.5rem 1rem 20svh; }
+  .headline { font-size: clamp(2.2rem, 10.4vw, 3.4rem); letter-spacing: -0.048em; line-height: 0.99; }
+  .sub { margin-top: 1.25rem; font-size: 1rem; }
+  .eyebrow { margin-bottom: 1.4rem; }
+  .actions { margin-top: 1.6rem; }
+  .ticks { inset: 4.6rem 0.9rem 0.9rem; }
+  .notes,
+  .notesFix { display: none; }
+  .tag { font-size: 0.625rem; }
+  .tag[data-when="then"] { top: calc(50% - min(64svh, 560px) / 2 - 4rem); }
+  .toggle { bottom: 1.3rem; }
+  .rail span { display: none; }
+}
+@media (max-height: 720px) and (max-width: 900px) {
+  .micro,
+  .hint { display: none; }
+  .copy { padding-bottom: 12svh; }
+}
+@media (max-height: 720px) and (min-width: 901px) {
+  .micro { display: none; }
+  .copy { padding-bottom: 22svh; }
+}
+
+/* ---- no motion ---------------------------------------------------------------
+   The scrubbed scene is skipped; what is shown is its last frame — the new
+   screen, level, with the switch under it. */
+@media (prefers-reduced-motion: reduce) {
+  .viewport {
+    --exit: 1;
+    --diag: 0;
+    --fly: 1;
+    --card: 0;
+    --cardOut: 1;
+    --rise: 1;
+  }
+  .reel { height: auto; }
+  .viewport { position: relative; height: auto; min-height: 100svh; display: flex; flex-direction: column; }
+  .gl,
+  .floor,
+  .stage,
+  .shadow,
+  .hint,
+  .card,
+  .tag[data-when="now"] { display: none; }
+  .copy { position: relative; inset: auto; padding: 8rem 1.5rem 3rem; }
+  .copyInner { transform: none; }
+  .copyInner > *,
+  .word { opacity: 1; transform: none; }
+  .camera { position: relative; inset: auto; height: min(82svh, 760px); }
+  .glassTilt { transform: none; transition: none; }
+  .tag[data-when="then"] { display: none; }
+  .wash1,
+  .wash2,
+  .wash3,
+  .hint i { animation: none; }
+  .toggle,
+  .reel[data-live="on"] .toggle { transition: none; }
+}
+
+/* ---- being photographed -----------------------------------------------------
+   `npm run capture:studio` sets data-capture on <html> and photographs the pane
+   in its "before" state: that picture is what the WebGL glass wears. Flat,
+   square, nothing over it. */
+:global(html[data-capture]) .field,
+:global(html[data-capture]) .ticks,
+:global(html[data-capture]) .gl,
+:global(html[data-capture]) .slab,
+:global(html[data-capture]) .reflect,
+:global(html[data-capture]) .tag,
+:global(html[data-capture]) .toggle { display: none; }
+:global(html[data-capture]) .glassTilt { transform: none; transition: none; }
+:global(html[data-capture]) .glass { box-shadow: none; }
