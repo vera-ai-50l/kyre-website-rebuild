@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { useScrollProgress } from "../useScrollProgress";
-import { Arrow } from "./bits";
+import { Arrow, Logo } from "./bits";
 import { DotField } from "./DotField";
+import { isLite } from "./useLite";
 import { Enter, m, Magnetic, SETTLE } from "./motion";
 import { STUDIO } from "./brand";
 import { PLATES } from "./glass/plates";
@@ -144,6 +145,51 @@ export function Hero() {
     };
   }, [ref]);
 
+  /* The lights lean after the pointer, each by its own share of the distance
+     from the centre (data-glow) and on a slow clock, so the room turns a beat
+     behind the hand. Transforms only, and the loop stops when they settle. */
+  useEffect(() => {
+    const reel = ref.current;
+    if (!reel || window.matchMedia(REDUCED).matches) return;
+    /* Each light is a layer wider than the window. Moving them is free on a GPU
+       and a full-window blend per frame on a CPU (measured: 59fps -> 32fps
+       with the mouse moving), so small machines keep them where they drift. */
+    if (isLite()) return;
+    const glows = [...reel.querySelectorAll<HTMLElement>("[data-glow]")].map((el) => ({
+      el,
+      k: Number(el.dataset.glow),
+    }));
+    let tx = 0;
+    let ty = 0;
+    let x = 0;
+    let y = 0;
+    let raf = 0;
+    let last = 0;
+    const tick = (now: number) => {
+      raf = 0;
+      const e = 1 - Math.exp(-Math.min(now - last, 64) / 650);
+      last = now;
+      x += (tx - x) * e;
+      y += (ty - y) * e;
+      for (const g of glows) g.el.style.transform = `translate3d(${(x * g.k).toFixed(1)}px, ${(y * g.k).toFixed(1)}px, 0)`;
+      if (Math.abs(tx - x) + Math.abs(ty - y) > 0.5) raf = requestAnimationFrame(tick);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch" || "off" in reel.dataset) return;
+      tx = e.clientX - window.innerWidth / 2;
+      ty = e.clientY - window.innerHeight / 2;
+      if (!raf) {
+        last = performance.now();
+        raf = requestAnimationFrame(tick);
+      }
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [ref]);
+
   /* The room's light drifts on a loop; once the reel is scrolled past there
      is nothing to see it, so it stops rather than repainting off screen. */
   useEffect(() => {
@@ -162,11 +208,17 @@ export function Hero() {
     <section ref={ref} className={s.reel} data-reel data-live={reduced ? "on" : undefined}>
       <div className={s.viewport}>
         <div className={s.field} aria-hidden>
-          <span className={s.wash1} />
-          <span className={s.wash2} />
-          <span className={s.wash3} />
-          <span className={s.mesh} />
+          <span className={s.glow} data-glow="0.05">
+            <span className={s.wash1} />
+          </span>
+          <span className={s.glow} data-glow="-0.045">
+            <span className={s.wash2} />
+          </span>
+          <span className={s.glow} data-glow="0.03">
+            <span className={s.wash3} />
+          </span>
           <DotField />
+          <span className={s.veil} />
         </div>
         <span className={s.ticks} aria-hidden />
 
@@ -282,6 +334,10 @@ export function Hero() {
         </p>
 
         <p className={s.card}>
+          <span className={s.cardBadge}>
+            <em>Rebuilt with</em>
+            <Logo />
+          </span>
           <span className={s.cardText}>
             Same product. <span>New interface.</span>
           </span>

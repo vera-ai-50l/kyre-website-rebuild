@@ -1,10 +1,11 @@
 "use client";
 
-import type { CSSProperties, FormEvent, ReactNode } from "react";
+import { useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { Reveal } from "../bits";
 import { useScrollProgress } from "../useScrollProgress";
 import { Arrow } from "./bits";
 import { CONTACT, STUDIO } from "./brand";
+import { Funnel, FUNNEL_COPY } from "./Funnel";
 import ui from "./site.module.css";
 
 /* Everything under the hero. Each section carries one small moving figure of
@@ -147,15 +148,6 @@ const SAY =
 const SIGNS_A = ["Users say it looks generic", "Churn after the first session", "About to raise", "A security scare"];
 const SIGNS_B = ["Just raised", "Activation has plateaued", "Demos stall at the dashboard", "An open product designer role"];
 
-/* Fourteen visitors on a seven-second loop. Where each one ends up is fixed, so
-   the picture is the same on every pass: most of them never reach the end. */
-const FATE = [0, 1, 2, 0, 3, 1, 0, 2, 1, 3, 0, 1, 2, 1];
-const LEAKS = [
-  { at: 30, stage: "Landing", why: "looked generic" },
-  { at: 55, stage: "Sign-up", why: "too many fields" },
-  { at: 79, stage: "First screen", why: "no clear answer" },
-];
-
 function Marquee({ items, back }: { items: string[]; back?: boolean }) {
   return (
     <div className={ui.mq} data-back={back || undefined}>
@@ -175,6 +167,8 @@ function Marquee({ items, back }: { items: string[]; back?: boolean }) {
 
 export function Why() {
   const say = useScrollProgress<HTMLParagraphElement>(undefined, "through");
+  const [fixed, setFixed] = useState(false);
+  const copy = fixed ? FUNNEL_COPY.fixed : FUNNEL_COPY.leaking;
   return (
     <section className={ui.section} id="why">
       <div className={ui.wrap}>
@@ -195,25 +189,10 @@ export function Why() {
         <div className={ui.bento}>
           <Reveal className={`${ui.shell} ${ui.bentoBig}`}>
             <article className={`${ui.core} ${ui.cell}`}>
-              <div className={ui.leak} aria-hidden>
-                <span className={ui.leakPipe} />
-                {LEAKS.map((l) => (
-                  <span key={l.stage} className={ui.leakStage} style={{ left: `${l.at}%` }}>
-                    <b>{l.stage}</b>
-                    <em>{l.why}</em>
-                  </span>
-                ))}
-                <span className={ui.leakEnd}>Paying</span>
-                {FATE.map((f, i) => (
-                  <i key={i} className={ui.dot} data-fate={f} style={v({ "--i": i })} />
-                ))}
-              </div>
-              <div className={ui.cellText}>
-                <h3>The product works. The way in leaks.</h3>
-                <p>
-                  Landing, sign-up, the first screen with data. People leave at the screens nobody designed, long before
-                  they reach the part you built well.
-                </p>
+              <Funnel fixed={fixed} onToggle={() => setFixed((f) => !f)} />
+              <div className={ui.cellText} aria-live="polite">
+                <h3>{copy.h}</h3>
+                <p>{copy.p}</p>
                 <span className={ui.fine}>Illustration, not data</span>
               </div>
             </article>

@@ -418,82 +418,68 @@
 .cellText h3 { font-size: 1.5rem; font-weight: 600; font-stretch: 108%; letter-spacing: -0.037em; line-height: 1.1; }
 .cellText p { margin-top: 0.7rem; max-width: 31rem; }
 
-.leak {
+/* The way in (Funnel.tsx). Hairlines, mono labels and one band: the same
+   language as the screens on this page, not a cartoon of a pipe. */
+.funnel {
   position: relative;
-  flex: 1;
-  min-height: 19rem;
-  container-type: inline-size;
-  overflow: hidden;
-  background: linear-gradient(180deg, rgba(11, 12, 15, 0.035), transparent);
-}
-/* A channel that narrows after every screen people fall out of. */
-.leakPipe {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 44%;
-  height: 5.5rem;
-  margin-top: -2.75rem;
-  background: linear-gradient(90deg, rgba(11, 12, 15, 0.09), rgba(11, 12, 15, 0.04));
-  clip-path: polygon(0 0, 30% 0, 30% 12%, 55% 12%, 55% 24%, 79% 24%, 79% 34%, 100% 34%, 100% 66%, 79% 66%, 79% 76%, 55% 76%, 55% 88%, 30% 88%, 30% 100%, 0 100%);
-}
-.leakStage {
-  position: absolute;
-  top: 1.5rem;
-  bottom: 1.5rem;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding-right: 0.7rem;
-  box-shadow: inset -1px 0 0 0 rgba(11, 12, 15, 0.12);
-  transform: translate3d(-100%, 0, 0);
+  min-height: 21rem;
+  padding: 1.5rem 0 4.6rem;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 70% at 18% 45%, rgba(47, 76, 255, 0.06), transparent 70%),
+    linear-gradient(180deg, rgba(11, 12, 15, 0.03), transparent 70%);
+}
+.fStages { display: grid; grid-template-columns: repeat(4, 1fr); padding: 0 0.2rem; }
+.fStages span { display: flex; flex-direction: column; gap: 0.15rem; padding: 0 1.1rem; }
+.fStages b {
+  font-family: var(--font-gmono), monospace;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.fStages span > span {
+  font-size: 1.55rem;
+  font-weight: 600;
+  font-stretch: 108%;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.fStages span[data-end] > span { color: var(--hotInk); transition: color 900ms var(--spring); }
+.funnel[data-fixed] .fStages span[data-end] > span { color: var(--ok); }
+.fSvg { flex: 1; width: 100%; min-height: 10rem; margin-top: 0.6rem; overflow: visible; }
+.fRule { stroke: rgba(11, 12, 15, 0.1); stroke-width: 1; stroke-dasharray: 2 4; }
+.fStream { fill: none; stroke: url(#fStream); stroke-linecap: round; }
+.fGlow { fill: rgba(24, 28, 48, 0.08); transform: translate(0, 7px); }
+.fvIn { fill: #fff; stroke: #0b0c0f; stroke-width: 1.4; }
+.fvOk { fill: #fff; stroke: #2f4cff; stroke-width: 1.6; }
+.fvOut { fill: #ff4a1f; stroke: #fff; stroke-width: 1.2; }
+.fWhy { position: absolute; left: 0; right: 0; bottom: 4.4rem; height: 1.6rem; pointer-events: none; }
+.fWhy > span { position: absolute; top: 0; transform: translate3d(-100%, 0, 0); padding-right: 0.5rem; }
+.fWhy em {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem 0.3rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: inset 0 0 0 1px rgba(201, 54, 15, 0.16), 0 8px 18px -12px rgba(201, 54, 15, 0.5);
+  font-family: var(--font-gmono), monospace;
+  font-size: 0.625rem;
+  font-style: normal;
+  letter-spacing: 0.04em;
   white-space: nowrap;
+  color: var(--hotInk);
 }
-.leakStage b,
-.leakStage em,
-.leakEnd { font-family: var(--font-gmono), monospace; font-size: 0.625rem; font-style: normal; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
-.leakStage b { color: var(--ink); }
-.leakStage em { color: var(--hotInk); }
-.leakEnd { position: absolute; right: 1.2rem; top: 1.5rem; color: var(--ok); }
-.dot {
-  position: absolute;
-  left: -0.5rem;
-  top: calc(44% - 0.25rem + (mod(var(--i) * 7, 5) - 2) * 0.24rem);
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--ink);
-  opacity: 0;
-  animation: pass 7s linear infinite;
-  animation-delay: calc(var(--i) * -0.5s);
-}
-.dot[data-fate="1"] { background: var(--hot); animation-name: out1; }
-.dot[data-fate="2"] { background: var(--hot); animation-name: out2; }
-.dot[data-fate="3"] { background: var(--hot); animation-name: out3; }
-@keyframes pass {
-  0% { opacity: 0; transform: translate3d(0, 0, 0); }
-  5%, 93% { opacity: 1; }
-  100% { opacity: 0; transform: translate3d(calc(100cqw + 1rem), 0, 0); }
-}
-@keyframes out1 {
-  0% { opacity: 0; transform: translate3d(0, 0, 0); }
-  5% { opacity: 1; }
-  30% { opacity: 1; transform: translate3d(30cqw, 0, 0); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5); }
-  46%, 100% { opacity: 0; transform: translate3d(33cqw, 6rem, 0); }
-}
-@keyframes out2 {
-  0% { opacity: 0; transform: translate3d(0, 0, 0); }
-  5% { opacity: 1; }
-  55% { opacity: 1; transform: translate3d(55cqw, 0, 0); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5); }
-  71%, 100% { opacity: 0; transform: translate3d(58cqw, 6rem, 0); }
-}
-@keyframes out3 {
-  0% { opacity: 0; transform: translate3d(0, 0, 0); }
-  5% { opacity: 1; }
-  79% { opacity: 1; transform: translate3d(79cqw, 0, 0); animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5); }
-  95%, 100% { opacity: 0; transform: translate3d(82cqw, 6rem, 0); }
-}
+.fWhy em i { width: 0.36rem; height: 0.36rem; border-radius: 50%; background: var(--hot); }
+.fWhy em[data-fix] { box-shadow: inset 0 0 0 1px rgba(23, 128, 74, 0.2), 0 8px 18px -12px rgba(23, 128, 74, 0.45); color: var(--ok); }
+.fWhy em[data-fix] i { background: var(--ok); }
+.fBtn { position: absolute; left: 1.4rem; bottom: 1.2rem; }
 
 .same { flex: 1; display: flex; justify-content: center; align-items: center; gap: 0.8rem; min-height: 11.5rem; padding: 2.2rem 1.5rem 0.8rem; }
 .same span {
@@ -991,12 +977,14 @@
   .flipCard { width: 3.3rem; height: 4.5rem; }
   .flipItem em { font-size: 0.5rem; letter-spacing: 0.02em; }
   .kit { transform: scale(0.82); }
-  .leak { min-height: 16rem; }
-  .leakStage b,
-  .leakStage em,
-  .leakEnd { font-size: 0.5rem; letter-spacing: 0.02em; }
-  .leakStage { padding-right: 0.35rem; }
-  .leakEnd { right: 0.5rem; }
+  .funnel { min-height: 19rem; }
+  .fStages span { padding: 0 0.6rem; }
+  .fStages b { font-size: 0.5rem; letter-spacing: 0.04em; }
+  .fStages span > span { font-size: 1.1rem; }
+  /* Too narrow to hang each reason under its stream: a row under the band. */
+  .fWhy { position: static; display: flex; flex-wrap: wrap; gap: 0.4rem; height: auto; padding: 0 1rem; margin-top: 0.4rem; }
+  .fWhy > span { position: static; padding: 0; transform: none; }
+  .fWhy em { font-size: 0.5625rem; padding: 0.25rem 0.5rem 0.25rem 0.4rem; }
   .cellText { padding: 1.5rem; }
   .same span { width: 5rem; height: 5.6rem; }
   .step { position: static; }
@@ -1037,7 +1025,8 @@
   .root main *,
   .root main *::before,
   .root main *::after { animation: none !important; }
-  .dot { display: none; }
+  /* The visitors are SMIL, which the rule above cannot reach: no flow at all. */
+  .fSvg circle { display: none; }
   .island,
   .menu > a { transition-duration: 1ms; }
 }

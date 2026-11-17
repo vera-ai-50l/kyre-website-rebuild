@@ -59,62 +59,74 @@
   inset: 0;
   background: linear-gradient(180deg, #f6f8ff 0%, #eef1f8 46%, var(--room) 100%);
 }
+/* Three lights, each a disc far wider than the frame, placed as a composition
+   rather than scattered: Kyre blue high on the left, orange on the right, teal
+   low in the middle. Each drifts on its own clock (the inner span, CSS) and
+   leans after the pointer at its own lag (the outer .glow, moved by Hero.tsx):
+   the blue toward the hand, the orange away from it, so the room turns as you
+   move. Every move is a transform, so none of it repaints. */
+.glow { position: absolute; inset: 0; will-change: transform; }
 .wash1,
 .wash2,
 .wash3 {
   position: absolute;
-  width: 90vmax;
-  height: 90vmax;
   border-radius: 50%;
   will-change: transform;
 }
 .wash1 {
-  left: -34vmax;
-  top: -46vmax;
-  background: radial-gradient(closest-side, rgba(47, 76, 255, 0.34), rgba(47, 76, 255, 0) 100%);
-  animation: drift1 26s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  left: -30vmax;
+  top: -40vmax;
+  width: 82vmax;
+  height: 82vmax;
+  background: radial-gradient(closest-side, rgba(47, 76, 255, 0.44), rgba(47, 76, 255, 0.16) 48%, rgba(47, 76, 255, 0) 100%);
+  animation: drift1 16s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
 }
 .wash2 {
-  right: -40vmax;
-  top: -30vmax;
-  background: radial-gradient(closest-side, rgba(255, 106, 61, 0.4), rgba(255, 106, 61, 0) 100%);
-  animation: drift2 32s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  right: -30vmax;
+  top: -22vmax;
+  width: 74vmax;
+  height: 74vmax;
+  background: radial-gradient(closest-side, rgba(255, 106, 61, 0.44), rgba(255, 106, 61, 0.15) 48%, rgba(255, 106, 61, 0) 100%);
+  animation: drift2 19s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
 }
 .wash3 {
-  left: 12vmax;
-  bottom: -62vmax;
-  background: radial-gradient(closest-side, rgba(32, 201, 172, 0.34), rgba(32, 201, 172, 0) 100%);
-  animation: drift1 38s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate-reverse;
+  left: 18vmax;
+  bottom: -52vmax;
+  width: 70vmax;
+  height: 70vmax;
+  background: radial-gradient(closest-side, rgba(32, 201, 172, 0.38), rgba(32, 201, 172, 0.13) 48%, rgba(32, 201, 172, 0) 100%);
+  animation: drift3 23s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
 }
 @keyframes drift1 {
-  to { transform: translate3d(9vmax, 6vmax, 0) scale(1.12); }
+  50% { transform: translate3d(10vmax, 7vmax, 0) scale(1.14); }
+  100% { transform: translate3d(4vmax, 14vmax, 0) scale(0.96); }
 }
 @keyframes drift2 {
-  to { transform: translate3d(-10vmax, 8vmax, 0) scale(0.92); }
+  50% { transform: translate3d(-12vmax, 9vmax, 0) scale(0.9); }
+  100% { transform: translate3d(-4vmax, 16vmax, 0) scale(1.08); }
 }
-/* Daylight through a window somewhere off to the left: three soft bars of
-   it lying across the room at an angle, moving about as fast as an afternoon. */
-.mesh {
+@keyframes drift3 {
+  50% { transform: translate3d(-14vmax, -6vmax, 0) scale(1.1); }
+  100% { transform: translate3d(8vmax, -10vmax, 0) scale(0.94); }
+}
+/* The quiet behind the words. A pool of the room's own colour lies between the
+   dots and the copy, so no dot sits under a letter and the lights stay at the
+   edges of the frame. It leaves with the copy. */
+.veil {
   position: absolute;
-  inset: -30% -20%;
-  background: linear-gradient(
-    100deg,
-    transparent 0 24%,
-    rgba(255, 255, 255, 0.62) 29% 37%,
-    transparent 42% 45%,
-    rgba(255, 255, 255, 0.44) 49% 55%,
-    transparent 60% 63%,
-    rgba(255, 255, 255, 0.28) 66% 70%,
-    transparent 76%
-  );
-  -webkit-mask-image: linear-gradient(180deg, transparent 8%, #000 42%, #000 62%, transparent 96%);
-  mask-image: linear-gradient(180deg, transparent 8%, #000 42%, #000 62%, transparent 96%);
-  transform: skewX(-22deg);
-  animation: sun 34s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
-  will-change: transform;
+  left: 50%;
+  top: 44%;
+  width: min(1240px, 100vw);
+  height: min(600px, 78svh);
+  border-radius: 50%;
+  transform: translate3d(-50%, -50%, 0);
+  background: radial-gradient(closest-side, rgba(246, 247, 251, 0.9) 0%, rgba(246, 247, 251, 0.78) 50%, rgba(246, 247, 251, 0) 100%);
+  opacity: calc(1 - var(--exitE));
 }
-/* The interactive dot field (DotField.tsx). It quietens once the screen stands
-   up, so it frames the scene rather than competing with it. */
+/* The interactive dot field (DotField.tsx). It quietens as the screen stands
+   up and is gone once it breaks: from there it has nothing to frame. */
+.reel[data-jolt="break"] .dots,
+.reel[data-jolt="break"] .lensField { opacity: 0; transition: opacity 700ms cubic-bezier(0.32, 0.72, 0, 1); }
 .dots {
   position: absolute;
   inset: 0;
@@ -123,9 +135,8 @@
   display: block;
   opacity: calc(1 - var(--exitE) * 0.55);
 }
-/* The no-GPU version (LensField): resting dots as one static background, and
-   two lenses whose dot sheets line up exactly with it (same 26px cell, same
-   origin: the sheet is moved back by whatever moves its lens). */
+/* The no-GPU version (LensField): resting dots as one static background, the
+   light a small grid-snapped canvas that rides over it. */
 .lensField {
   position: absolute;
   inset: 0;
@@ -133,34 +144,13 @@
   opacity: calc(1 - var(--exitE) * 0.55);
   background: radial-gradient(circle, rgba(28, 36, 80, 0.2) 0 0.95px, transparent 1.35px) 0 0 / 26px 26px;
 }
-.lens {
+.lensCanvas {
   position: absolute;
   left: 0;
   top: 0;
-  border-radius: 50%;
-  overflow: hidden;
-  opacity: 0;
+  width: 480px;
+  height: 480px;
   will-change: transform;
-  transition: opacity 500ms cubic-bezier(0.32, 0.72, 0, 1);
-  -webkit-mask-image: radial-gradient(closest-side, #000 35%, transparent 100%);
-  mask-image: radial-gradient(closest-side, #000 35%, transparent 100%);
-}
-.lensField[data-on] .lens { opacity: 1; }
-.lens > span {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100vw;
-  height: 100lvh;
-  will-change: transform;
-}
-.lensBlue { width: 460px; height: 460px; }
-.lensBlue > span { background: radial-gradient(circle, rgba(47, 76, 255, 0.85) 0 1.7px, transparent 2.2px) 0 0 / 26px 26px; }
-.lensHot { width: 230px; height: 230px; }
-.lensHot > span { background: radial-gradient(circle, rgba(255, 74, 31, 0.95) 0 2.6px, transparent 3.1px) 0 0 / 26px 26px; }
-@keyframes sun {
-  from { transform: skewX(-22deg) translate3d(-5vw, 0, 0); }
-  to { transform: skewX(-22deg) translate3d(7vw, 0, 0); }
 }
 
 /* Registration marks in the corners, the way a proof has them. */
@@ -628,6 +618,27 @@
   transform: translateZ(calc((var(--cardE) - 1) * 800px + var(--cardOut) * 800px));
 }
 .cardText span { color: #8b8f98; }
+/* The maker's mark, arriving with the line: the first site's wordmark in a
+   pill, so the payoff of the reel is signed. */
+.cardBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 1.1rem 0.6rem 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(11, 12, 15, 0.07), 0 16px 34px -18px rgba(24, 28, 48, 0.45);
+  font-size: 1.35rem;
+  transform: translateZ(calc((var(--cardE) - 1) * 650px + var(--cardOut) * 650px));
+}
+.cardBadge em {
+  font-family: var(--font-gmono), monospace;
+  font-size: 0.7rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6a6e77;
+}
 .cardMeta {
   display: inline-flex;
   align-items: center;
@@ -800,12 +811,13 @@
 .reel[data-off] .wash1,
 .reel[data-off] .wash2,
 .reel[data-off] .wash3,
-.reel[data-off] .mesh,
 .reel[data-off] .hint i { animation-play-state: paused; }
 :global(html[data-lite]) .wash1,
 :global(html[data-lite]) .wash2,
-:global(html[data-lite]) .wash3,
-:global(html[data-lite]) .mesh { animation: none; will-change: auto; }
+:global(html[data-lite]) .wash3 { animation: none; will-change: auto; }
+/* Still on small machines, so not layers of their own: three window-sized
+   layers are three more full-window blends on every frame anything moves. */
+:global(html[data-lite]) .glow { will-change: auto; }
 :global(html[data-lite]) .shadow,
 :global(html[data-lite]) .reflect { filter: none; }
 
