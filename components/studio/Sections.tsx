@@ -822,6 +822,7 @@ export function Team() {
                   aria-label={`${p.name} on LinkedIn (opens in a new tab)`}
                 >
                   <span className={ui.photo}>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- static export: next/image cannot optimise here, and these are already sized webp */}
                     <img src={p.photo} alt={p.name} width={512} height={640} loading="lazy" decoding="async" />
                     <span className={ui.liBadge}>
                       <LinkedIn />
