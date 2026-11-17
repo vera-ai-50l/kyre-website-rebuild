@@ -57,7 +57,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #f3f3f5 0%, #e9eaed 46%, var(--room) 100%);
+  background: linear-gradient(180deg, #f6f8ff 0%, #eef1f8 46%, var(--room) 100%);
 }
 .wash1,
 .wash2,
@@ -71,19 +71,19 @@
 .wash1 {
   left: -34vmax;
   top: -46vmax;
-  background: radial-gradient(closest-side, rgba(203, 196, 255, 0.5), rgba(203, 196, 255, 0) 100%);
+  background: radial-gradient(closest-side, rgba(47, 76, 255, 0.34), rgba(47, 76, 255, 0) 100%);
   animation: drift1 26s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
 }
 .wash2 {
   right: -40vmax;
   top: -30vmax;
-  background: radial-gradient(closest-side, rgba(255, 214, 196, 0.55), rgba(255, 214, 196, 0) 100%);
+  background: radial-gradient(closest-side, rgba(255, 106, 61, 0.4), rgba(255, 106, 61, 0) 100%);
   animation: drift2 32s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
 }
 .wash3 {
   left: 12vmax;
   bottom: -62vmax;
-  background: radial-gradient(closest-side, rgba(196, 232, 226, 0.6), rgba(196, 232, 226, 0) 100%);
+  background: radial-gradient(closest-side, rgba(32, 201, 172, 0.34), rgba(32, 201, 172, 0) 100%);
   animation: drift1 38s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate-reverse;
 }
 @keyframes drift1 {
@@ -113,6 +113,51 @@
   animation: sun 34s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
   will-change: transform;
 }
+/* The interactive dot field (DotField.tsx). It quietens once the screen stands
+   up, so it frames the scene rather than competing with it. */
+.dots {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: calc(1 - var(--exitE) * 0.55);
+}
+/* The no-GPU version (LensField): resting dots as one static background, and
+   two lenses whose dot sheets line up exactly with it (same 26px cell, same
+   origin: the sheet is moved back by whatever moves its lens). */
+.lensField {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: calc(1 - var(--exitE) * 0.55);
+  background: radial-gradient(circle, rgba(28, 36, 80, 0.2) 0 0.95px, transparent 1.35px) 0 0 / 26px 26px;
+}
+.lens {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  opacity: 0;
+  will-change: transform;
+  transition: opacity 500ms cubic-bezier(0.32, 0.72, 0, 1);
+  -webkit-mask-image: radial-gradient(closest-side, #000 35%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 35%, transparent 100%);
+}
+.lensField[data-on] .lens { opacity: 1; }
+.lens > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100lvh;
+  will-change: transform;
+}
+.lensBlue { width: 460px; height: 460px; }
+.lensBlue > span { background: radial-gradient(circle, rgba(47, 76, 255, 0.85) 0 1.7px, transparent 2.2px) 0 0 / 26px 26px; }
+.lensHot { width: 230px; height: 230px; }
+.lensHot > span { background: radial-gradient(circle, rgba(255, 74, 31, 0.95) 0 2.6px, transparent 3.1px) 0 0 / 26px 26px; }
 @keyframes sun {
   from { transform: skewX(-22deg) translate3d(-5vw, 0, 0); }
   to { transform: skewX(-22deg) translate3d(7vw, 0, 0); }
@@ -316,8 +361,6 @@
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: rotateX(calc(var(--py, 0) * var(--riseE) * -1.4deg)) rotateY(calc(var(--px, 0) * var(--riseE) * 2.2deg));
-  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .glassTilt > * { opacity: clamp(0, calc(var(--rise) * 3.4), 1); }
 
@@ -436,10 +479,16 @@
   margin-bottom: 2rem;
   transform: translate3d(0, calc(var(--waE) * -12vh), calc(var(--waE) * 420px));
 }
+/* The pill opens the entrance. CSS rather than Motion: its transform belongs
+   to the scroll, and a "backwards" fill hands it back the moment this ends. */
+.eyebrow { animation: pillIn 900ms cubic-bezier(0.32, 0.72, 0, 1) 60ms backwards; }
+@keyframes pillIn {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.94); }
+}
 .headline {
   margin: 0;
   font-family: var(--font-mona), system-ui, sans-serif;
-  font-size: clamp(2.5rem, 5.35vw, 5.3rem);
+  font-size: clamp(2.2rem, 4.35vw, 4.3rem);
   font-weight: 620;
   font-stretch: 112%;
   line-height: 0.96;
@@ -448,7 +497,17 @@
   transform-style: preserve-3d;
 }
 .line { display: block; }
-.line:first-child { color: #8b8f98; }
+/* The first line in Kyre's blue running into teal: the part that works. Each
+   word is its own box (they leave separately), so each shows its own slice of
+   one gradient laid across the whole line. */
+.line:first-child .wordIn {
+  background: linear-gradient(90deg, #2f4cff 0%, #1f7cf2 50%, #0fb5b0 100%);
+  background-size: 300% 100%;
+  background-position: calc(var(--wi) * 50%) 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 .word {
   display: inline-block;
   margin-right: 0.22em;
@@ -456,11 +515,31 @@
     rotate(calc(var(--waE) * var(--wr, 0deg)));
 }
 .word:last-child { margin-right: 0; }
+/* The window each word rises through on load: clipped, with room for the
+   descenders and the lean it starts with. */
+.mask {
+  display: inline-block;
+  overflow: hidden;
+  padding: 0.04em 0.06em 0.14em;
+  margin: -0.04em -0.06em -0.14em;
+  vertical-align: bottom;
+}
+.wordIn { display: inline-block; transform-origin: 0 100%; }
+.enter { display: inline-block; }
+.actions > .enter { display: inline-flex; }
+/* Server-rendered at their start state for Motion to play from. Should the
+   script not run, this puts them in place after a few seconds: an animation
+   outranks the inline style Motion would otherwise have cleared. */
+.wordIn,
+.enter { animation: settled 1ms 2.4s forwards; }
+@keyframes settled {
+  to { opacity: 1; transform: none; }
+}
 .sub {
   --wi: 5;
   max-width: 41rem;
   margin: 1.7rem auto 0;
-  font-size: clamp(1.02rem, 1.32vw, 1.2rem);
+  font-size: clamp(1rem, 1.18vw, 1.12rem);
   line-height: 1.5;
   letter-spacing: -0.012em;
   color: #4b4f58;
@@ -607,9 +686,7 @@
   width: calc(50% - 0.24rem);
   border-radius: 999px;
   background: #0b0c0f;
-  transition: transform 460ms cubic-bezier(0.32, 0.72, 0, 1);
 }
-.toggle[data-side="after"] .tgPill { transform: translate3d(100%, 0, 0); }
 
 .hint {
   position: absolute;
@@ -654,7 +731,7 @@
   .slab { inset: -6px; border-radius: 18px; }
   /* safe: on a short phone the block starts under the nav instead of sliding up behind it */
   .copy { justify-content: safe center; padding: 5.5rem 1rem 20svh; }
-  .headline { font-size: clamp(2.2rem, 10.4vw, 3.4rem); letter-spacing: -0.048em; line-height: 0.99; }
+  .headline { font-size: clamp(2rem, 9.2vw, 3rem); letter-spacing: -0.048em; line-height: 0.99; }
   .sub { margin-top: 1.25rem; font-size: 1rem; }
   .eyebrow { margin-bottom: 1.4rem; }
   .actions { margin-top: 1.6rem; }
@@ -708,6 +785,7 @@
   .wash2,
   .wash3,
   .hint i { animation: none; }
+  .eyebrow { animation: none; }
   .toggle,
   .reel[data-live="on"] .toggle { transition: none; }
 }
@@ -729,8 +807,6 @@
 :global(html[data-lite]) .mesh { animation: none; will-change: auto; }
 :global(html[data-lite]) .shadow,
 :global(html[data-lite]) .reflect { filter: none; }
-/* The lean toward the pointer re-draws the whole raised pane on every move. */
-:global(html[data-lite]) .glassTilt { transform: none; transition: none; }
 
 /* ---- being photographed -----------------------------------------------------
    `npm run capture:studio` sets data-capture on <html> and photographs the pane

@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
-import { useCursorGlow } from "../useCursorGlow";
 import { useScrollProgress } from "../useScrollProgress";
 import { Arrow } from "./bits";
+import { DotField } from "./DotField";
+import { Enter, m, Magnetic, SETTLE } from "./motion";
 import { STUDIO } from "./brand";
 import { PLATES } from "./glass/plates";
 import type { Shatter } from "./glass/scene";
@@ -104,7 +105,6 @@ export function Hero() {
   }, []);
 
   const ref = useScrollProgress<HTMLElement>(milestones, "pinned", 110);
-  const glow = useCursorGlow<HTMLDivElement>();
 
   useEffect(() => {
     const reel = ref.current;
@@ -160,12 +160,13 @@ export function Hero() {
   let w = 0;
   return (
     <section ref={ref} className={s.reel} data-reel data-live={reduced ? "on" : undefined}>
-      <div ref={glow} className={s.viewport}>
+      <div className={s.viewport}>
         <div className={s.field} aria-hidden>
           <span className={s.wash1} />
           <span className={s.wash2} />
           <span className={s.wash3} />
           <span className={s.mesh} />
+          <DotField />
         </div>
         <span className={s.ticks} aria-hidden />
 
@@ -227,7 +228,18 @@ export function Hero() {
                           } as CSSProperties
                         }
                       >
-                        {word}
+                        {/* The mask the word rises out of on load. Motion owns
+                            the inner span; the outer one belongs to the scroll. */}
+                        <span className={s.mask}>
+                          <m.span
+                            className={s.wordIn}
+                            initial={{ y: "118%", rotate: 5 }}
+                            animate={{ y: "0%", rotate: 0 }}
+                            transition={{ ...SETTLE, delay: 0.18 + i * 0.06 }}
+                          >
+                            {word}
+                          </m.span>
+                        </span>
                       </span>
                     );
                   })}
@@ -235,20 +247,28 @@ export function Hero() {
               ))}
             </h1>
             <p className={s.sub}>
-              {STUDIO} redesigns apps and dashboards built in the AI era — delivered as a pull request in your own
-              code, in days, measured on the number that matters.
+              <Enter delay={0.62}>
+                {STUDIO} redesigns apps and dashboards built in the AI era — delivered as a pull request in your own
+                code, in days, measured on the number that matters.
+              </Enter>
             </p>
             <div className={s.actions}>
-              <a href="#teardown" className={ui.btn}>
-                Get a free teardown
-                <Arrow />
-              </a>
-              <a href="#how" className={`${ui.btn} ${ui.btnGhost}`}>
-                See how it works
-                <Arrow down />
-              </a>
+              <Enter delay={0.74}>
+                <Magnetic href="#teardown" className={ui.btn}>
+                  Get a free teardown
+                  <Arrow />
+                </Magnetic>
+              </Enter>
+              <Enter delay={0.82}>
+                <Magnetic href="#how" className={`${ui.btn} ${ui.btnGhost}`}>
+                  See how it works
+                  <Arrow down />
+                </Magnetic>
+              </Enter>
             </div>
-            <p className={s.micro}>No call, no pitch. Your biggest wins and a before/after of one screen.</p>
+            <p className={s.micro}>
+              <Enter delay={0.95}>No call, no pitch. Your biggest wins and a before/after of one screen.</Enter>
+            </p>
           </div>
         </div>
 
@@ -272,7 +292,13 @@ export function Hero() {
         </p>
 
         <div className={s.toggle} data-side={side} role="group" aria-label="Compare the screen before and after">
-          <span className={s.tgPill} aria-hidden />
+          <m.span
+            className={s.tgPill}
+            aria-hidden
+            initial={false}
+            animate={{ x: side === "after" ? "100%" : "0%" }}
+            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+          />
           {(["before", "after"] as const).map((x) => (
             <button key={x} type="button" className={s.tgBtn} aria-pressed={side === x} onClick={() => setPicked(x)}>
               {x === "before" ? "Before" : "After"}

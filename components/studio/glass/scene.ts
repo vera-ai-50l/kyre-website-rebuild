@@ -313,6 +313,14 @@ export function mountShatter(
 
   const onMove = (e: PointerEvent) => {
     if (e.pointerType === "touch") return;
+    /* The lean toward the pointer is a few pixels of parallax that costs a
+       full-window redraw per move. Drawing on a CPU that redraw is the whole
+       frame (measured: ~7fps while the mouse moves, 46 without), so a small
+       machine keeps the pane still and redraws only for the scroll. */
+    if (lite()) {
+      tx = ty = 0;
+      return;
+    }
     tx = (e.clientX / window.innerWidth) * 2 - 1;
     ty = (e.clientY / window.innerHeight) * 2 - 1;
     kick();

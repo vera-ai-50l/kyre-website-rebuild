@@ -5,6 +5,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { Arrow, Logo } from "./bits";
 import { Hero } from "./Hero";
 import { Approach, Faq, How, Offers, Paths, Sample, Team, Teardown, Trust, Why } from "./Sections";
+import { MotionRoot } from "./motion";
 import { useLite } from "./useLite";
 import ui from "./site.module.css";
 
@@ -125,6 +126,7 @@ function Footer() {
 export function Site() {
   useLite();
   return (
+    <MotionRoot>
     <div className={ui.root}>
       <Nav />
       <Hero />
@@ -142,5 +144,6 @@ export function Site() {
       </main>
       <Footer />
     </div>
+    </MotionRoot>
   );
 }

@@ -198,7 +198,7 @@
   pointer-events: none;
   background:
     radial-gradient(48em 30em at 100% -6%, rgba(255, 138, 76, 0.2), transparent 62%),
-    radial-gradient(44em 34em at -6% 108%, rgba(203, 196, 255, 0.34), transparent 64%);
+    radial-gradient(44em 34em at -6% 108%, rgba(120, 150, 255, 0.26), transparent 64%);
 }
 .aTop,
 .aBody,
@@ -560,7 +560,7 @@
 .aQueue [data-tone="hot"] b { background: rgba(255, 74, 31, 0.12); color: #c9360f; }
 .aQueue [data-tone="warm"] .aAv { background: linear-gradient(135deg, #fff0cf, #ffdf9e); color: #8a5a00; }
 .aQueue [data-tone="warm"] b { background: rgba(214, 145, 0, 0.13); color: #8a5a00; }
-.aQueue [data-tone="calm"] .aAv { background: linear-gradient(135deg, #e7e5ff, #cfcbff); color: #3f37a8; }
+.aQueue [data-tone="calm"] .aAv { background: linear-gradient(135deg, #e3eaff, #c3d2ff); color: #2440d8; }
 .aQueue [data-tone="calm"] b { background: rgba(11, 12, 15, 0.06); color: var(--aDim); }
 .aCta {
   align-self: flex-start;
