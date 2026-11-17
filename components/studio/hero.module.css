@@ -527,6 +527,7 @@
 .wordIn { display: inline-block; transform-origin: 0 100%; }
 .enter { display: inline-block; }
 .actions > .enter { display: inline-flex; }
+.magnet { display: inline-flex; padding: 14px; margin: -14px; }
 /* Server-rendered at their start state for Motion to play from. Should the
    script not run, this puts them in place after a few seconds: an animation
    outranks the inline style Motion would otherwise have cleared. */

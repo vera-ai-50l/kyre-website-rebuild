@@ -65,12 +65,12 @@ export function Magnetic({
   const sx = useSpring(x, { stiffness: 260, damping: 18, mass: 0.5 });
   const sy = useSpring(y, { stiffness: 260, damping: 18, mass: 0.5 });
 
+  /* The listener sits on a still box a little larger than the button, never
+     on the button itself: a target that moves under the pointer can slide out
+     from under it, fire a leave and snap back. The margin is the "near". */
   return (
-    <m.a
-      href={href}
-      className={className}
-      style={{ x: sx, y: sy }}
-      whileTap={{ scale: 0.96 }}
+    <span
+      className={s.magnet}
       onPointerMove={(e) => {
         if (e.pointerType !== "mouse") return;
         const r = e.currentTarget.getBoundingClientRect();
@@ -82,8 +82,10 @@ export function Magnetic({
         y.set(0);
       }}
     >
-      {children}
-    </m.a>
+      <m.a href={href} className={className} style={{ x: sx, y: sy }} whileTap={{ scale: 0.96 }}>
+        {children}
+      </m.a>
+    </span>
   );
 }
 
