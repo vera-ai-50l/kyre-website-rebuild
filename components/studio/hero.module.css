@@ -315,9 +315,10 @@
 .notes .noteBox b { color: #d13610; }
 
 /* On the new one: ink labels, played once the screen has arrived. */
-.notesFix { --tone: #0b0c0f; top: 34px; }
-.notesFix .noteBox { background: #0b0c0f; color: rgba(255, 255, 255, 0.72); }
-.notesFix .noteBox b { color: #fff; }
+/* The pane is dark now, so its callouts are the light ones. */
+.notesFix { --tone: #ededed; top: 34px; }
+.notesFix .noteBox { background: #ededed; color: rgba(11, 12, 15, 0.66); box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.6); }
+.notesFix .noteBox b { color: #0b0c0f; }
 .notesFix .noteLine { width: 26px; }
 .notesFix .noteDot { background: #ff4a1f; box-shadow: 0 0 0 4px rgba(255, 74, 31, 0.2); }
 .notesFix .note { opacity: 0; }
@@ -373,7 +374,7 @@
   inset: 0;
   overflow: hidden;
   border-radius: 16px;
-  background: #fcfcfa;
+  background: #141415;
   box-shadow: 0 0 0 1px rgba(11, 12, 15, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
   container-type: inline-size;
   pointer-events: auto;
@@ -392,13 +393,13 @@
   gap: 6px;
   height: 34px;
   padding: 0 14px;
-  border-bottom: 1px solid rgba(11, 12, 15, 0.07);
-  background: #f2f2f0;
+  border-bottom: 1px solid rgba(237, 237, 237, 0.07);
+  background: #0f0f10;
   font-family: var(--font-gmono), monospace;
   font-size: 0.6875rem;
-  color: #7a7e86;
+  color: #85858b;
 }
-.rail i { width: 9px; height: 9px; border-radius: 50%; background: rgba(11, 12, 15, 0.13); }
+.rail i { width: 9px; height: 9px; border-radius: 50%; background: rgba(237, 237, 237, 0.16); }
 .rail span { margin-left: 10px; }
 .rail em {
   margin-left: auto;

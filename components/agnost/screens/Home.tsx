@@ -11,7 +11,9 @@ import {
   type Violation,
 } from "@/lib/data";
 import { fmtAgo, fmtCost, fmtLatency, percentile, summarise } from "@/lib/data/format";
+import { LineChart, niceScale } from "../Chart";
 import { DataTable } from "../DataTable";
+import { useEventSeries } from "../eventSeries";
 import { useScrub } from "../EventsStrip";
 import { ErrorState, SkeletonRows } from "../QueryState";
 import { BASE } from "../Shell";
@@ -23,11 +25,13 @@ import { Badge, Delta, Empty, Panel } from "../ui";
    sentence, gives the evidence a named user actually experienced, and only then
    drops to the three drill-downs.
 
-   Trends is deliberately not rebuilt: the events strip is already a scrubbable
-   24h timeline pinned to every screen, so a second one on Home is a duplicate. */
+   The day's shape sits right under the sentence: the same chart as Events, at
+   half its height, so the number in the headline has its trend next to it. */
 
 export function Home() {
   const { events, at, range, loading, error, retry } = useScrub();
+  const series = useEventSeries(events);
+  const scale = niceScale(series.map((p) => p.value));
   const rangeQ = useMemo(() => currentRange(), []);
 
   const violations = useQuery("violations", (a) => a.getViolations(rangeQ));
@@ -116,6 +120,33 @@ export function Home() {
         </Panel>
       ) : (
         <>
+          <Panel
+            title={`Events ${at === null ? "over 24h" : "in this window"}`}
+            icon="events"
+            action={
+              <Link href={`${BASE}/events`} className="ag-body-sm text-ag-mid transition-colors duration-150 ease-out hover:text-ag-hi">
+                Open events
+              </Link>
+            }
+          >
+            <div className="px-4 pb-3 pt-4">
+              {loading ? (
+                <div className="ag-skeleton h-[120px] rounded" />
+              ) : (
+                series.length > 0 && (
+                  <LineChart
+                    points={series}
+                    min={scale.min}
+                    max={scale.max}
+                    ticks={2}
+                    height={150}
+                    label="Events per interval"
+                  />
+                )
+              )}
+            </div>
+          </Panel>
+
           <Panel
             title="What users are saying"
             icon="chat"

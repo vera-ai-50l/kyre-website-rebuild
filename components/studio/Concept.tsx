@@ -26,7 +26,7 @@ const SCREENS: Screen[] = [
     notes: [
       "Opens on one sentence: how many conversations failed, out of how many, in what window",
       "Each complaint carries the intent behind it and the rule the agent broke, one click from the conversation",
-      "Three ranked lists sized by what they hold, instead of six panels of equal weight",
+      "The day's trend right under that sentence, the same chart as the Events screen, with a way into it",
     ],
   },
   {
@@ -186,7 +186,8 @@ export function Concept() {
         </Reveal>
 
         <p className={ui.cxSource}>
-          Before: screenshots of Agnost&apos;s public demo at app.agnost.ai, taken 17 November 2026. After: Kyre&apos;s
+          Before: screenshots of Agnost&apos;s public demo at app.agnost.ai in its own dark theme, taken 17 November
+          2026. After: Kyre&apos;s
           rebuild in code, filled with made-up sample data for a fictional customer. Agnost AI has not reviewed or
           endorsed this work and is not affiliated with Kyre. Agnost and its marks belong to Agnost AI.
         </p>

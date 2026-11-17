@@ -16,7 +16,7 @@ import { useId } from "react";
         contrast, and callers state it in the panel header too. */
 
 const W = 720;
-const H = 200;
+const H_DEFAULT = 200;
 const PAD = { top: 14, right: 12, bottom: 26, left: 34 };
 
 export type Point = { label: string; value: number };
@@ -68,6 +68,7 @@ export function LineChart({
   max,
   label,
   ticks = 3,
+  height = H_DEFAULT,
 }: {
   points: Point[];
   /** Axis floor. Non-zero when the data sits clear of zero — see niceScale. */
@@ -76,7 +77,11 @@ export function LineChart({
   max: number;
   label: string;
   ticks?: number;
+  /** Viewbox height. The width is fixed, so this sets the chart's proportions:
+      Home shows a shorter strip of the same chart Events shows at full height. */
+  height?: number;
 }) {
+  const H = height;
   const innerW = W - PAD.left - PAD.right;
   const innerH = H - PAD.top - PAD.bottom;
   const span = Math.max(1e-9, max - min);

@@ -6,6 +6,7 @@ import { currentRange, useQuery, type Event } from "@/lib/data";
 import { fmtAgo, fmtClock, fmtLatency, latencyTone } from "@/lib/data/format";
 import { LineChart, niceScale } from "../Chart";
 import { DataTable } from "../DataTable";
+import { useEventSeries } from "../eventSeries";
 import { useScrub } from "../EventsStrip";
 import { ErrorState, SkeletonRows } from "../QueryState";
 import { BASE } from "../Shell";
@@ -48,21 +49,7 @@ export function Events() {
 
   const failures = events.filter((e) => e.status === "failure").length;
 
-  // Events per bucket across whatever range is in view.
-  const series = useMemo(() => {
-    if (!events.length) return [];
-    const first = events[0].ts;
-    const last = events[events.length - 1].ts;
-    const span = Math.max(1, last - first);
-    const buckets = Array<number>(8).fill(0);
-    for (const e of events) {
-      buckets[Math.min(7, Math.floor(((e.ts - first) / span) * 8))]++;
-    }
-    return buckets.map((value, i) => ({
-      label: fmtClock(new Date(first + (span / 8) * i).toISOString()).slice(0, 5),
-      value,
-    }));
-  }, [events]);
+  const series = useEventSeries(events);
 
   const scale = niceScale(series.map((p) => p.value));
 

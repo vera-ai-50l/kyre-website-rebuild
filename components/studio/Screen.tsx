@@ -234,9 +234,8 @@ function After() {
                   <stop offset="1" stopColor="#ff4a1f" stopOpacity="0" />
                 </linearGradient>
                 <linearGradient id="aStroke" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0" stopColor="#0b0c0f" stopOpacity="0.55" />
-                  <stop offset="0.55" stopColor="#0b0c0f" />
-                  <stop offset="1" stopColor="#ff4a1f" />
+                  <stop offset="0" stopColor="#ededed" stopOpacity="0.4" />
+                  <stop offset="1" stopColor="#ededed" />
                 </linearGradient>
               </defs>
               {[60, 78].map((y) => (
