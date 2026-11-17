@@ -783,6 +783,65 @@ export function Sample() {
   );
 }
 
+/* ---- the team --------------------------------------------------------------------------- */
+
+/* Carried over from the first site: the same three people, photos and links. */
+const TEAM = [
+  { name: "Rishiraj Nath", school: "IIM Calcutta", photo: "/team/rishiraj-nath.webp", href: "https://www.linkedin.com/in/rishiraj-nath-964a29292/" },
+  { name: "Shivam Vatkar", school: "IIM Calcutta", photo: "/team/shivam-vatkar.webp", href: "https://www.linkedin.com/in/shivam-vatkar-a29405281/" },
+  { name: "Aditya Bhagat", school: "IIM Indore", photo: "/team/aditya-bhagat.webp", href: "https://www.linkedin.com/in/aditya-bhagat-3949073b1/" },
+];
+
+function LinkedIn() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"
+      />
+    </svg>
+  );
+}
+
+export function Team() {
+  return (
+    <section className={ui.section} id="team">
+      <div className={ui.wrap}>
+        <Head tag="The team">
+          Meet the team. <span>Tap a photo for LinkedIn.</span>
+        </Head>
+        <div className={ui.people}>
+          {TEAM.map((p, i) => (
+            <Reveal key={p.name} delay={i * 90} className={ui.shell}>
+              <div className={ui.core}>
+                <a
+                  className={ui.person}
+                  href={p.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${p.name} on LinkedIn (opens in a new tab)`}
+                >
+                  <span className={ui.photo}>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- static export, already sized webp */}
+                    <img src={p.photo} alt={p.name} width={512} height={640} loading="lazy" decoding="async" />
+                    <span className={ui.liBadge}>
+                      <LinkedIn />
+                    </span>
+                  </span>
+                  <span className={ui.who}>
+                    <b>{p.name}</b>
+                    <span>{p.school}</span>
+                  </span>
+                </a>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ---- 8. FAQ --------------------------------------------------------------------------- */
 
 const FAQ = [

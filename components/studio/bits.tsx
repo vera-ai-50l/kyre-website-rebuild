@@ -11,3 +11,13 @@ export function Arrow({ down = false }: { down?: boolean }) {
     </span>
   );
 }
+
+/* The wordmark, as the first site had it: "kyre" in Inter Tight Bold, tight,
+   and a blue full stop. The size comes from wherever it is placed. */
+export function Logo({ className = "" }: { className?: string }) {
+  return (
+    <span className={`${ui.logo} ${className}`}>
+      kyre<span>.</span>
+    </span>
+  );
+}

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { fracture } from "./fracture";
 import { DUST_FRAG, DUST_VERT, FRAG, VERT } from "./shaders";
+import { isLite, LITE_EVENT } from "../useLite";
 
 /* The old screen, as an object.
 
@@ -132,10 +133,14 @@ export function mountShatter(
   onReady: () => void,
 ): Shatter {
   const host = canvas.parentElement as HTMLElement;
+  /* A small machine (see app/layout.tsx) draws at 1x and without MSAA. It can
+     also be marked small later, mid-visit, so the pixel ratio is re-read on
+     every resize; antialiasing is fixed at creation and stays on there. */
+  const lite = () => isLite();
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
-    antialias: true,
+    antialias: !lite(),
     powerPreference: "high-performance",
   });
   renderer.setClearColor(0x000000, 0);
@@ -233,7 +238,7 @@ export function mountShatter(
   const resize = () => {
     W = host.clientWidth || 1;
     H = host.clientHeight || 1;
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    const dpr = lite() ? 1 : Math.min(window.devicePixelRatio || 1, 1.75);
     renderer.setPixelRatio(dpr);
     renderer.setSize(W, H, false);
     uniforms.uPx.value = dpr;
@@ -318,6 +323,7 @@ export function mountShatter(
   ro.observe(host);
   ro.observe(stage);
   window.addEventListener("pointermove", onMove, { passive: true });
+  window.addEventListener(LITE_EVENT, resize);
   canvas.addEventListener("webglcontextlost", onLost);
   canvas.addEventListener("webglcontextrestored", kick);
   resize();
@@ -332,6 +338,7 @@ export function mountShatter(
       if (raf) cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener(LITE_EVENT, resize);
       canvas.removeEventListener("webglcontextlost", onLost);
       canvas.removeEventListener("webglcontextrestored", kick);
       mesh?.geometry.dispose();

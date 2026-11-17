@@ -712,6 +712,26 @@
   .reel[data-live="on"] .toggle { transition: none; }
 }
 
+/* ---- off screen, and on small machines ---------------------------------------
+   Scrolled past, the room's drifting light stops: nothing can see it. On a
+   machine marked lite by app/layout.tsx it never starts. Each wash is a layer
+   wider than the window, and without a GPU every frame of drift is a
+   full-window blend on the CPU, scrolling or not. The blurs go too: the
+   gradients under them are already soft. */
+.reel[data-off] .wash1,
+.reel[data-off] .wash2,
+.reel[data-off] .wash3,
+.reel[data-off] .mesh,
+.reel[data-off] .hint i { animation-play-state: paused; }
+:global(html[data-lite]) .wash1,
+:global(html[data-lite]) .wash2,
+:global(html[data-lite]) .wash3,
+:global(html[data-lite]) .mesh { animation: none; will-change: auto; }
+:global(html[data-lite]) .shadow,
+:global(html[data-lite]) .reflect { filter: none; }
+/* The lean toward the pointer re-draws the whole raised pane on every move. */
+:global(html[data-lite]) .glassTilt { transform: none; transition: none; }
+
 /* ---- being photographed -----------------------------------------------------
    `npm run capture:studio` sets data-capture on <html> and photographs the pane
    in its "before" state: that picture is what the WebGL glass wears. Flat,

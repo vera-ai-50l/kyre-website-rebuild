@@ -153,13 +153,24 @@
 }
 .island[data-away] { transform: translate3d(0, -170%, 0); opacity: 0; }
 .mark {
+  display: flex;
+  align-items: center;
   margin-right: 1.1rem;
-  font-family: var(--font-gmono), monospace;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 1.45rem;
   color: var(--ink) !important;
 }
+
+/* The first site's wordmark. Its blue full stop is the one place that blue is
+   kept: it is the logo's colour, not the page's. */
+.logo {
+  font-family: var(--font-logo), "Inter Tight", system-ui, sans-serif;
+  font-weight: 700;
+  font-stretch: 100%;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  color: var(--ink);
+}
+.logo span { color: #2f4cff; }
 .links { display: flex; }
 .links a {
   padding: 0.5rem 0.8rem;
@@ -233,6 +244,13 @@
 
 /* ---- section frame ------------------------------------------------------------- */
 .section { position: relative; padding: clamp(6rem, 11vw, 10.5rem) 1.5rem; }
+/* A section well off screen is not styled, laid out or painted, and the figures
+   looping inside it stop. "auto" in the size keeps the height it last had, so
+   the scrollbar settles after one pass instead of jumping. */
+.section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1100px;
+}
 .section::before {
   content: "";
   position: absolute;
@@ -899,10 +917,43 @@
 .formBtn { justify-content: space-between; width: 100%; margin-top: 0.4rem; }
 .formNote { font-size: 0.8125rem; color: rgba(255, 255, 255, 0.5); }
 
+/* ---- the team --------------------------------------------------------------------------- */
+.people { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+.person { display: flex; flex-direction: column; height: 100%; }
+.photo { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: var(--sheet); }
+.photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 900ms var(--spring);
+}
+.person:hover .photo img { transform: scale(1.03); }
+.liBadge {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.9rem;
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 10px 22px -12px rgba(11, 12, 15, 0.55);
+  color: #0a66c2;
+  transition: transform 500ms var(--spring);
+}
+.liBadge svg { width: 15px; height: 15px; }
+.person:hover .liBadge { transform: translate3d(0, -2px, 0) scale(1.06); }
+.person:focus-visible { outline: 2px solid var(--hot); outline-offset: -2px; border-radius: 1.5rem; }
+.who { display: flex; flex-direction: column; gap: 0.2rem; padding: 1.3rem 1.5rem 1.5rem; }
+.who b { font-size: 1.1875rem; font-weight: 600; letter-spacing: -0.03em; color: var(--ink); }
+.who span { font-family: var(--font-gmono), monospace; font-size: 0.75rem; letter-spacing: 0.02em; color: var(--faint); }
+
 /* ---- footer ------------------------------------------------------------------------------- */
 .footer { padding: 2rem 1.5rem 3rem; }
 .footTop { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem 2rem; padding-bottom: 2.5rem; box-shadow: inset 0 -1px 0 0 var(--line2); }
-.footMark { font-size: clamp(3rem, 11vw, 9.5rem); font-weight: 620; font-stretch: 118%; letter-spacing: -0.06em; line-height: 0.85; color: var(--ink); }
+.footMark { font-size: clamp(3rem, 11vw, 9.5rem); line-height: 0.85; color: var(--ink); }
 .footLine { max-width: 18rem; padding-bottom: 0.6rem; }
 .footRow { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem 2rem; padding-top: 1.6rem; font-size: 0.8125rem; }
 .footRow nav { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; }
@@ -912,6 +963,8 @@
 
 /* ---- small screens --------------------------------------------------------------------------- */
 @media (max-width: 860px) {
+  .people { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1rem; }
+  .who { padding: 1.1rem 1.2rem 1.25rem; }
   .links,
   .navCta { display: none; }
   .burger { display: block; }
@@ -961,6 +1014,22 @@
   .form { padding: 1.1rem; }
   .tdShot { box-shadow: inset 0 1px 0 0 var(--line); }
   .footer { padding: 1rem 1rem 2.5rem; }
+}
+
+/* ---- small machines -------------------------------------------------------------------------
+   Set by app/layout.tsx. A backdrop blur re-reads and re-blurs everything under
+   the nav on every scrolled frame, and the grain is a full-window layer blended
+   over the page on every frame: on a CPU those two alone are a dropped frame. */
+:global(html[data-lite]) .root::after { display: none; }
+:global(html[data-lite]) .island {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgba(252, 252, 250, 0.97);
+}
+:global(html[data-lite]) .menu {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgba(231, 232, 235, 0.985);
 }
 
 @media (prefers-reduced-motion: reduce) {

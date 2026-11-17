@@ -111,6 +111,10 @@ export function Hero() {
     if (!reel || !canvas.current || !stage.current) return;
     /* Reduced motion parks on the new screen and never shows the break. */
     if (window.matchMedia(REDUCED).matches) return;
+    /* Drawing on the CPU, a full-window WebGL canvas costs more per scrolled
+       frame than everything else on the page together. The flat picture in the
+       markup tells the same story there and scrolls smoothly. */
+    if (document.documentElement.dataset.lite === "nogpu") return;
 
     let live = true;
     let scene: Shatter | null = null;
@@ -142,6 +146,19 @@ export function Hero() {
       shatter.current = null;
       delete reel.dataset.gl;
     };
+  }, [ref]);
+
+  /* The room's light drifts on a loop; once the reel is scrolled past there
+     is nothing to see it, so it stops rather than repainting off screen. */
+  useEffect(() => {
+    const reel = ref.current;
+    if (!reel) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) delete reel.dataset.off;
+      else reel.dataset.off = "";
+    });
+    io.observe(reel);
+    return () => io.disconnect();
   }, [ref]);
 
   let w = 0;

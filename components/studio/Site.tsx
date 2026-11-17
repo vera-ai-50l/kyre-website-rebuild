@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
-import { Arrow } from "./bits";
-import { STUDIO } from "./brand";
+import { Arrow, Logo } from "./bits";
 import { Hero } from "./Hero";
-import { Approach, Faq, How, Offers, Paths, Sample, Teardown, Trust, Why } from "./Sections";
+import { Approach, Faq, How, Offers, Paths, Sample, Team, Teardown, Trust, Why } from "./Sections";
+import { useLite } from "./useLite";
 import ui from "./site.module.css";
 
 const LINKS = [
@@ -13,6 +13,7 @@ const LINKS = [
   ["#offers", "Offers"],
   ["#approach", "Approach"],
   ["#sample", "Sample"],
+  ["#team", "Team"],
   ["#faq", "FAQ"],
 ];
 
@@ -45,8 +46,8 @@ function Nav() {
   return (
     <header className={ui.nav}>
       <div className={ui.island} data-away={(away && !open) || undefined}>
-        <a href="#" className={ui.mark}>
-          {STUDIO}
+        <a href="#" className={ui.mark} aria-label="Kyre, back to top">
+          <Logo />
         </a>
         <nav className={ui.links} aria-label="Sections">
           {LINKS.map(([href, label]) => (
@@ -96,7 +97,9 @@ function Footer() {
     <footer className={ui.footer}>
       <div className={ui.wrap}>
         <div className={ui.footTop}>
-          <p className={ui.footMark}>{STUDIO}</p>
+          <p className={ui.footMark}>
+            <Logo />
+          </p>
           <p className={ui.footLine}>The first real redesign after AI built your product.</p>
         </div>
         <div className={ui.footRow}>
@@ -120,6 +123,7 @@ function Footer() {
 }
 
 export function Site() {
+  useLite();
   return (
     <div className={ui.root}>
       <Nav />
@@ -132,6 +136,7 @@ export function Site() {
         <Approach />
         <Trust />
         <Sample />
+        <Team />
         <Faq />
         <Teardown />
       </main>

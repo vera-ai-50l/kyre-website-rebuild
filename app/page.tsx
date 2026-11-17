@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Mona_Sans } from "next/font/google";
+import { Geist_Mono, Inter_Tight, Mona_Sans } from "next/font/google";
 import { Site } from "@/components/studio/Site";
 import { STUDIO } from "@/components/studio/brand";
 
@@ -8,6 +8,8 @@ import { STUDIO } from "@/components/studio/brand";
    normal-width text; Geist Mono is the label and the code. */
 const mona = Mona_Sans({ variable: "--font-mona", subsets: ["latin"], axes: ["wdth"] });
 const gmono = Geist_Mono({ variable: "--font-gmono", subsets: ["latin"] });
+/* Only for the wordmark, which is what the first site's logo was set in. */
+const logo = Inter_Tight({ variable: "--font-logo", subsets: ["latin"], weight: "700" });
 
 export const metadata: Metadata = {
   title: `${STUDIO} — the first real redesign after AI built your product`,
@@ -17,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className={`${mona.variable} ${gmono.variable}`}>
+    <div className={`${mona.variable} ${gmono.variable} ${logo.variable}`}>
       <Site />
     </div>
   );
