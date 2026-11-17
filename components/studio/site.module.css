@@ -918,7 +918,7 @@
 .formNote { font-size: 0.8125rem; color: rgba(255, 255, 255, 0.5); }
 
 /* ---- the team --------------------------------------------------------------------------- */
-.people { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+.people { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; max-width: 64rem; }
 .person { display: flex; flex-direction: column; height: 100%; }
 .photo { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: var(--sheet); }
 .photo img {

@@ -135,114 +135,187 @@ const HANDOFFS = [
   ["Everything else", 8],
 ] as const;
 
+/* Title, who, initials, how long, how urgent. */
 const QUEUE = [
-  ["Refund over $200", "Dana K.", "14 min"],
-  ["Annual plan downgrade", "M. Osei", "9 min"],
-  ["Refund, duplicate charge", "R. Vale", "4 min"],
-];
+  ["Refund over $200", "Dana K.", "DK", "14 min", "hot"],
+  ["Annual plan downgrade", "M. Osei", "MO", "9 min", "warm"],
+  ["Refund, duplicate charge", "R. Vale", "RV", "4 min", "calm"],
+] as const;
+
+/* The three numbers the old screen led with, demoted to a strip, each with the
+   week behind it. Sparklines are 60×16. */
+const STATS = [
+  ["12,847", "conversations", "M0 13 L10 11 L20 12 L30 8 L40 9 L50 5 L60 3"],
+  ["1.2s", "median reply", "M0 4 L10 6 L20 5 L30 8 L40 9 L50 11 L60 12"],
+  ["3,429", "active customers", "M0 12 L10 10 L20 11 L30 9 L40 7 L50 7 L60 4"],
+] as const;
+
+/* Resolution rate over the week, in the chart's 600×120 box; 96 is the floor
+   line, 22 is Sunday's 96.1%, and the goal of 95% sits at 33. */
+const CURVE = "M0 84 C40 82 64 76 100 78 S166 92 200 88 S262 66 300 60 S366 55 400 52 S466 45 500 40 S566 27 596 22";
+
+const v = (o: Record<string, string | number>) => o as React.CSSProperties;
+
+function Arrow() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3.5 8h9M8.8 4.2 12.5 8l-3.7 3.8" />
+    </svg>
+  );
+}
 
 function After() {
   return (
     <div className={s.a}>
-      <div className={s.aTop} style={{ "--i": 0 } as React.CSSProperties}>
-        <span className={s.aMark}>marlo</span>
+      <span className={s.aAura} aria-hidden />
+
+      <div className={s.aTop} style={v({ "--i": 0 })}>
+        <span className={s.aBrand}>
+          <i className={s.aGlyph} aria-hidden />
+          marlo
+        </span>
         <span className={s.aNav}>
           <b>Overview</b>
           <i>Conversations</i>
           <i>Agents</i>
           <i>Customers</i>
         </span>
-        <span className={s.aRange}>Last 7 days</span>
+        <span className={s.aTools}>
+          <span className={s.aLive}>
+            <i aria-hidden />
+            Live
+          </span>
+          <span className={s.aRange}>Last 7 days</span>
+          <span className={s.aMe} aria-hidden>
+            AK
+          </span>
+        </span>
       </div>
 
       <div className={s.aBody}>
-        <div className={s.aLead}>
-          <p className={s.aLabel} style={{ "--i": 1 } as React.CSSProperties}>
-            Resolved without a human
-          </p>
-          <p className={s.aNum} style={{ "--i": 2 } as React.CSSProperties}>
-            94.2<i>%</i>
-          </p>
-          <p className={s.aDelta} style={{ "--i": 3 } as React.CSSProperties}>
-            <b>+2.1 pts</b> on last week
-          </p>
-          <p className={s.aSay} style={{ "--i": 4 } as React.CSSProperties}>
+        <section className={`${s.aCard} ${s.aLead}`} style={v({ "--i": 1 })}>
+          <div className={s.aHead}>
+            <p className={s.aLabel}>Resolved without a human</p>
+            <span className={s.aTag}>AI agent</span>
+          </div>
+          <div className={s.aHero}>
+            <p className={s.aNum} style={v({ "--i": 2 })}>
+              94.2<i>%</i>
+            </p>
+            <div className={s.aMeta} style={v({ "--i": 3 })}>
+              <span className={s.aUp}>
+                <b>+2.1 pts</b> on last week
+              </span>
+              <span className={s.aGoal}>
+                <span>
+                  Goal <b>95%</b>
+                </span>
+                <i aria-hidden>
+                  <i />
+                </i>
+                <em>0.8 pts to go</em>
+              </span>
+            </div>
+          </div>
+          <p className={s.aSay} style={v({ "--i": 4 })}>
+            <span className={s.aSpark} aria-hidden>
+              <svg viewBox="0 0 16 16">
+                <path d="M8 1.5c.5 3.4 1.6 4.6 5 5.1-3.4.5-4.5 1.6-5 5-.5-3.4-1.6-4.5-5-5 3.4-.5 4.5-1.7 5-5.1z" fill="currentColor" />
+              </svg>
+            </span>
             Refund requests are behind four in ten handoffs.
           </p>
-          <div className={s.aChart} style={{ "--i": 5 } as React.CSSProperties}>
+          <div className={s.aChart} style={v({ "--i": 5 })}>
             <svg viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden>
-              <line x1="0" x2="600" y1="96" y2="96" className={s.aBase} vectorEffect="non-scaling-stroke" />
-              <path d="M0 84 L100 78 L200 88 L300 60 L400 52 L500 40 L596 22 L596 96 L0 96 Z" className={s.aArea} />
-              <path
-                d="M0 84 L100 78 L200 88 L300 60 L400 52 L500 40 L596 22"
-                pathLength={1}
-                className={s.aLine}
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-            <span className={s.aDot} />
-            <svg className={s.aDefs} aria-hidden>
               <defs>
                 <linearGradient id="aFill" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0" stopColor="#0b0c0f" stopOpacity="0.1" />
-                  <stop offset="1" stopColor="#0b0c0f" stopOpacity="0" />
+                  <stop offset="0" stopColor="#ff4a1f" stopOpacity="0.26" />
+                  <stop offset="0.7" stopColor="#ff4a1f" stopOpacity="0.04" />
+                  <stop offset="1" stopColor="#ff4a1f" stopOpacity="0" />
+                </linearGradient>
+                <linearGradient id="aStroke" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0" stopColor="#0b0c0f" stopOpacity="0.55" />
+                  <stop offset="0.55" stopColor="#0b0c0f" />
+                  <stop offset="1" stopColor="#ff4a1f" />
                 </linearGradient>
               </defs>
+              {[60, 78].map((y) => (
+                <line key={y} x1="0" x2="600" y1={y} y2={y} className={s.aGrid} vectorEffect="non-scaling-stroke" />
+              ))}
+              <line x1="0" x2="600" y1="96" y2="96" className={s.aBase} vectorEffect="non-scaling-stroke" />
+              <line x1="0" x2="600" y1="33" y2="33" className={s.aGoalLine} vectorEffect="non-scaling-stroke" />
+              <path d={`${CURVE} L596 96 L0 96 Z`} className={s.aArea} />
+              <path d={CURVE} pathLength={1} className={s.aLine} vectorEffect="non-scaling-stroke" />
             </svg>
+            <span className={s.aGoalTag}>Goal 95%</span>
+            <span className={s.aDot} />
+            <span className={s.aTip}>
+              <b>96.1%</b> Sun
+            </span>
             <span className={s.aDays}>
               {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
                 <i key={d}>{d}</i>
               ))}
             </span>
           </div>
-        </div>
+        </section>
 
         <div className={s.aCol}>
-          <p className={s.aLabel} style={{ "--i": 3 } as React.CSSProperties}>
-            Where the agent hands off
-          </p>
-          <ol className={s.aRank}>
-            {HANDOFFS.map(([l, v], i) => (
-              <li key={l} style={{ "--i": 4 + i, "--v": v / 41 } as React.CSSProperties}>
-                <span>{l}</span>
-                <b>{v}%</b>
-                <i />
-              </li>
-            ))}
-          </ol>
-          <p className={s.aLabel} style={{ "--i": 8 } as React.CSSProperties}>
-            Waiting on you
-          </p>
-          <ul className={s.aQueue}>
-            {QUEUE.map(([t, who, age], i) => (
-              <li key={t} style={{ "--i": 9 + i } as React.CSSProperties}>
-                <span>{t}</span>
-                <i>{who}</i>
-                <b>{age}</b>
-              </li>
-            ))}
-          </ul>
-          <span className={s.aCta} style={{ "--i": 12 } as React.CSSProperties}>
-            Review 3 handoffs
-            <i>
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3.5 8h9M8.8 4.2 12.5 8l-3.7 3.8" />
-              </svg>
-            </i>
-          </span>
+          <section className={`${s.aCard} ${s.aRankCard}`} style={v({ "--i": 3 })}>
+            <div className={s.aHead}>
+              <p className={s.aLabel}>Where the agent hands off</p>
+            </div>
+            <ol className={s.aRank}>
+              {HANDOFFS.map(([l, n], i) => (
+                <li key={l} style={v({ "--i": 4 + i, "--v": n / 41 })}>
+                  <span>{l}</span>
+                  <b>{n}%</b>
+                  <i aria-hidden>
+                    <i />
+                  </i>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className={`${s.aCard} ${s.aQueueCard}`} style={v({ "--i": 8 })}>
+            <div className={s.aHead}>
+              <p className={s.aLabel}>Waiting on you</p>
+              <span className={s.aCount}>3</span>
+            </div>
+            <ul className={s.aQueue}>
+              {QUEUE.map(([t, who, ini, age, tone], i) => (
+                <li key={t} style={v({ "--i": 9 + i })} data-tone={tone}>
+                  <span className={s.aAv} aria-hidden>
+                    {ini}
+                  </span>
+                  <span className={s.aWho}>
+                    <span>{t}</span>
+                    <i>{who}</i>
+                  </span>
+                  <b>{age}</b>
+                </li>
+              ))}
+            </ul>
+            <span className={s.aCta} style={v({ "--i": 12 })}>
+              Review 3 handoffs
+              <i>
+                <Arrow />
+              </i>
+            </span>
+          </section>
         </div>
       </div>
 
-      <div className={s.aFoot} style={{ "--i": 13 } as React.CSSProperties}>
-        <span>
-          <b>12,847</b> conversations
-        </span>
-        <span>
-          <b>1.2s</b> median reply
-        </span>
-        <span>
-          <b>3,429</b> active customers
-        </span>
+      <div className={s.aFoot} style={v({ "--i": 13 })}>
+        {STATS.map(([n, l, d]) => (
+          <span key={l}>
+            <b>{n}</b> {l}
+            <svg viewBox="0 0 60 16" aria-hidden>
+              <path d={d} vectorEffect="non-scaling-stroke" />
+            </svg>
+          </span>
+        ))}
       </div>
     </div>
   );

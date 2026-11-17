@@ -808,7 +808,7 @@ export function Team() {
     <section className={ui.section} id="team">
       <div className={ui.wrap}>
         <Head tag="The team">
-          Meet the team. <span>Tap a photo for LinkedIn.</span>
+          Meet the team. <span>Kyre is run by its founders.</span>
         </Head>
         <div className={ui.people}>
           {TEAM.map((p, i) => (
@@ -822,7 +822,6 @@ export function Team() {
                   aria-label={`${p.name} on LinkedIn (opens in a new tab)`}
                 >
                   <span className={ui.photo}>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- static export, already sized webp */}
                     <img src={p.photo} alt={p.name} width={512} height={640} loading="lazy" decoding="async" />
                     <span className={ui.liBadge}>
                       <LinkedIn />

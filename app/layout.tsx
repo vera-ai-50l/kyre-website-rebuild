@@ -45,12 +45,15 @@ export const metadata: Metadata = {
 /* Decides, before the first paint, whether this machine gets the lighter page.
    Sets <html data-lite>:
      "nogpu"  the browser is drawing with the CPU (no GPU, or GPU acceleration
-              switched off): the WebGL glass is skipped for the flat picture.
-     "low"    a GPU, but a small machine (≤4 GB memory or ≤4 threads): WebGL
-              stays, at 1x and without antialiasing.
-   Both drop the always-running decoration: blurred glass, drifting light, the
-   paper grain. components/studio/useLite.ts can still switch to "low" later if
-   scrolling turns out slow. ?fx=full, ?fx=low and ?fx=nogpu force a tier. */
+              switched off).
+     "low"    a GPU, but a small machine (≤4 GB memory or ≤4 threads).
+   Both keep the WebGL glass, drawn at 1x without antialiasing, and drop the
+   always-running decoration that costs a full-window blend per frame on a CPU:
+   backdrop blur, drifting light, the paper grain, blur on reveals. Measured on
+   two CPU cores with no GPU, that is the difference between ~23fps and 60fps
+   through the hero. components/studio/useLite.ts can still switch to "low"
+   later if scrolling turns out slow. ?fx=full, ?fx=low and ?fx=nogpu force a
+   tier. */
 const LITE = `(function(){try{
 var d=document.documentElement,f=new URLSearchParams(location.search).get("fx");
 if(f==="full")return;if(f==="low"||f==="nogpu"){d.dataset.lite=f;return}

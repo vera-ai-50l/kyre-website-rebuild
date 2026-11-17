@@ -258,6 +258,9 @@ body::before {
   transform: none;
   filter: none;
 }
+/* Blurring a whole card on its way in is cheap on a GPU and a dropped frame
+   per card on a CPU. Small machines get the fade and the rise without it. */
+html[data-lite] .reveal { filter: none; }
 
 /* ---- the system below the hero ---------------------------------------------
    Five primitives, used by every section, so the page reads as one object
