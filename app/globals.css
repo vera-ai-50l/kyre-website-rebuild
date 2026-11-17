@@ -586,11 +586,11 @@ html[data-lite] .reveal { filter: none; }
 .ag-display { font-size: 2rem; line-height: 1.15; letter-spacing: -0.02em; font-weight: 500; color: var(--color-ag-hi); }
 .ag-body { font-size: 0.875rem; line-height: 1.5; }
 .ag-body-sm { font-size: 0.8125rem; line-height: 1.45; }
+/* Sentence case at normal tracking. Uppercase tracked labels on every group and
+   column were the console's loudest machine-made tell. */
 .ag-label {
-  font-size: 0.6875rem;
-  line-height: 1.2;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  line-height: 1.25;
   color: var(--color-ag-low);
 }
 /* Machine output: IDs, timestamps, latencies, costs. Tabular so columns line
@@ -649,9 +649,13 @@ html[data-lite] .reveal { filter: none; }
     0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
-/* Cursor-follow glow. Chrome only — never behind a number. Position is written
-   to --mx/--my from a rAF pointer handler, never from React state. */
+/* Hover is a surface step. There was a cursor-follow glow and lit ring here;
+   decoration on the chrome of a tool people sit in for hours, so it is gone and
+   .ag-glow only keeps the step. */
 .ag-glow { position: relative; isolation: isolate; }
+.ag-glow:hover { background-color: var(--color-ag-overlay); }
+.ag-glow::before,
+.ag-glow::after { display: none; }
 .ag-glow::before {
   content: "";
   position: absolute;
@@ -702,8 +706,8 @@ html[data-lite] .reveal { filter: none; }
 /* Selected sidebar item: a 2px accent rule and the wash, no glow. Selection is
    a state, not an invitation, so it does not react to the cursor. */
 .ag-selected {
-  background: var(--color-ag-accent-wash);
-  box-shadow: inset 2px 0 0 var(--color-ag-accent);
+  background: var(--color-ag-overlay);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 /* Stretched row link — F3. The anchor lives in the first cell so the row is a

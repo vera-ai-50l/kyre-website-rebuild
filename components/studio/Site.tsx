@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
 import { Arrow, Logo } from "./bits";
 import { Hero } from "./Hero";
+import { Concept } from "./Concept";
 import { Approach, Faq, How, Offers, Paths, Sample, Team, Teardown, Trust, Why } from "./Sections";
 import { MotionRoot } from "./motion";
 import { useLite } from "./useLite";
@@ -14,6 +15,7 @@ const LINKS = [
   ["#offers", "Offers"],
   ["#approach", "Approach"],
   ["#sample", "Sample"],
+  ["#concept", "Concept"],
   ["#team", "Team"],
   ["#faq", "FAQ"],
 ];
@@ -138,6 +140,7 @@ export function Site() {
         <Approach />
         <Trust />
         <Sample />
+        <Concept />
         <Team />
         <Faq />
         <Teardown />

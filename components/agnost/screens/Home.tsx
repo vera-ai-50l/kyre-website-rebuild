@@ -155,7 +155,7 @@ export function Home() {
             )}
           </Panel>
 
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-[1.25fr_1fr_1fr]">
             <Panel title="What's failing" icon="warn">
               {violations.error ? (
                 <ErrorState error={violations.error} onRetry={violations.refetch} />
@@ -281,11 +281,9 @@ export function Home() {
                       cell: (t) => (
                         <span
                           className={`ag-data ${
-                            t.p99Ms >= 2500
-                              ? "text-ag-err"
-                              : t.p99Ms >= 1000
-                                ? "text-ag-warn"
-                                : "text-ag-mid"
+                            /* Red only past the line that matters; the rest
+                               is read, not flagged. */
+                            t.p99Ms >= 2500 ? "text-ag-err" : "text-ag-hi"
                           }`}
                         >
                           {fmtLatency(t.p99Ms)}
@@ -325,10 +323,7 @@ function InsightRow({
     <li className={index >= 4 ? "hidden 2xl:block" : undefined}>
       <Link
         href={`${BASE}/users?user=${encodeURIComponent(insight.userId)}&conv=${insight.conversationId}`}
-        className={`flex flex-col gap-1 border-b border-ag-subtle px-4 py-2.5 transition-colors duration-150 ease-out last:border-b-0 hover:bg-ag-overlay ${
-          /* A failure gets a signal rule, so the eye finds it without reading. */
-          violation ? "border-l-2 border-l-ag-err" : "border-l-2 border-l-transparent"
-        }`}
+        className="flex flex-col gap-1 border-b border-ag-subtle px-4 py-2.5 transition-colors duration-150 ease-out last:border-b-0 hover:bg-ag-overlay"
       >
         <span className="flex items-baseline justify-between gap-3">
           <span className="ag-data truncate text-[12px] text-ag-mid">{insight.userId}</span>
@@ -340,7 +335,7 @@ function InsightRow({
         <span className="ag-body-sm truncate text-ag-hi">{insight.summary}</span>
         <span className="flex flex-wrap items-center gap-1.5">
           {insight.intents.slice(0, 2).map((slug) => (
-            <Badge key={slug} tone="accent">
+            <Badge key={slug}>
               {intents.find((i) => i.slug === slug)?.name ?? slug}
             </Badge>
           ))}

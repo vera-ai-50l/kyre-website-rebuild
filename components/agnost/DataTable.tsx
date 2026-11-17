@@ -86,7 +86,9 @@ export function DataTable<T>({
       isSelected?.(row)
         ? "bg-ag-accent-wash"
         : rowTone?.(row) === "error"
-          ? `bg-ag-err/[0.06] ${interactive ? "hover:bg-ag-err/[0.1]" : ""}`
+          ? interactive
+            ? "hover:bg-ag-overlay"
+            : ""
           : interactive
             ? "hover:bg-ag-overlay"
             : "",

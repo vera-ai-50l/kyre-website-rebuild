@@ -156,20 +156,18 @@ export function LineChart({
         clipPath={`url(#${revealId})`}
       />
 
-      {coords.map(([cx, cy], i) => (
-        <rect
-          key={points[i].label}
-          x={cx - 2.5}
-          y={cy - 2.5}
-          width="5"
-          height="5"
-          fill="var(--color-ag-base)"
-          stroke="var(--color-ag-accent)"
-          strokeWidth="1.25"
-          vectorEffect="non-scaling-stroke"
+      {/* One marker, on the latest reading: the point being read. */}
+      {coords.length > 0 && (
+        <circle
+          cx={coords[coords.length - 1][0]}
+          cy={coords[coords.length - 1][1]}
+          r="3.5"
+          fill="var(--color-ag-accent)"
+          stroke="var(--color-ag-base)"
+          strokeWidth="2"
           className="ag-point"
         />
-      ))}
+      )}
 
       {points.map((p, i) => (
         <text

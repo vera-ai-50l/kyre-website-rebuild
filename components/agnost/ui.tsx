@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { useCursorGlow } from "../useCursorGlow";
 
 /* Small shared parts for the Agnost rebuild. Nothing here is a component
    library — each piece exists because two or more screens needed it. */
@@ -161,14 +160,13 @@ export function Button({
   icon?: string;
   title?: string;
 }) {
-  const glowRef = useCursorGlow<HTMLElement>();
   const styles = {
     ghost: "text-ag-mid hover:bg-ag-overlay hover:text-ag-hi",
     outline: "ag-surface ag-glow text-ag-mid hover:text-ag-hi",
     /* White on the raw accent is 4.2:1 — under AA at this size. The pressed
        tone carries the fill (6.1:1) and hover goes deeper still, so the button
        stays their purple without the label falling below the floor. */
-    primary: "ag-glow bg-ag-accent-dim text-white hover:bg-[#5f38c9]",
+    primary: "bg-ag-accent-dim text-white hover:bg-[#5f38c9]",
   }[variant];
   const cls = `ag-press inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition-colors duration-150 ease-out ${styles}`;
   const inner = (
@@ -179,7 +177,6 @@ export function Button({
   );
   return href ? (
     <a
-      ref={glowRef as React.Ref<HTMLAnchorElement>}
       href={href}
       className={cls}
       title={title}
@@ -188,7 +185,6 @@ export function Button({
     </a>
   ) : (
     <button
-      ref={glowRef as React.Ref<HTMLButtonElement>}
       type="button"
       onClick={onClick}
       className={cls}

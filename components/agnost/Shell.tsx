@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import { currentRange, useQuery } from "@/lib/data";
 import { fmtClock } from "@/lib/data/format";
 import { EventsStrip, ScrubProvider, useScrub } from "./EventsStrip";
-import { useCursorGlow } from "../useCursorGlow";
 import { Button, Icon } from "./ui";
 
 export const BASE = "/agnost/console";
@@ -45,14 +44,15 @@ const NAV: { group?: string; items: NavItemDef[] }[] = [
 function Wordmark() {
   return (
     <Link href="/agnost" className="flex items-center gap-2 px-3 py-3.5">
-      <span className="grid h-5 w-5 rotate-45 place-items-center rounded-[3px] border border-ag-accent bg-ag-accent-wash" />
+      {/* Their mark, flat: a diamond in the one brand colour, no wash. */}
+      <span className="grid h-4 w-4 rotate-45 place-items-center rounded-[3px] border-[1.5px] border-ag-accent">
+        <span className="h-1 w-1 rounded-full bg-ag-accent" />
+      </span>
       <span className="text-[15px] font-medium tracking-[-0.01em] text-ag-hi">Agnost AI</span>
     </Link>
   );
 }
 
-/* Its own component so the glow hook is called once per item rather than inside
-   a map, which would be an illegal conditional hook. */
 function NavItem({
   item,
   on,
@@ -64,26 +64,23 @@ function NavItem({
   compact: boolean;
   badge?: number;
 }) {
-  const glowRef = useCursorGlow<HTMLAnchorElement>();
   return (
     <Link
-      ref={on ? undefined : glowRef}
       href={item.href}
       aria-current={on ? "page" : undefined}
       className={`flex h-9 items-center gap-2.5 rounded-md px-2 text-[13px] transition-colors duration-150 ease-out ${
         compact ? "shrink-0 px-2.5" : ""
       } ${
         on
-          ? /* Selection is a state, not an invitation — accent rule and wash,
-               and no cursor glow. */
+          ? /* Selection is a surface step with a hairline, not a colour. */
             "ag-selected font-medium text-ag-hi"
-          : "ag-glow text-ag-mid hover:text-ag-hi"
+          : "text-ag-mid hover:bg-ag-overlay hover:text-ag-hi"
       }`}
     >
       <Icon name={item.icon} />
       <span className={compact ? "hidden sm:inline" : ""}>{item.label}</span>
       {badge ? (
-        <span className="ag-data ml-auto rounded-full bg-ag-accent-wash px-1.5 text-[10px] text-ag-accent-text">
+        <span className="ag-data ml-auto text-[12px] text-ag-low">
           {badge}
         </span>
       ) : null}
@@ -188,7 +185,7 @@ export function Shell({
             <Button variant="ghost" icon="filter">Filters</Button>
             <div className="ml-auto flex items-center gap-2">
               {actions}
-              <Button variant="primary" icon="spark">Ask AI</Button>
+              <Button variant="primary">Ask AI</Button>
             </div>
           </header>
 

@@ -204,10 +204,10 @@ export function EventsStrip() {
         /* Red ticks become a counted badge — "some red marks" is not actionable. */
         <a
           href="/agnost/console/events#failures"
-          className="flex h-7 shrink-0 items-center gap-1.5 rounded-md border border-ag-err/35 bg-ag-err/10 px-2 text-[11px] font-medium text-ag-err transition-colors duration-150 ease-out hover:bg-ag-err/20"
+          className="flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2 text-[12px] text-ag-mid transition-colors duration-150 ease-out hover:bg-ag-overlay hover:text-ag-hi"
         >
-          <span className="ag-data">{lastHourFailures}</span>
-          <span className="hidden sm:inline">failures · last hour</span>
+          <span className="ag-data text-ag-err">{lastHourFailures}</span>
+          <span className="hidden sm:inline">failures in the last hour</span>
           <span className="sm:hidden">failures</span>
         </a>
       )}

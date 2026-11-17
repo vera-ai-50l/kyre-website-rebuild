@@ -903,6 +903,91 @@
 .formBtn { justify-content: space-between; width: 100%; margin-top: 0.4rem; }
 .formNote { font-size: 0.8125rem; color: rgba(255, 255, 255, 0.5); }
 
+/* ---- the Agnost concept (Concept.tsx) -------------------------------------------------------
+   One comparison, drawn with an inset clip on the top image: dragging changes
+   one value and nothing reflows. */
+.cxCore { display: flex; flex-direction: column; }
+.cxBar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 0.75rem 0.75rem 1rem; }
+.cxTabs { display: flex; gap: 0.25rem; padding: 0.25rem; border-radius: 0.75rem; background: rgba(11, 12, 15, 0.05); }
+.cxTab {
+  height: 2rem;
+  padding: 0 0.9rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--dim);
+  cursor: pointer;
+  transition: background-color 180ms var(--spring), color 180ms var(--spring);
+}
+.cxTab[aria-selected="true"] { background: var(--white); color: var(--ink); box-shadow: 0 1px 2px rgba(11, 12, 15, 0.12), inset 0 0 0 1px var(--line); }
+.cxTab:focus-visible { outline: 2px solid var(--hot); outline-offset: 2px; }
+.cxHint { font-size: 0.8125rem; color: var(--faint); }
+.cxBox {
+  --pos: 50%;
+  position: relative;
+  aspect-ratio: 16 / 10;
+  margin: 0 0.75rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #0a0a0c;
+  cursor: ew-resize;
+  touch-action: pan-y;
+  user-select: none;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.cxBox img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: left top; }
+.cxAfter { clip-path: inset(0 0 0 var(--pos)); }
+.cxLegend { display: flex; justify-content: space-between; gap: 1rem; padding: 0.6rem 1.25rem 0; font-size: 0.8125rem; color: var(--dim); }
+.cxLegend span:last-child { color: var(--ink); }
+.cxHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--pos);
+  width: 2.75rem;
+  margin-left: -1.375rem;
+  display: grid;
+  place-items: center;
+  outline: none;
+}
+.cxHandle::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, 0.18); }
+.cxHandle i {
+  position: relative;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 14px -4px rgba(11, 12, 15, 0.5), inset 0 0 0 1px rgba(11, 12, 15, 0.08);
+  transition: transform 160ms var(--spring);
+}
+.cxHandle i::before,
+.cxHandle i::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-top: -0.2rem;
+  border-left: 1.5px solid var(--ink);
+  border-bottom: 1.5px solid var(--ink);
+}
+.cxHandle i::before { left: 0.6rem; transform: rotate(45deg); }
+.cxHandle i::after { right: 0.6rem; transform: rotate(-135deg); }
+.cxBox:active .cxHandle i { transform: scale(0.94); }
+.cxHandle:focus-visible i { box-shadow: 0 0 0 3px var(--hot), 0 4px 14px -4px rgba(11, 12, 15, 0.5); }
+.cxFoot { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 1.5rem 2.5rem; padding: 1.5rem 1.75rem 1.75rem; }
+.cxNotes { display: grid; gap: 0.6rem; margin: 0; padding: 0; list-style: none; max-width: 44rem; }
+.cxNotes li { position: relative; padding-left: 1.1rem; font-size: 0.9375rem; line-height: 1.5; color: var(--ink2); }
+.cxNotes li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 0.4rem; height: 0.4rem; border-radius: 50%; background: #8b5cf6; }
+.cxActions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.cxSource { max-width: 52rem; margin-top: 1.25rem; font-size: 0.8125rem; line-height: 1.6; color: var(--faint); }
+@media (hover: hover) and (pointer: fine) {
+  .cxTab:hover:not([aria-selected="true"]) { color: var(--ink); background: rgba(255, 255, 255, 0.5); }
+}
+
 /* ---- the team --------------------------------------------------------------------------- */
 .people { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; max-width: 64rem; }
 .person { display: flex; flex-direction: column; height: 100%; }
@@ -949,6 +1034,11 @@
 
 /* ---- small screens --------------------------------------------------------------------------- */
 @media (max-width: 860px) {
+  .cxBar { padding: 0.5rem; }
+  .cxHint { display: none; }
+  .cxBox { margin: 0 0.5rem; border-radius: 0.75rem; }
+  .cxLegend { padding: 0.5rem 0.9rem 0; font-size: 0.75rem; }
+  .cxFoot { grid-template-columns: 1fr; padding: 1.25rem 1.1rem 1.25rem; }
   .people { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1rem; }
   .who { padding: 1.1rem 1.2rem 1.25rem; }
   .links,

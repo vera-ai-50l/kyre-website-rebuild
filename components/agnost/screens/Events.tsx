@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { currentRange, useQuery, type Event } from "@/lib/data";
-import { fmtAgo, fmtClock, fmtLatency, latencyTone, percentile } from "@/lib/data/format";
+import { fmtAgo, fmtClock, fmtLatency, latencyTone } from "@/lib/data/format";
 import { LineChart, niceScale } from "../Chart";
 import { DataTable } from "../DataTable";
 import { useScrub } from "../EventsStrip";
@@ -35,11 +35,6 @@ export function Events() {
 
   const filter: Filter =
     chosen ?? (hash === "failures" || violationSlug ? "failure" : "all");
-
-  const median = useMemo(
-    () => percentile(events.map((e) => e.latencyMs), 0.5),
-    [events],
-  );
 
   const rows = useMemo(() => {
     const filtered = events.filter((e) => filter === "all" || e.status === filter);
@@ -102,12 +97,6 @@ export function Events() {
         title={
           <span>
             Events {at === null ? "over 24h" : "in this window"}
-            <span className="px-2 text-ag-low">·</span>
-            {/* Axis maximum stated, so this panel is not silently on a different
-                scale from the intents chart next door — B6. */}
-            <span className="ag-data text-ag-mid">
-              axis {scale.lifted ? `${scale.min}–${scale.max}` : `to ${scale.max}`}
-            </span>
           </span>
         }
         icon="events"
@@ -241,20 +230,11 @@ export function Events() {
                 align: "right",
                 cell: (e) => (
                   <span className="inline-flex items-center justify-end gap-1.5">
-                    {/* Gutter marker for anything past 2x the median — the row
-                        you would otherwise have to compute to notice. */}
-                    {e.latencyMs > median * 2 && (
-                      <span
-                        aria-label="Over twice the median latency"
-                        title="Over twice the median latency"
-                        className="h-3 w-0.5 rounded-full bg-ag-warn"
-                      />
-                    )}
                     <span
                       className={`ag-data ${
                         {
                           neutral: "text-ag-mid",
-                          warn: "text-ag-warn",
+                          warn: "text-ag-hi",
                           error: "text-ag-err",
                         }[latencyTone(e.latencyMs)]
                       }`}
