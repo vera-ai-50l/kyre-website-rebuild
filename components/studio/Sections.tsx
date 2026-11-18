@@ -22,13 +22,11 @@ function Check() {
   );
 }
 
-function Head({ tag, children, lede, light }: { tag: string; children: ReactNode; lede?: string; light?: boolean }) {
+/* `tag` names the section for the nav and screen readers; the heading speaks
+   for itself on the page. */
+function Head({ children, lede }: { tag?: string; children: ReactNode; lede?: string; light?: boolean }) {
   return (
     <Reveal className={ui.head}>
-      <p className={`${ui.eyebrow} ${light ? ui.eyebrowInk : ""}`}>
-        <i />
-        {tag}
-      </p>
       <h2 className={ui.h2}>{children}</h2>
       {lede && <p className={ui.lede}>{lede}</p>}
     </Reveal>
@@ -71,7 +69,6 @@ export function Paths() {
                 </div>
               </div>
               <div className={ui.pathBody}>
-                <p className={ui.kicker}>AI-built app</p>
                 <h3 className={ui.pathTitle}>&ldquo;I built my app with AI.&rdquo;</h3>
                 <p className={ui.pathText}>
                   5 key screens redesigned in your brand, accessibility and a security check, shipped as a pull request
@@ -86,7 +83,7 @@ export function Paths() {
             </article>
           </Reveal>
 
-          <Reveal className={`${ui.shell} ${ui.shellInk}`} delay={120}>
+          <Reveal className={ui.shell} delay={120}>
             <article className={`${ui.core} ${ui.coreInk} ${ui.path}`}>
               <div className={ui.pathFig} aria-hidden>
                 <div className={ui.kit}>
@@ -119,7 +116,6 @@ export function Paths() {
                 </div>
               </div>
               <div className={ui.pathBody}>
-                <p className={ui.kicker}>Funded AI SaaS</p>
                 <h3 className={ui.pathTitle}>&ldquo;We raised, and our dashboard is the bottleneck.&rdquo;</h3>
                 <p className={ui.pathText}>
                   One core dashboard plus a reusable chart and table kit, shipped to your repo in about 2 weeks.
@@ -172,12 +168,7 @@ export function Why() {
   return (
     <section className={ui.section} id="why">
       <div className={ui.wrap}>
-        <Reveal>
-          <p className={ui.eyebrow}>
-            <i />
-            Why your interface is the bottleneck
-          </p>
-        </Reveal>
+        <h2 className={ui.whyHead}>Why your interface is the bottleneck</h2>
         <p ref={say} className={ui.say} style={v({ "--n": SAY.length })}>
           {SAY.map((w, i) => (
             <span key={i} style={v({ "--i": i })}>
@@ -404,10 +395,10 @@ export function How() {
         <div className={ui.steps}>
           {STEPS.map((s, i) => (
             <div key={s.n} className={ui.step} style={v({ "--i": i })}>
-              <Reveal className={`${ui.shell} ${ui.shellDark}`}>
+              <Reveal className={ui.shell}>
                 <article className={`${ui.core} ${ui.coreDark} ${ui.stepCore}`}>
                   <div className={ui.stepText}>
-                    <span className={ui.stepN}>{s.n}</span>
+                    <span className={ui.stepN} aria-label={`Step ${Number(s.n)}`}>{Number(s.n)}</span>
                     <h3>{s.title}</h3>
                     <p>{s.text}</p>
                     <em>{s.meta}</em>
@@ -474,8 +465,8 @@ export function Offers() {
             <Reveal key={o.name} className={ui.shell} delay={i * 120}>
               <article className={`${ui.core} ${ui.offer}`}>
                 <header>
-                  <p className={ui.kicker}>{o.who}</p>
                   <h3>{o.name}</h3>
+                  <p className={ui.offerWho}>{o.who}</p>
                 </header>
                 <div className={ui.offerPrice}>
                   <b>{o.price}</b>
@@ -633,7 +624,7 @@ export function Trust() {
               </div>
             </article>
           </Reveal>
-          <Reveal className={`${ui.shell} ${ui.shellInk}`} delay={120}>
+          <Reveal className={ui.shell} delay={120}>
             <article className={`${ui.core} ${ui.coreInk} ${ui.cell}`}>
               <ul className={ui.sec}>
                 {SECURITY.map((t, i) => (
@@ -866,13 +857,6 @@ export function Faq() {
 
 /* ---- 9. the teardown request ------------------------------------------------------------ */
 
-const SHARDS = [
-  "8,4 34,0 40,26 12,36",
-  "2,6 30,0 22,40",
-  "0,10 26,0 44,18 18,34",
-  "6,0 36,8 28,38 0,26",
-  "4,2 28,0 38,22 10,30",
-];
 
 export function Teardown() {
   /* ponytail: mailto, because a static export has no server to post to. Swap
@@ -887,20 +871,9 @@ export function Teardown() {
   return (
     <section className={`${ui.section} ${ui.last}`} id="teardown">
       <div className={ui.wrap}>
-        <Reveal className={`${ui.shell} ${ui.shellInk}`}>
+        <Reveal className={ui.shell}>
           <div className={`${ui.core} ${ui.coreInk} ${ui.cta}`}>
-            <div className={ui.ctaField} aria-hidden>
-              {SHARDS.map((p, i) => (
-                <svg key={p} viewBox="0 0 44 40" style={v({ "--i": i })}>
-                  <polygon points={p} />
-                </svg>
-              ))}
-            </div>
             <div className={ui.ctaText}>
-              <p className={`${ui.eyebrow} ${ui.eyebrowInk}`}>
-                <i />
-                Free teardown
-              </p>
               <h2 className={ui.h2}>
                 See what a redesign would change. <span>Before you pay for one.</span>
               </h2>
@@ -928,7 +901,7 @@ export function Teardown() {
                 <span>Where to send it</span>
                 <input name="email" type="email" autoComplete="email" placeholder="you@company.com" required />
               </label>
-              <button type="submit" className={`${ui.btn} ${ui.btnLight} ${ui.formBtn}`}>
+              <button type="submit" className={`${ui.btn} ${ui.formBtn}`}>
                 Get a free teardown
                 <Arrow />
               </button>

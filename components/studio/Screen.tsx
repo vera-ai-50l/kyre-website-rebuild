@@ -48,38 +48,72 @@ const FEED = [
   ["Login trouble — M. Osei", "In Progress", "info"],
 ];
 
-function Before() {
+/* Where each part goes when the screen is taken apart, in percent of the
+   pane's width (dx, dy) and degrees (dr). The hero scales all three by how far
+   the teardown has come; anywhere else they are never read. */
+type Lift = [dx: number, dy: number, dr: number];
+const part = (n: string, [dx, dy, dr]: Lift) => ({
+  "data-part": n,
+  style: { "--dx": dx, "--dy": dy, "--dr": dr } as React.CSSProperties,
+});
+
+/* The sticker a part wears once it is off the board. */
+function Pin({ n }: { n: number }) {
+  return (
+    <b className={s.pin} aria-hidden>
+      {n}
+    </b>
+  );
+}
+
+const TILE_LIFT: Lift[] = [
+  [-6, -5, -6],
+  [-2, -9, 3],
+  [4, -5, -3],
+  [10, -10, 5],
+];
+
+export function Before() {
   return (
     <div className={s.b}>
-      <aside className={s.bSide}>
+      <aside className={s.bSide} {...part("side", [-12, 5, -3])}>
+        <Pin n={1} />
         <div className={s.bLogo}>
           <i />
           Marlo AI
         </div>
         {NAV.map(([e, l], i) => (
           <div key={l} className={s.bNav} data-on={i === 0 || undefined}>
-            <span>{e}</span>
+            <span className={s.emo}>{e}</span>
             {l}
           </div>
         ))}
-        <div className={s.bUp}>
-          <b>Upgrade to Pro ✨</b>
+        <div className={s.bUp} {...part("upsell", [-5, 9, 6])}>
+          <b>
+            Upgrade to Pro <span className={s.emo}>✨</span>
+          </b>
           <span>Unlock unlimited agents and advanced analytics!</span>
           <em>Upgrade Now</em>
         </div>
       </aside>
       <div className={s.bMain}>
-        <div className={s.bHead}>
+        <div className={s.bHead} {...part("head", [4, -15, 1.5])}>
+          <Pin n={2} />
           <div>
-            <p className={s.bHello}>Welcome back, Alex! 👋</p>
+            <p className={s.bHello}>
+              Welcome back, Alex! <span className={s.emo}>👋</span>
+            </p>
             <p className={s.bSub}>Here&apos;s what&apos;s happening with your AI agent today.</p>
           </div>
           <span className={s.bBtn}>+ New Agent</span>
         </div>
         <div className={s.bTiles}>
-          {TILES.map(([e, l, v, d]) => (
-            <div key={l} className={s.bTile}>
-              <span className={s.bIcon}>{e}</span>
+          {TILES.map(([e, l, v, d], i) => (
+            <div key={l} className={s.bTile} {...part("tile", TILE_LIFT[i])}>
+              {i === 0 && <Pin n={3} />}
+              <span className={s.bIcon}>
+                <span className={s.emo}>{e}</span>
+              </span>
               <p>{l}</p>
               <b>{v}</b>
               <em>{d} from last month</em>
@@ -87,7 +121,8 @@ function Before() {
           ))}
         </div>
         <div className={s.bGrid}>
-          <div className={s.bCard}>
+          <div className={s.bCard} {...part("chart", [-7, 11, -2.5])}>
+            <Pin n={4} />
             <div className={s.bCardHead}>
               <b>Analytics Overview</b>
               <span>
@@ -107,7 +142,8 @@ function Before() {
               ))}
             </svg>
           </div>
-          <div className={s.bCard}>
+          <div className={s.bCard} {...part("feed", [12, 7, 3])}>
+            <Pin n={5} />
             <div className={s.bCardHead}>
               <b>Recent Activity</b>
               <span>
@@ -164,12 +200,12 @@ function Arrow() {
   );
 }
 
-function After() {
+export function After() {
   return (
     <div className={s.a}>
       <span className={s.aAura} aria-hidden />
 
-      <div className={s.aTop} style={v({ "--i": 0 })}>
+      <div className={s.aTop} {...part("top", [2, -10, 1])}>
         <span className={s.aBrand}>
           <i className={s.aGlyph} aria-hidden />
           marlo
@@ -193,7 +229,8 @@ function After() {
       </div>
 
       <div className={s.aBody}>
-        <section className={`${s.aCard} ${s.aLead}`} style={v({ "--i": 1 })}>
+        <section className={`${s.aCard} ${s.aLead}`} {...part("lead", [-11, 4, -2.5])}>
+          <Pin n={1} />
           <div className={s.aHead}>
             <p className={s.aLabel}>Resolved without a human</p>
             <span className={s.aTag}>AI agent</span>
@@ -267,7 +304,8 @@ function After() {
         </section>
 
         <div className={s.aCol}>
-          <section className={`${s.aCard} ${s.aRankCard}`} style={v({ "--i": 3 })}>
+          <section className={`${s.aCard} ${s.aRankCard}`} {...part("rank", [11, -7, 3])}>
+            <Pin n={2} />
             <div className={s.aHead}>
               <p className={s.aLabel}>Where the agent hands off</p>
             </div>
@@ -284,7 +322,8 @@ function After() {
             </ol>
           </section>
 
-          <section className={`${s.aCard} ${s.aQueueCard}`} style={v({ "--i": 8 })}>
+          <section className={`${s.aCard} ${s.aQueueCard}`} {...part("queue", [13, 9, -2.5])}>
+            <Pin n={3} />
             <div className={s.aHead}>
               <p className={s.aLabel}>Waiting on you</p>
               <span className={s.aCount}>3</span>
@@ -313,7 +352,8 @@ function After() {
         </div>
       </div>
 
-      <div className={s.aFoot} style={v({ "--i": 13 })}>
+      <div className={s.aFoot} {...part("foot", [-3, 13, 1.5])}>
+        <Pin n={4} />
         {STATS.map(([n, l, d]) => (
           <span key={l}>
             <b>{n}</b> {l}
@@ -327,8 +367,6 @@ function After() {
   );
 }
 
-/* Keyed, so going back and forth replays the new screen's entrance from its
-   first frame instead of dissolving between two finished layouts. */
-export function Screen({ side }: { side: Side }) {
-  return side === "before" ? <Before key="before" /> : <After key="after" />;
-}
+/* Every emoji on the old screen, in reading order: what the teardown puts in
+   the tray. */
+export const EMOJI = [...NAV.map(([e]) => e), "✨", "👋", ...TILES.map(([e]) => e)];

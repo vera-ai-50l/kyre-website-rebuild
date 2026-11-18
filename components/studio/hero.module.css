@@ -1,859 +1,366 @@
-/* The hero is one pinned scene scrubbed by --p (0…1 over the section's height).
+/* The hero: a teardown on the cutting mat (the mat itself is the page ground,
+   in site.module.css). One pinned scene scrubbed by --p, 0…1 over the
+   section's height, which useScrollProgress writes on .reel:
 
-   0.02–0.18  the headline leaves through the lens; the old screen stands up
-   0.198      the hit (a one-shot shake, on its own clock)
-   0.21–0.32  the crack runs; the callouts write themselves in
-   0.40–0.57  the pieces leave and the camera goes through where they were
-   0.48–0.68  one line of text, in and out
-   0.60       the pane's face is swapped for the new screen, out of sight
-   0.64–0.84  the new screen rises from under the frame and levels out
-   0.76       it is up: its contents arrive, the Before/After switch appears
+   0.07–0.34  the old screen's parts lift and spread over the mat
+   0.26–0.32  the emoji land in the tray; numbered findings on the left
+   0.55–0.62  the old parts clear off; the new ones arrive, spread out
+   0.64–0.84  the new parts assemble into the same housing
+   0.86       live: the chart draws, the fixes are numbered, the switch shows
 
-   The same arithmetic is repeated in glass/scene.ts, which draws the pane. */
+   Every number below is derived on .reel, so a descendant reads finished
+   values. Transforms and opacity only; nothing here lays out per frame. */
 
 .reel {
   --p: 0;
-  --room: #e7e8eb;
+  --t: clamp(0, (var(--p) - 0.07) / 0.27, 1);
+  --te: calc(var(--t) * var(--t) * (3 - 2 * var(--t)));
+  --bo: clamp(0, (0.6 - var(--p)) / 0.05, 1);
+  --ao: clamp(0, (var(--p) - 0.56) / 0.06, 1);
+  --u: clamp(0, (0.84 - var(--p)) / 0.2, 1);
+  --ue: calc(var(--u) * var(--u) * (3 - 2 * var(--u)));
+  --apart: min(1, calc(var(--te) * var(--bo) + var(--ue) * var(--ao)));
+  --introO: clamp(0, (0.12 - var(--p)) / 0.06, 1);
+  --findO: min(clamp(0, (var(--p) - 0.17) / 0.08, 1), clamp(0, (0.58 - var(--p)) / 0.05, 1));
+  --fixO: clamp(0, (var(--p) - 0.68) / 0.1, 1);
+  --trayO: min(clamp(0, (var(--p) - 0.24) / 0.08, 1), var(--bo));
+
   position: relative;
-  height: 440vh;
-  background: var(--room);
+  height: 420vh;
+  color: var(--chalk);
 }
+/* The switch: one face, assembled, whatever the scroll says. */
+.reel[data-pick="before"] { --te: 0; --bo: 1; --ao: 0; --trayO: 0; }
+.reel[data-pick="after"] { --ue: 0; --bo: 0; --ao: 1; --trayO: 0; }
+/* Reduced motion: the finished screen, with the opening words beside it. */
+.reel[data-rm] { --introO: 1; --findO: 0; --fixO: 0; }
 
 .viewport {
-  --exit: clamp(0, calc((var(--p) - 0.02) / 0.16), 1);
-  --diag: clamp(0, calc((var(--p) - 0.21) / 0.11), 1);
-  --fly: clamp(0, calc((var(--p) - 0.4) / 0.17), 1);
-  --card: clamp(0, calc((var(--p) - 0.48) / 0.08), 1);
-  --cardOut: clamp(0, calc((var(--p) - 0.62) / 0.06), 1);
-  --rise: clamp(0, calc((var(--p) - 0.64) / 0.2), 1);
-
-  /* smoothstep for the long moves: ease-out against a linear scrollbar spends
-     the whole move in the first third of the runway. */
-  --exitE: calc(var(--exit) * var(--exit) * (3 - 2 * var(--exit)));
-  --flyE: calc(var(--fly) * var(--fly) * (3 - 2 * var(--fly)));
-  --riseE: calc(var(--rise) * var(--rise) * (3 - 2 * var(--rise)));
-  --cardE: calc(1 - (1 - var(--card)) * (1 - var(--card)) * (1 - var(--card)));
-
-  /* The old screen's box. Its shape is the capture's (glass/plates.ts): the
-     canvas maps a picture onto it, so it is as big as it can be inside
-     87vw × 76svh at that ratio and no bigger. */
-  --ar: 1.9886;
-  --stW: min(87vw, 1280px, calc(min(76svh, 780px) * var(--ar)));
-  --stH: calc(var(--stW) / var(--ar));
-
   position: sticky;
   top: 0;
-  height: 100svh;
-  overflow: hidden;
-  background: var(--room);
-}
-
-/* ---- the room ---------------------------------------------------------------
-   A daylight studio rather than a dark stage. Three washes far wider than the
-   frame, each a colour you would have to be told was there, drifting on their
-   own clocks; a ruled floor that fades out long before the edges. */
-.field { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.field::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, #f6f8ff 0%, #eef1f8 46%, var(--room) 100%);
-}
-/* Three lights, each a disc far wider than the frame, placed as a composition
-   rather than scattered: Kyre blue high on the left, orange on the right, teal
-   low in the middle. Each drifts on its own clock (the inner span, CSS) and
-   leans after the pointer at its own lag (the outer .glow, moved by Hero.tsx):
-   the blue toward the hand, the orange away from it, so the room turns as you
-   move. Every move is a transform, so none of it repaints. */
-.glow { position: absolute; inset: 0; will-change: transform; }
-.wash1,
-.wash2,
-.wash3 {
-  position: absolute;
-  border-radius: 50%;
-  will-change: transform;
-}
-.wash1 {
-  left: -30vmax;
-  top: -40vmax;
-  width: 82vmax;
-  height: 82vmax;
-  background: radial-gradient(closest-side, rgba(47, 76, 255, 0.44), rgba(47, 76, 255, 0.16) 48%, rgba(47, 76, 255, 0) 100%);
-  animation: drift1 16s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
-}
-.wash2 {
-  right: -30vmax;
-  top: -22vmax;
-  width: 74vmax;
-  height: 74vmax;
-  background: radial-gradient(closest-side, rgba(255, 106, 61, 0.44), rgba(255, 106, 61, 0.15) 48%, rgba(255, 106, 61, 0) 100%);
-  animation: drift2 19s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
-}
-.wash3 {
-  left: 18vmax;
-  bottom: -52vmax;
-  width: 70vmax;
-  height: 70vmax;
-  background: radial-gradient(closest-side, rgba(32, 201, 172, 0.38), rgba(32, 201, 172, 0.13) 48%, rgba(32, 201, 172, 0) 100%);
-  animation: drift3 23s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
-}
-@keyframes drift1 {
-  50% { transform: translate3d(10vmax, 7vmax, 0) scale(1.14); }
-  100% { transform: translate3d(4vmax, 14vmax, 0) scale(0.96); }
-}
-@keyframes drift2 {
-  50% { transform: translate3d(-12vmax, 9vmax, 0) scale(0.9); }
-  100% { transform: translate3d(-4vmax, 16vmax, 0) scale(1.08); }
-}
-@keyframes drift3 {
-  50% { transform: translate3d(-14vmax, -6vmax, 0) scale(1.1); }
-  100% { transform: translate3d(8vmax, -10vmax, 0) scale(0.94); }
-}
-/* The quiet behind the words. A pool of the room's own colour lies between the
-   dots and the copy, so no dot sits under a letter and the lights stay at the
-   edges of the frame. It leaves with the copy. */
-.veil {
-  position: absolute;
-  left: 50%;
-  top: 44%;
-  width: min(1240px, 100vw);
-  height: min(600px, 78svh);
-  border-radius: 50%;
-  transform: translate3d(-50%, -50%, 0);
-  background: radial-gradient(closest-side, rgba(246, 247, 251, 0.9) 0%, rgba(246, 247, 251, 0.78) 50%, rgba(246, 247, 251, 0) 100%);
-  opacity: calc(1 - var(--exitE));
-}
-/* The interactive dot field (DotField.tsx). It quietens as the screen stands
-   up and is gone once it breaks: from there it has nothing to frame. */
-.reel[data-jolt="break"] .dots,
-.reel[data-jolt="break"] .lensField { opacity: 0; transition: opacity 700ms cubic-bezier(0.32, 0.72, 0, 1); }
-.dots {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  opacity: calc(1 - var(--exitE) * 0.55);
-}
-/* The no-GPU version (LensField): resting dots as one static background, the
-   light a small grid-snapped canvas that rides over it. */
-.lensField {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  opacity: calc(1 - var(--exitE) * 0.55);
-  background: radial-gradient(circle, rgba(28, 36, 80, 0.2) 0 0.95px, transparent 1.35px) 0 0 / 26px 26px;
-}
-.lensCanvas {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 480px;
-  height: 480px;
-  will-change: transform;
-}
-
-/* Registration marks in the corners, the way a proof has them. */
-.ticks {
-  position: absolute;
-  inset: 5.2rem 2rem 2rem;
-  pointer-events: none;
-  --t: rgba(11, 12, 15, 0.28);
-  background:
-    linear-gradient(var(--t), var(--t)) 0 0 / 14px 1px,
-    linear-gradient(var(--t), var(--t)) 0 0 / 1px 14px,
-    linear-gradient(var(--t), var(--t)) 100% 0 / 14px 1px,
-    linear-gradient(var(--t), var(--t)) 100% 0 / 1px 14px,
-    linear-gradient(var(--t), var(--t)) 0 100% / 14px 1px,
-    linear-gradient(var(--t), var(--t)) 0 100% / 1px 14px,
-    linear-gradient(var(--t), var(--t)) 100% 100% / 14px 1px,
-    linear-gradient(var(--t), var(--t)) 100% 100% / 1px 14px;
-  background-repeat: no-repeat;
-}
-
-/* ---- the camera ------------------------------------------------------------ */
-.camera {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  perspective: 1150px;
-  perspective-origin: 50% 46%;
-  transform-style: preserve-3d;
-}
-/* One hit, fired by crossing a mark and run on its own clock. Tied to --p a
-   shake never ends: stop scrolling mid-break and it vibrates until you move. */
-.reel[data-jolt="break"] .camera {
-  animation: jolt 900ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
-@keyframes jolt {
-  0% { transform: translate3d(0, 0, 0); }
-  6% { transform: translate3d(-4px, 2px, 0); }
-  15% { transform: translate3d(3px, -3px, 0); }
-  26% { transform: translate3d(-3px, -1px, 0); }
-  38% { transform: translate3d(2px, 2px, 0); }
-  52% { transform: translate3d(-2px, -1px, 0); }
-  68% { transform: translate3d(1px, 1px, 0); }
-  84% { transform: translate3d(-1px, 0, 0); }
-  100% { transform: translate3d(0, 0, 0); }
-}
-.gl {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-  pointer-events: none;
-}
-
-/* What the standing pane puts on the floor. A light room needs it: without a
-   shadow the screen is a sticker. */
-.shadow {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: calc(var(--stW) * 0.94);
-  height: 90px;
-  background: radial-gradient(50% 50% at 50% 50%, rgba(24, 28, 48, 0.34), rgba(24, 28, 48, 0) 70%);
-  filter: blur(12px);
-  transform: translate3d(-50%, calc(var(--stH) / 2 - 22px), -60px);
-  opacity: calc(var(--exitE) * (1 - clamp(0, calc(var(--fly) * 2.4), 1)));
-}
-
-/* Where the floor runs out under the pane while it lies back. */
-.floor {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-  height: 24%;
-  pointer-events: none;
-  background: linear-gradient(0deg, var(--room) 6%, rgba(231, 232, 235, 0.6) 46%, rgba(231, 232, 235, 0));
-  opacity: calc(1 - var(--exit));
-}
-
-/* ---- the old screen's footprint -------------------------------------------- */
-.stage {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: var(--stW);
-  height: var(--stH);
-}
-/* The flat picture: seen only before three.js arrives, and for good where
-   there is no WebGL. It stands in, then leaves toward the lens. */
-.paneImg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 14px;
-  transform: scale(calc((0.94 + 0.06 * var(--exitE)) * (1 + var(--flyE) * 0.9)));
-  opacity: calc(var(--exit) * clamp(0, calc(1 - var(--fly) * 1.6), 1));
-}
-.reel[data-gl="on"] .paneImg { display: none; }
-
-/* ---- callouts ---------------------------------------------------------------
-   Text, on a layer of its own, because these have to be read rather than
-   shattered. A dot on the thing, a rule, a label. */
-.notes,
-.notesFix {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-}
-.notes { opacity: calc(1 - clamp(0, calc(var(--fly) * 3), 1)); }
-.note {
-  position: absolute;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(19rem, 33rem) minmax(0, 1fr);
   align-items: center;
-  white-space: nowrap;
-  transform: translate(0, -50%);
+  gap: clamp(1.5rem, 3vw, 3.5rem);
+  height: 100svh;
+  padding: 5.5rem clamp(1.25rem, 3vw, 3rem) 2.25rem clamp(3rem, 5vw, 5rem);
+  overflow: hidden;
 }
-.noteL { flex-direction: row-reverse; transform: translate(-100%, -50%); }
-.noteDot {
-  flex: none;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--tone);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 26%, transparent);
+
+/* ---- the mat's printed edge ---- */
+.rulerTop,
+.rulerSide {
+  position: absolute;
+  pointer-events: none;
+  color: var(--rule);
+  font-family: var(--font-kmono), monospace;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
-.noteLine { flex: none; width: 34px; height: 1px; background: var(--tone); transform-origin: 0 50%; }
-.noteL .noteLine { transform-origin: 100% 50%; }
-.noteBox {
+.rulerTop {
+  inset: 0 0 auto 0;
+  display: flex;
+  height: 1.75rem;
+  background:
+    repeating-linear-gradient(90deg, var(--rule) 0 1px, transparent 1px 40px) 0 0 / 100% 0.9rem no-repeat,
+    repeating-linear-gradient(90deg, var(--ruleSoft) 0 1px, transparent 1px 8px) 0 0 / 100% 0.45rem no-repeat;
+}
+.rulerTop i { flex: none; width: 40px; padding: 1.05rem 0 0 4px; font-style: normal; }
+.rulerSide {
+  inset: 0 auto 0 0;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  padding: 0.5rem 0.8rem 0.55rem;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  line-height: 1.3;
+  width: 1.9rem;
+  background:
+    repeating-linear-gradient(180deg, var(--rule) 0 1px, transparent 1px 40px) 0 0 / 0.9rem 100% no-repeat,
+    repeating-linear-gradient(180deg, var(--ruleSoft) 0 1px, transparent 1px 8px) 0 0 / 0.45rem 100% no-repeat;
 }
-.noteBox b {
-  font-family: var(--font-gmono), monospace;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
+.rulerSide i { flex: none; height: 40px; padding: 4px 0 0 1.05rem; font-style: normal; }
+.rulerSide i:first-child,
+.rulerTop i:first-child { visibility: hidden; }
 
-/* On the old screen: white labels, a red dot. Scrubbed in by the crack. */
-.notes { --tone: #ff4a1f; }
-.notes .note { --a: clamp(0, calc((var(--diag) * 1.9) - (var(--n, 0) * 0.3)), 1); }
-.notes .noteDot { transform: scale(var(--a)); }
-.notes .noteLine { transform: scaleX(var(--a)); }
-.notes .noteBox {
-  background: #fff;
-  color: #3d4048;
-  box-shadow: 0 14px 30px -14px rgba(10, 12, 24, 0.55);
-  opacity: var(--a);
-  transform: translate3d(calc((1 - var(--a)) * 10px), 0, 0);
-}
-.notes .noteL .noteBox { transform: translate3d(calc((1 - var(--a)) * -10px), 0, 0); }
-.notes .noteBox b { color: #d13610; }
-
-/* On the new one: ink labels, played once the screen has arrived. */
-/* The pane is dark now, so its callouts are the light ones. */
-.notesFix { --tone: #ededed; top: 34px; }
-.notesFix .noteBox { background: #ededed; color: rgba(11, 12, 15, 0.66); box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.6); }
-.notesFix .noteBox b { color: #0b0c0f; }
-.notesFix .noteLine { width: 26px; }
-.notesFix .noteDot { background: #ff4a1f; box-shadow: 0 0 0 4px rgba(255, 74, 31, 0.2); }
-.notesFix .note { opacity: 0; }
-.reel[data-live="on"] .notesFix .note {
-  animation: noteIn 700ms cubic-bezier(0.32, 0.72, 0, 1) both;
-  animation-delay: calc(500ms + var(--n, 0) * 140ms);
-}
-@keyframes noteIn {
-  from { opacity: 0; clip-path: inset(0 100% 0 0); }
-  to { opacity: 1; clip-path: inset(0 0 0 0); }
-}
-
-/* ---- the new screen ---------------------------------------------------------
-   Rises from under the frame, lying back, and levels out. */
-.glassWrap {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: min(87vw, 1280px);
-  height: min(70%, 720px);
-  pointer-events: none;
-  transform-style: preserve-3d;
-  transform-origin: 50% 100%;
-  transform: translate3d(0, calc(-3% + (1 - var(--riseE)) * 56vh), calc((1 - var(--riseE)) * -340px))
-    rotateX(calc((1 - var(--riseE)) * 58deg + 4deg));
-}
-/* The lean toward the pointer: Hero.tsx writes this transform on a slow clock
-   so the glass follows the hand a beat late, on machines with a GPU only. Fades
-   live here, on leaves: opacity on the wrapper would flatten the 3D under it. */
-.glassTilt {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-}
-.glassTilt > * { opacity: clamp(0, calc(var(--rise) * 3.4), 1); }
-
-/* The tray the screen sits in: an outer shell a few pixels proud all round,
-   set back along the pane's own normal so it reads as thickness on the way up. */
-.slab {
-  position: absolute;
-  inset: -9px;
-  border-radius: 25px;
-  background: rgba(255, 255, 255, 0.5);
-  box-shadow:
-    inset 0 0 0 1px rgba(11, 12, 15, 0.06),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
-    0 2px 4px rgba(24, 28, 48, 0.12),
-    0 30px 60px -20px rgba(24, 28, 48, 0.35),
-    0 90px 140px -60px rgba(24, 28, 48, 0.45);
-  transform: translateZ(-10px);
-}
-.glass {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: 16px;
-  background: #141415;
-  box-shadow: 0 0 0 1px rgba(11, 12, 15, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-  container-type: inline-size;
-  pointer-events: auto;
-}
-.glass[data-side="before"] { background: #0f172a; }
-/* Light crossing the glass once as it lands: one band, left to right, then
-   gone. Only on landing (data-live), never on a small machine. */
-.glass::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.09) 50%, transparent 62%);
-  transform: translate3d(-110%, 0, 0);
-}
-.reel[data-live="on"] .glass[data-side="after"]::after {
-  animation: sweep 1300ms cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
-}
-@keyframes sweep {
-  to { transform: translate3d(110%, 0, 0); }
-}
-:global(html[data-lite]) .glass::after { display: none; }
-
-/* The window's title strip. Part of the photograph, so part of the glass. */
-.rail {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 14px;
-  border-bottom: 1px solid rgba(237, 237, 237, 0.07);
-  background: #0f0f10;
-  font-family: var(--font-gmono), monospace;
-  font-size: 0.6875rem;
-  color: #85858b;
-}
-.rail i { width: 9px; height: 9px; border-radius: 50%; background: rgba(237, 237, 237, 0.16); }
-.rail span { margin-left: 10px; }
-.rail em {
-  margin-left: auto;
-  font-style: normal;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-size: 0.625rem;
-}
-.glass[data-side="before"] .rail {
-  border-color: rgba(148, 163, 184, 0.14);
-  background: #0b1120;
-  color: #64748b;
-}
-.glass[data-side="before"] .rail i { background: rgba(148, 163, 184, 0.3); }
-.face { position: absolute; left: 0; top: 34px; width: 100%; height: calc(100% - 34px); }
-
-/* The pane on the floor: a soft pool of its own shade, not a mirror. */
-.reflect {
-  position: absolute;
-  left: 4%;
-  right: 4%;
-  top: 100%;
-  height: 90px;
-  background: radial-gradient(50% 60% at 50% 0%, rgba(24, 28, 48, 0.22), rgba(24, 28, 48, 0) 72%);
-  filter: blur(10px);
-}
-
-/* ---- the copy ---------------------------------------------------------------
-   It does not fade out, it leaves: every word on its own path toward and past
-   the lens, the block growing as it goes. */
-.copy {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem 19svh;
-  text-align: center;
-  perspective: 1000px;
-  pointer-events: none;
-}
-.copyInner {
+/* ---- the left column: one sheet of notes that changes as the screen does ---- */
+.side {
   position: relative;
-  max-width: 82rem;
-  transform-style: preserve-3d;
-  transform: scale(calc(1 + var(--exitE) * 0.72));
-  will-change: transform;
+  z-index: 2;
+  display: grid;
+  grid-template-areas: "stack" "actions" "micro";
+  align-content: center;
+  min-width: 0;
 }
-.copyInner > *,
-.word {
-  --wa: clamp(0, calc((var(--exit) * 1.75) - (var(--wi, 0) * 0.06)), 1);
-  --waE: calc(1 - (1 - var(--wa)) * (1 - var(--wa)) * (1 - var(--wa)));
-  backface-visibility: hidden;
-}
-.eyebrow,
-.sub,
-.actions,
-.micro,
-.facts,
-.word {
-  /* Fades faster than it travels, so nothing of the copy is still on the
-     screen as the pane comes up behind it. */
-  opacity: calc(1 - min(1, var(--wa) * 2.6));
-  will-change: transform, opacity;
-}
-.headline { --wi: 0; }
-.eyebrow {
-  --wi: 2;
-  margin-bottom: 2rem;
-  transform: translate3d(0, calc(var(--waE) * -12vh), calc(var(--waE) * 420px));
-}
-/* The pill opens the entrance. CSS rather than Motion: its transform belongs
-   to the scroll, and a "backwards" fill hands it back the moment this ends. */
-.eyebrow { animation: pillIn 900ms cubic-bezier(0.32, 0.72, 0, 1) 60ms backwards; }
-@keyframes pillIn {
-  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.94); }
+.intro,
+.list { grid-area: stack; align-self: end; }
+.intro {
+  opacity: var(--introO);
+  transform: translate3d(0, calc((1 - var(--introO)) * -1.5rem), 0);
 }
 .headline {
   margin: 0;
-  font-family: var(--font-mona), system-ui, sans-serif;
-  font-size: clamp(2.2rem, 4.35vw, 4.3rem);
-  font-weight: 620;
+  font-size: clamp(2.2rem, 3.3vw, 3.4rem);
+  font-weight: 720;
   font-stretch: 112%;
-  line-height: 0.96;
-  letter-spacing: -0.052em;
-  color: #0b0c0f;
-  transform-style: preserve-3d;
+  letter-spacing: -0.038em;
+  line-height: 0.98;
+  color: var(--chalk);
+  text-wrap: balance;
 }
 .line { display: block; }
-/* The first line in Kyre's blue running into teal: the part that works. Each
-   word is its own box (they leave separately), so each shows its own slice of
-   one gradient laid across the whole line. */
-.line:first-child .wordIn {
-  background: linear-gradient(90deg, #2f4cff 0%, #1f7cf2 50%, #0fb5b0 100%);
-  background-size: 300% 100%;
-  background-position: calc(var(--wi) * 50%) 0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.word {
-  display: inline-block;
-  margin-right: 0.22em;
-  transform: translate3d(calc(var(--waE) * var(--wx, 0vw)), calc(var(--waE) * var(--wy, 0vh)), calc(var(--waE) * 640px))
-    rotate(calc(var(--waE) * var(--wr, 0deg)));
-}
-.word:last-child { margin-right: 0; }
-/* The window each word rises through on load: clipped, with room for the
-   descenders and the lean it starts with. */
-.mask {
-  display: inline-block;
-  overflow: hidden;
-  padding: 0.04em 0.06em 0.14em;
-  margin: -0.04em -0.06em -0.14em;
-  vertical-align: bottom;
-}
-.wordIn { display: inline-block; transform-origin: 0 100%; }
-.enter { display: inline-block; }
-.actions > .enter { display: inline-flex; }
-.magnet { display: inline-flex; padding: 14px; margin: -14px; }
-/* Server-rendered at their start state for Motion to play from. Should the
-   script not run, this puts them in place after a few seconds: an animation
-   outranks the inline style Motion would otherwise have cleared. */
-.wordIn,
-.enter { animation: settled 1ms 2.4s forwards; }
-@keyframes settled {
-  to { opacity: 1; transform: none; }
-}
-.sub {
-  --wi: 5;
-  max-width: 41rem;
-  margin: 1.7rem auto 0;
-  font-size: clamp(1rem, 1.18vw, 1.12rem);
-  line-height: 1.5;
-  letter-spacing: -0.012em;
-  color: #4b4f58;
-  transform: translate3d(0, calc(var(--waE) * 8vh), calc(var(--waE) * 380px));
-}
-.actions {
-  --wi: 7;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.7rem;
-  margin-top: 2.1rem;
-  pointer-events: auto;
-  transform: translate3d(0, calc(var(--waE) * 14vh), calc(var(--waE) * 340px));
-}
-.micro {
-  --wi: 8;
-  margin: 1rem 0 0;
-  font-size: 0.8125rem;
-  color: #6a6e77;
-  transform: translate3d(0, calc(var(--waE) * 16vh), calc(var(--waE) * 300px));
-}
-/* Once the copy has gone it must not eat clicks meant for the scene. */
-.reel[data-jolt="break"] .actions { pointer-events: none; }
+.mask { display: inline-block; overflow: hidden; margin: -0.08em 0.2em -0.12em 0; padding: 0.08em 0 0.12em; vertical-align: top; }
+.mask:last-child { margin-right: 0; }
+.wordIn { display: inline-block; }
+.sub { max-width: 28rem; margin: 1.4rem 0 0; font-size: 1.0625rem; line-height: 1.5; color: var(--chalkDim); }
 
-/* ---- captions over the scene ------------------------------------------------ */
-.tag {
-  position: absolute;
-  left: 50%;
-  top: calc(50% - var(--stH) / 2 - 3.3rem);
-  z-index: 4;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.list { pointer-events: none; }
+.list[data-list="findings"] { opacity: var(--findO); transform: translate3d(0, calc((1 - var(--findO)) * 1.2rem), 0); }
+.list[data-list="fixes"] { opacity: var(--fixO); transform: translate3d(0, calc((1 - var(--fixO)) * 1.2rem), 0); }
+.listHead {
   margin: 0;
-  padding: 0.42rem 0.9rem 0.42rem 0.7rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: inset 0 0 0 1px rgba(11, 12, 15, 0.07), 0 10px 24px -14px rgba(24, 28, 48, 0.4);
-  font-family: var(--font-gmono), monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #3d4048;
-  white-space: nowrap;
-  pointer-events: none;
-  transform: translate3d(-50%, calc((1 - var(--in)) * 10px), 0);
-  opacity: var(--in);
+  font-size: clamp(1.5rem, 2.1vw, 2rem);
+  font-weight: 680;
+  font-stretch: 110%;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  color: var(--chalk);
+  text-wrap: balance;
 }
-.tag i { width: 6px; height: 6px; border-radius: 50%; background: #ff4a1f; }
-.tag[data-when="now"] {
-  --in: calc(clamp(0, calc((var(--p) - 0.15) / 0.04), 1) * (1 - clamp(0, calc((var(--p) - 0.37) / 0.03), 1)));
+.list ol { margin: 1.3rem 0 0; padding: 0; list-style: none; }
+.list li {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: start;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--chalkLine);
+  font-size: 0.9375rem;
+  line-height: 1.42;
+  color: var(--chalkDim);
 }
-.tag[data-when="then"] {
-  --in: 0;
-  top: calc(50% - min(70svh, 720px) / 2 - 5.2rem);
-  transition: opacity 500ms cubic-bezier(0.32, 0.72, 0, 1), transform 700ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-.tag[data-when="then"] i { background: #17804a; }
-.reel[data-live="on"] .tag[data-when="then"] { --in: 1; transition-delay: 500ms; }
+.list li strong { font-weight: 620; color: var(--chalk); }
 
-.card {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.1rem;
-  margin: 0;
-  pointer-events: none;
-  perspective: 1000px;
-  opacity: calc(min(var(--card), 1 - var(--cardOut)) * 1.4);
-}
-.cardText {
-  font-family: var(--font-mona), system-ui, sans-serif;
-  font-size: clamp(2.1rem, 5.4vw, 4.6rem);
-  font-weight: 620;
-  font-stretch: 112%;
-  letter-spacing: -0.05em;
+/* The sticker: a yellow dot with the part's number, the same one the part
+   wears on the mat. */
+.dot {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--tag);
+  box-shadow: 0 1px 2px rgba(5, 25, 16, 0.4), inset 0 -2px 0 rgba(120, 90, 0, 0.16);
+  color: var(--tagInk);
+  font-family: var(--font-kmono), monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
   line-height: 1;
-  color: #0b0c0f;
-  text-align: center;
-  transform: translateZ(calc((var(--cardE) - 1) * 800px + var(--cardOut) * 800px));
 }
-.cardText span { color: #8b8f98; }
-/* The maker's mark, arriving with the line: the first site's wordmark in a
-   pill, so the payoff of the reel is signed. */
-.cardBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.55rem 1.1rem 0.6rem 1rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: inset 0 0 0 1px rgba(11, 12, 15, 0.07), 0 16px 34px -18px rgba(24, 28, 48, 0.45);
-  font-size: 1.35rem;
-  transform: translateZ(calc((var(--cardE) - 1) * 650px + var(--cardOut) * 650px));
-}
-.cardBadge em {
-  font-family: var(--font-gmono), monospace;
-  font-size: 0.7rem;
-  font-style: normal;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #6a6e77;
-}
-.cardMeta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-family: var(--font-gmono), monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  color: #4b4f58;
-  transform: translateZ(calc((var(--cardE) - 1) * 500px + var(--cardOut) * 500px));
-}
-.cardMeta i { width: 7px; height: 7px; border-radius: 50%; background: #17804a; }
 
-/* ---- before / after -------------------------------------------------------- */
-.toggle {
-  position: absolute;
-  left: 50%;
-  bottom: 1.9rem;
-  z-index: 5;
-  display: flex;
-  padding: 0.24rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: inset 0 0 0 1px rgba(11, 12, 15, 0.08), 0 18px 40px -20px rgba(24, 28, 48, 0.5);
-  opacity: 0;
-  pointer-events: none;
-  transform: translate3d(-50%, 12px, 0);
-  transition: opacity 200ms cubic-bezier(0.32, 0.72, 0, 1), transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-.reel[data-live="on"] .toggle {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translate3d(-50%, 0, 0);
-  transition: opacity 420ms cubic-bezier(0.16, 1, 0.3, 1) 700ms, transform 620ms cubic-bezier(0.16, 1, 0.3, 1) 700ms;
-}
-.tgBtn {
+.actions { grid-area: actions; display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 2rem; }
+.micro { grid-area: micro; margin: 1rem 0 0; font-size: 0.875rem; color: var(--chalkDim); }
+
+/* ---- the bench: the housing, its parts, the tray ---- */
+.bench {
   position: relative;
-  z-index: 1;
-  min-width: 5.4rem;
-  padding: 0.5rem 1.1rem;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: 100%;
+}
+.figure {
+  --shrink: 0.15;
+  width: min(94%, calc((100svh - 11rem) * 1.12));
+  margin: 0;
+  transform: scale(calc(1 - var(--shrink) * var(--apart))) rotate(calc(-1.4deg * (1 - var(--ao))));
+}
+.tiltWrap { perspective: 1600px; }
+.housing {
+  position: relative;
+  border-radius: 0.9rem;
+  background: #0b1120;
+  box-shadow:
+    0 1px 2px rgba(4, 22, 14, 0.4),
+    0 22px 44px -20px rgba(4, 22, 14, 0.75);
+  transform-style: preserve-3d;
+  transition: transform 160ms linear;
+}
+.reel[data-stage="together"] .housing,
+.reel[data-stage="live"] .housing,
+.reel[data-pick="after"] .housing { background: #0f0f10; }
+.rail {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.1rem;
+  padding: 0 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.rail i { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: rgba(255, 255, 255, 0.16); }
+.rail span {
+  margin-left: 0.8rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-kmono), monospace;
+  font-size: 0.6875rem;
+}
+.face { position: relative; aspect-ratio: 16 / 10; container-type: inline-size; }
+.layer { position: absolute; inset: 0; }
+.layer[data-layer="b"] { opacity: var(--bo); }
+.layer[data-layer="a"] { opacity: var(--ao); }
+.layer > div { overflow: visible; border-radius: 0 0 0.9rem 0.9rem; }
+.layer [data-part] { overflow: visible; }
+
+/* The parts. Each carries where it goes (--dx, --dy in % of the pane's width,
+   --dr in degrees); the teardown scales all three. */
+.layer[data-layer="b"] [data-part] {
+  transform: translate3d(calc(var(--dx) * var(--te) * 1cqw), calc(var(--dy) * var(--te) * 1cqw), 0) rotate(calc(var(--dr) * var(--te) * 1deg));
+}
+.layer[data-layer="a"] [data-part] {
+  transform: translate3d(calc(var(--dx) * var(--ue) * 1cqw), calc(var(--dy) * var(--ue) * 1cqw), 0) rotate(calc(var(--dr) * var(--ue) * 1deg));
+}
+.reel:not([data-stage="intro"]):not([data-pick]) [data-part] { will-change: transform; }
+/* Lifted off the board, each part throws a shadow and shows its own edge.
+   The shadow arrives as the part is picked up, before it moves, and leaves
+   once it is seated. */
+.layer [data-part] { transition: box-shadow 360ms cubic-bezier(0.16, 1, 0.3, 1); }
+.reel:is([data-stage="apart"], [data-stage="swap"]):not([data-pick]) [data-layer="b"] [data-part],
+.reel:is([data-stage="swap"], [data-stage="together"]):not([data-pick]) [data-layer="a"] [data-part] {
+  box-shadow: 0 1px 2px rgba(4, 22, 14, 0.45), 0 16px 30px -12px rgba(4, 22, 14, 0.7);
+}
+.reel:not([data-stage="intro"]) [data-layer="b"] [data-part="head"] {
+  margin: -0.7em -1em;
+  padding: 0.7em 1em;
+  border-radius: 0.9em;
+  background: #141d33;
+}
+.reel:not([data-stage="intro"]) [data-layer="b"] [data-part="chart"],
+.reel:not([data-stage="intro"]) [data-layer="b"] [data-part="feed"] { background: #172036; }
+.reel:not([data-stage="intro"]) [data-layer="b"] [data-part="side"] { border-radius: 0.9em; }
+.layer[data-layer="a"] [data-part="top"],
+.layer[data-layer="a"] [data-part="foot"] { border-radius: 1em; background: #161617; }
+
+/* Twelve emoji, out of the screen and into a parts tray. */
+.tray {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: max-content;
+  max-width: 100%;
+  margin: 9% auto 0;
+  padding: 0.45rem 0.8rem 0.45rem 0.5rem;
+  border-radius: 0.7rem;
+  background: rgba(8, 34, 24, 0.55);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 0 rgba(255, 255, 255, 0.06);
+  opacity: var(--trayO);
+}
+.tray span {
+  font-size: 1.05rem;
+  line-height: 1;
+  transform: translate3d(0, calc((1 - var(--trayO)) * -0.8rem), 0) rotate(calc((var(--n) - 6) * 4deg));
+}
+.tray .dot { margin-right: 0.3rem; }
+
+.caption {
+  display: grid;
+  margin-top: 0.6rem;
+  font-size: 0.8125rem;
+  text-align: center;
+  color: var(--chalkDim);
+}
+.caption span { grid-area: 1 / 1; }
+.caption [data-cap="b"] { opacity: var(--bo); }
+.caption [data-cap="a"] { opacity: var(--fixO); }
+.reel[data-rm] .caption [data-cap="a"],
+.reel[data-pick="after"] .caption [data-cap="a"] { opacity: 1; }
+.caption span > span { font-weight: 700; color: var(--chalk); }
+
+/* ---- the switch ---- */
+.toggle {
+  display: flex;
+  width: max-content;
+  margin: 0.9rem auto 0;
+  padding: 0.25rem;
+  border-radius: 0.6rem;
+  background: rgba(8, 34, 24, 0.55);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  opacity: var(--fixO);
+  visibility: hidden;
+}
+.reel[data-stage="live"] .toggle,
+.reel[data-rm] .toggle { visibility: visible; }
+.reel[data-rm] .toggle { opacity: 1; }
+.tgBtn {
+  min-width: 5.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
   border: 0;
-  border-radius: 999px;
-  background: none;
-  font-family: var(--font-gmono), monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  color: #6a6e77;
+  border-radius: 0.45rem;
+  background: transparent;
+  color: var(--chalkDim);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 560;
   cursor: pointer;
-  transition: color 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  transition: background-color 160ms ease-out, color 160ms ease-out;
 }
-.tgBtn[aria-pressed="true"] { color: #fff; }
-.tgBtn:focus-visible { outline: 2px solid #ff4a1f; outline-offset: 2px; }
-.tgPill {
-  position: absolute;
-  top: 0.24rem;
-  bottom: 0.24rem;
-  left: 0.24rem;
-  width: calc(50% - 0.24rem);
-  border-radius: 999px;
-  background: #0b0c0f;
-}
+.tgBtn:hover { color: var(--chalk); }
+.tgBtn[aria-pressed="true"] { background: var(--chalk); color: var(--tagInk); box-shadow: 0 1px 2px rgba(4, 22, 14, 0.4); }
+.tgBtn:focus-visible { outline: 2px solid var(--tag); outline-offset: 2px; }
 
 .hint {
   position: absolute;
-  left: 50%;
-  bottom: 1.4rem;
-  z-index: 5;
+  left: clamp(3rem, 5vw, 5rem);
+  bottom: 1.5rem;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.55rem;
-  transform: translate3d(-50%, 0, 0);
-  font-family: var(--font-gmono), monospace;
-  font-size: 0.625rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #6a6e77;
-  opacity: calc(1 - clamp(0, calc(var(--p) * 20), 1));
-  pointer-events: none;
+  gap: 0.6rem;
+  font-family: var(--font-kmono), monospace;
+  font-size: 0.75rem;
+  color: var(--chalkDim);
+  opacity: var(--introO);
 }
-.hint i {
-  width: 1px;
-  height: 28px;
-  background: linear-gradient(180deg, transparent, #0b0c0f);
-  transform-origin: 50% 0;
-  animation: drip 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+.hint i { width: 2.5rem; height: 1px; background: currentColor; transform-origin: left; animation: hint 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+@keyframes hint {
+  0% { transform: scaleX(0); }
+  50% { transform: scaleX(1); }
+  100% { transform: scaleX(1); opacity: 0; }
 }
-@keyframes drip {
-  0% { transform: scaleY(0); opacity: 1; }
-  55% { transform: scaleY(1); opacity: 1; }
-  100% { transform: scaleY(1); opacity: 0; }
-}
+.reel[data-rm] .hint { display: none; }
 
-/* ---- narrow ------------------------------------------------------------------ */
+/* ---- phones and narrow windows: notes on top, the bench below ---- */
 @media (max-width: 900px) {
-  .reel { height: 300vh; }
+  .reel { height: 340vh; }
   .viewport {
-    --ar: 0.7141;
-    --stW: min(93vw, calc(72svh * var(--ar)));
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 1rem;
+    padding: 4.75rem 1.25rem 1rem 2.6rem;
   }
-  .glassWrap { width: 93vw; height: min(64%, 560px); }
-  .glass { border-radius: 12px; }
-  .slab { inset: -6px; border-radius: 18px; }
-  /* safe: on a short phone the block starts under the nav instead of sliding up behind it */
-  .copy { justify-content: safe center; padding: 5.5rem 1rem 20svh; }
-  .headline { font-size: clamp(2rem, 9.2vw, 3rem); letter-spacing: -0.048em; line-height: 0.99; }
-  .sub { margin-top: 1.25rem; font-size: 1rem; }
-  .eyebrow { margin-bottom: 1.4rem; }
-  .actions { margin-top: 1.6rem; }
-  .ticks { inset: 4.6rem 0.9rem 0.9rem; }
-  .notes,
-  .notesFix { display: none; }
-  .tag { font-size: 0.625rem; }
-  .tag[data-when="then"] { top: calc(50% - min(64svh, 560px) / 2 - 4rem); }
-  .toggle { bottom: 1.3rem; }
-  .rail span { display: none; }
-}
-@media (max-height: 720px) and (max-width: 900px) {
-  .micro,
-  .hint { display: none; }
-  .copy { padding-bottom: 12svh; }
-}
-@media (max-height: 720px) and (min-width: 901px) {
+  .rulerTop { display: none; }
+  .rulerSide { width: 1.6rem; }
+  .side { align-content: start; }
+  .headline { font-size: clamp(1.9rem, 8vw, 2.4rem); }
+  .sub { margin-top: 0.7rem; font-size: 0.875rem; line-height: 1.45; }
+  .listHead { font-size: 1.35rem; }
+  .list ol { margin-top: 0.7rem; }
+  .list li { padding: 0.35rem 0; font-size: 0.875rem; }
+  .body { display: none; }
+  .actions { margin-top: 0.9rem; }
+  .actions > :last-child { display: none; }
   .micro { display: none; }
-  .copy { padding-bottom: 22svh; }
+  .figure { --shrink: 0.24; width: min(84%, calc((100svh - 26rem) * 1.35)); }
+  .tray { margin-top: 5%; gap: 0.25rem; padding: 0.3rem 0.5rem 0.3rem 0.35rem; }
+  .tray span { font-size: 0.8rem; }
+  .tray .dot { width: 1.3rem; height: 1.3rem; font-size: 0.6875rem; }
+  .caption { margin-top: 0.4rem; font-size: 0.6875rem; }
+  .toggle { margin-top: 0.5rem; }
+  .bench { align-content: center; }
+  .hint { display: none; }
 }
 
-/* ---- no motion ---------------------------------------------------------------
-   The scrubbed scene is skipped; what is shown is its last frame — the new
-   screen, level, with the switch under it. */
 @media (prefers-reduced-motion: reduce) {
-  .viewport {
-    --exit: 1;
-    --diag: 0;
-    --fly: 1;
-    --card: 0;
-    --cardOut: 1;
-    --rise: 1;
-  }
   .reel { height: auto; }
-  .viewport { position: relative; height: auto; min-height: 100svh; display: flex; flex-direction: column; }
-  .gl,
-  .floor,
-  .stage,
-  .shadow,
-  .hint,
-  .card,
-  .tag[data-when="now"] { display: none; }
-  .copy { position: relative; inset: auto; padding: 8rem 1.5rem 3rem; }
-  .copyInner { transform: none; }
-  .copyInner > *,
-  .word { opacity: 1; transform: none; }
-  .camera { position: relative; inset: auto; height: min(82svh, 760px); }
-  .glassTilt { transform: none; transition: none; }
-  .glass::after { display: none; }
-  .tag[data-when="then"] { display: none; }
-  .wash1,
-  .wash2,
-  .wash3,
-  .hint i { animation: none; }
-  .eyebrow { animation: none; }
-  .toggle,
-  .reel[data-live="on"] .toggle { transition: none; }
+  .viewport { position: relative; min-height: 100svh; height: auto; }
 }
-
-/* ---- off screen, and on small machines ---------------------------------------
-   Scrolled past, the room's drifting light stops: nothing can see it. On a
-   machine marked lite by app/layout.tsx it never starts. Each wash is a layer
-   wider than the window, and without a GPU every frame of drift is a
-   full-window blend on the CPU, scrolling or not. The blurs go too: the
-   gradients under them are already soft. */
-.reel[data-off] .wash1,
-.reel[data-off] .wash2,
-.reel[data-off] .wash3,
-.reel[data-off] .hint i { animation-play-state: paused; }
-:global(html[data-lite]) .wash1,
-:global(html[data-lite]) .wash2,
-:global(html[data-lite]) .wash3 { animation: none; will-change: auto; }
-/* Still on small machines, so not layers of their own: three window-sized
-   layers are three more full-window blends on every frame anything moves. */
-:global(html[data-lite]) .glow { will-change: auto; }
-:global(html[data-lite]) .shadow,
-:global(html[data-lite]) .reflect { filter: none; }
-
-/* ---- being photographed -----------------------------------------------------
-   `npm run capture:studio` sets data-capture on <html> and photographs the pane
-   in its "before" state: that picture is what the WebGL glass wears. Flat,
-   square, nothing over it. */
-:global(html[data-capture]) .field,
-:global(html[data-capture]) .ticks,
-:global(html[data-capture]) .gl,
-:global(html[data-capture]) .slab,
-:global(html[data-capture]) .reflect,
-:global(html[data-capture]) .tag,
-:global(html[data-capture]) .toggle { display: none; }
-:global(html[data-capture]) .glassTilt { transform: none; transition: none; }
-:global(html[data-capture]) .glass { box-shadow: none; }

@@ -125,15 +125,11 @@ export function Concept() {
     <section className={ui.section} id="concept">
       <div className={ui.wrap}>
         <Reveal className={ui.head}>
-          <p className={ui.eyebrow}>
-            <i />
-            Concept, not client work
-          </p>
           <h2 className={ui.h2}>
             Agnost AI, redesigned the way we would. <span>They did not ask us to.</span>
           </h2>
           <p className={ui.lede}>
-            Agnost monitors AI agents in production. We took two screens from their public demo and rebuilt them as if
+            <strong className={ui.flag}>Concept, not client work.</strong> Agnost monitors AI agents in production. We took two screens from their public demo and rebuilt them as if
             they had hired us, to show how we work on a real product rather than a made-up one.
           </p>
         </Reveal>
