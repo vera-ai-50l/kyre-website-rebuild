@@ -159,6 +159,7 @@ export function Hero() {
       el,
       k: Number(el.dataset.glow),
     }));
+    const tilt = reel.querySelector<HTMLElement>("[data-tilt]");
     let tx = 0;
     let ty = 0;
     let x = 0;
@@ -172,6 +173,16 @@ export function Hero() {
       x += (tx - x) * e;
       y += (ty - y) * e;
       for (const g of glows) g.el.style.transform = `translate3d(${(x * g.k).toFixed(1)}px, ${(y * g.k).toFixed(1)}px, 0)`;
+      /* The risen pane leans toward the hand, a few degrees at most, and only
+         once it has stood up: tied to how far the rise has come. */
+      if (tilt) {
+        const rise = Math.min(1, Math.max(0, (progress.current - 0.64) / 0.2));
+        const nx = x / (window.innerWidth / 2);
+        const ny = y / (window.innerHeight / 2);
+        tilt.style.transform = rise
+          ? `rotateX(${(-ny * 3 * rise).toFixed(2)}deg) rotateY(${(nx * 4 * rise).toFixed(2)}deg)`
+          : "";
+      }
       if (Math.abs(tx - x) + Math.abs(ty - y) > 0.5) raf = requestAnimationFrame(tick);
     };
     const onMove = (e: PointerEvent) => {
@@ -235,7 +246,7 @@ export function Hero() {
           </div>
 
           <div className={s.glassWrap}>
-            <div className={s.glassTilt}>
+            <div className={s.glassTilt} data-tilt>
               <span className={s.slab} aria-hidden />
               <div className={s.glass} data-side={side} data-shot="glass">
                 <div className={s.rail} aria-hidden>

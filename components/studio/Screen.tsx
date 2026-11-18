@@ -244,7 +244,14 @@ function After() {
               <line x1="0" x2="600" y1="96" y2="96" className={s.aBase} vectorEffect="non-scaling-stroke" />
               <line x1="0" x2="600" y1="33" y2="33" className={s.aGoalLine} vectorEffect="non-scaling-stroke" />
               <path d={`${CURVE} L596 96 L0 96 Z`} className={s.aArea} />
-              <path d={CURVE} pathLength={1} className={s.aLine} vectorEffect="non-scaling-stroke" />
+              {/* Drawn by a mask that widens left to right, not a dash offset:
+                  with a non-scaling stroke the dash is measured in screen
+                  pixels and the path in user units, so a dash reveal leaves
+                  a stub showing on a stretched chart. */}
+              <clipPath id="aReveal">
+                <rect className={s.aReveal} x="-4" y="-10" width="608" height="140" />
+              </clipPath>
+              <path d={CURVE} className={s.aLine} vectorEffect="non-scaling-stroke" clipPath="url(#aReveal)" />
             </svg>
             <span className={s.aGoalTag}>Goal 95%</span>
             <span className={s.aDot} />

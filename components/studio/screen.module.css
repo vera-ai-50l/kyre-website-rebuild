@@ -416,7 +416,7 @@
   color: var(--aOk);
 }
 .aArea { fill: url(#aFill); opacity: 0; }
-:global([data-live="on"]) .aArea { animation: aFade 900ms cubic-bezier(0.32, 0.72, 0, 1) 1700ms both; }
+:global([data-live="on"]) .aArea { animation: aFade 700ms cubic-bezier(0.16, 1, 0.3, 1) 900ms both; }
 @keyframes aFade {
   to { opacity: 1; }
 }
@@ -426,7 +426,6 @@
   stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 1;
 }
 .aDot {
   position: absolute;
@@ -599,36 +598,27 @@
    Nothing until the hero says the pane is up (data-live), then each block in
    reading order. Keyframes rather than transitions, so a remount — the toggle —
    plays it again. */
-.a [style*="--i"] { opacity: 0; }
-:global([data-live="on"]) .a [style*="--i"] {
-  animation: aIn 900ms cubic-bezier(0.32, 0.72, 0, 1) both;
-  animation-delay: calc(var(--i) * 62ms + 60ms);
-}
-@keyframes aIn {
-  from { opacity: 0; transform: translate3d(0, 1.3em, 0); }
-  to { opacity: 1; transform: none; }
-}
 .aRank li > i > i { transform: scaleX(0); }
 :global([data-live="on"]) .aRank li > i > i {
   animation: aBar 1100ms cubic-bezier(0.32, 0.72, 0, 1) both;
-  animation-delay: calc(var(--i) * 62ms + 320ms);
+  animation-delay: calc(var(--i) * 60ms + 150ms);
 }
 @keyframes aBar {
   from { transform: scaleX(0); }
   to { transform: scaleX(var(--v)); }
 }
-.aLine { stroke-dashoffset: 1; }
-:global([data-live="on"]) .aLine { animation: aDraw 1500ms cubic-bezier(0.32, 0.72, 0, 1) 620ms both; }
+.aReveal { transform-box: fill-box; transform-origin: 0 50%; transform: scaleX(0); }
+:global([data-live="on"]) .aReveal { animation: aDraw 1100ms cubic-bezier(0.16, 1, 0.3, 1) 150ms both; }
 @keyframes aDraw {
-  to { stroke-dashoffset: 0; }
+  to { transform: scaleX(1); }
 }
 .aDot,
-.aTip { transform: scale(0); }
+.aTip { transform: scale(0.6); opacity: 0; }
 .aTip { transform-origin: 100% 100%; }
-:global([data-live="on"]) .aDot { animation: aPop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) 1900ms both; }
-:global([data-live="on"]) .aTip { animation: aPop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) 2050ms both; }
+:global([data-live="on"]) .aDot { animation: aPop 500ms cubic-bezier(0.16, 1, 0.3, 1) 1300ms both; }
+:global([data-live="on"]) .aTip { animation: aPop 500ms cubic-bezier(0.16, 1, 0.3, 1) 1400ms both; }
 @keyframes aPop {
-  to { transform: scale(1); }
+  to { transform: scale(1); opacity: 1; }
 }
 /* The pulse stops when nothing can see it, and never starts on a small machine. */
 :global([data-off]) .aLive > i::after,
@@ -674,11 +664,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .a [style*="--i"] { opacity: 1; animation: none !important; }
   .aRank li > i > i { transform: scaleX(var(--v)); animation: none !important; }
-  .aLine { stroke-dashoffset: 0; animation: none !important; }
+  .aReveal { transform: none; animation: none !important; }
   .aArea { opacity: 1; animation: none !important; }
   .aDot,
-  .aTip { transform: none; animation: none !important; }
+  .aTip { transform: none; opacity: 1; animation: none !important; }
   .aLive > i::after { animation: none; opacity: 0; }
 }
