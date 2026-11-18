@@ -643,18 +643,18 @@
 .a .pin {
   position: absolute;
   z-index: 3;
-  left: -1.3em;
-  top: -1.3em;
+  left: -2.56em;
+  top: -2.56em;
   display: grid;
   place-items: center;
-  width: 3.2em;
-  height: 3.2em;
+  width: 2.2em;
+  height: 2.2em;
   border-radius: 50%;
   background: #f2d24b;
-  box-shadow: 0 0.12em 0.2em rgba(9, 30, 20, 0.35), inset 0 -0.12em 0 rgba(120, 90, 0, 0.18);
+  box-shadow: 0 0.1em 0.18em rgba(9, 30, 20, 0.4), inset 0 -0.1em 0 rgba(120, 90, 0, 0.18);
   color: #13241c;
   font-family: var(--font-kmono), monospace;
-  font-size: 1.45em;
+  font-size: 1.3em;
   font-style: normal;
   font-weight: 600;
   line-height: 1;
@@ -663,6 +663,23 @@
   transition: opacity 260ms cubic-bezier(0.16, 1, 0.3, 1), transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
 }
+/* The sticker sits on the mat beside its part, off the corner, with a
+   hairline running to the corner it labels. */
+.b .pin::after,
+.a .pin::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.05em;
+  height: 1px;
+  background: #f2d24b;
+  transform-origin: 0 0;
+  transform: rotate(45deg) translateX(1.05em);
+}
+/* The strip at the foot runs edge to edge, so its sticker sits off the left. */
+.a [data-part="foot"] > .pin { top: 50%; left: -2.9em; margin-top: -1.1em; }
+.a [data-part="foot"] > .pin::after { transform: translateX(1.1em); width: 0.7em; }
 :global([data-pins~="b"]) .b .pin,
 :global([data-pins~="a"]) .a .pin { opacity: 1; transform: none; }
 .emo { display: inline-block; opacity: calc(1 - var(--te, 0)); }

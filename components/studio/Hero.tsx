@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore, type CSSProperties, type FormEvent } from "react";
 import { useScrollProgress } from "../useScrollProgress";
 import { Arrow, Logo } from "./bits";
 import { isLite } from "./useLite";
-import { Enter, m, Magnetic, SETTLE } from "./motion";
-import { STUDIO } from "./brand";
+import { Enter, m, SETTLE } from "./motion";
+import { CALL, STUDIO } from "./brand";
 import { After, Before, EMOJI } from "./Screen";
 import s from "./hero.module.css";
 import ui from "./site.module.css";
@@ -154,6 +154,17 @@ export function Hero() {
     };
   }, [ref]);
 
+  /* The address goes into the request form at the foot of the page, which
+     asks only for where to send the teardown. */
+  const start = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const url = String(new FormData(e.currentTarget).get("url") ?? "").trim();
+    const field = document.querySelector<HTMLInputElement>('#teardown input[name="url"]');
+    if (field) field.value = url;
+    document.getElementById("teardown")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+    window.setTimeout(() => document.querySelector<HTMLInputElement>('#teardown input[name="email"]')?.focus({ preventScroll: true }), reduced ? 0 : 700);
+  };
+
   const showing = picked ?? (stage === "intro" || stage === "apart" ? "before" : "after");
   let w = 0;
 
@@ -207,20 +218,23 @@ export function Hero() {
 
           <div className={s.actions}>
             <Enter delay={0.7}>
-              <Magnetic href="#teardown" className={ui.btn}>
-                Get a free teardown
-                <Arrow />
-              </Magnetic>
-            </Enter>
-            <Enter delay={0.78}>
-              <Magnetic href="#how" className={`${ui.btn} ${ui.btnGhost}`}>
-                How it works
-                <Arrow down />
-              </Magnetic>
+              <form className={s.start} onSubmit={start}>
+                <label>
+                  <span className={s.srOnly}>Your product&apos;s address</span>
+                  <input name="url" type="text" inputMode="url" autoComplete="url" placeholder="your-product.com" required />
+                </label>
+                <button type="submit" className={ui.btn}>
+                  Get a free teardown
+                  <Arrow />
+                </button>
+              </form>
+              <p className={s.secondary}>
+                Or <a href="#how">see how it works</a>, or <a href={CALL} target="_blank" rel="noopener noreferrer">book a 15-minute call</a>.
+              </p>
             </Enter>
           </div>
           <p className={s.micro}>
-            <Enter delay={0.9}>Free, no call. Your biggest wins and a before/after of one screen.</Enter>
+            <Enter delay={0.9}>Free, and no call needed. Your biggest wins and a before/after of one screen.</Enter>
           </p>
         </div>
 

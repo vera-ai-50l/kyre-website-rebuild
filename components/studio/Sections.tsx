@@ -4,7 +4,7 @@ import { useState, type CSSProperties, type FormEvent, type ReactNode } from "re
 import { Reveal } from "../bits";
 import { useScrollProgress } from "../useScrollProgress";
 import { Arrow } from "./bits";
-import { CONTACT, STUDIO } from "./brand";
+import { CALL, CONTACT, STUDIO } from "./brand";
 import { Funnel, FUNNEL_COPY } from "./Funnel";
 import ui from "./site.module.css";
 
@@ -144,22 +144,6 @@ const SAY =
 const SIGNS_A = ["Users say it looks generic", "Churn after the first session", "About to raise", "A security scare"];
 const SIGNS_B = ["Just raised", "Activation has plateaued", "Demos stall at the dashboard", "An open product designer role"];
 
-function Marquee({ items, back }: { items: string[]; back?: boolean }) {
-  return (
-    <div className={ui.mq} data-back={back || undefined}>
-      {[0, 1, 2].map((k) => (
-        <div key={k} className={ui.mqRow} aria-hidden={k > 0 || undefined}>
-          {items.map((t) => (
-            <span key={t} className={ui.sign}>
-              <i />
-              {t}
-            </span>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export function Why() {
   const say = useScrollProgress<HTMLParagraphElement>(undefined, "through");
@@ -231,8 +215,14 @@ export function Why() {
 
         <Reveal className={ui.signs}>
           <p className={ui.signsLabel}>When it usually comes up</p>
-          <Marquee items={SIGNS_A} />
-          <Marquee items={SIGNS_B} back />
+          <ul className={ui.signList}>
+            {[...SIGNS_A, ...SIGNS_B].map((t) => (
+              <li key={t} className={ui.sign}>
+                <i />
+                {t}
+              </li>
+            ))}
+          </ul>
         </Reveal>
       </div>
     </section>
@@ -905,7 +895,13 @@ export function Teardown() {
                 Get a free teardown
                 <Arrow />
               </button>
-              <p className={ui.formNote}>No call, no pitch. This opens your email app with the request filled in.</p>
+              <p className={ui.formNote}>
+                This opens your email app with the request filled in. Rather talk first?{" "}
+                <a href={CALL} target="_blank" rel="noopener noreferrer">
+                  Book a 15-minute call
+                </a>
+                .
+              </p>
             </form>
           </div>
         </Reveal>
