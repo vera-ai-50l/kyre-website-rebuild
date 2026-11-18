@@ -607,7 +607,7 @@
 .step:nth-child(3) .sheet { transform: rotate(-0.7deg); }
 .sheetHead { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 0.9rem; padding-bottom: 0.8rem; box-shadow: inset 0 -1px 0 0 var(--line); }
 .sheetHead span { font-size: 0.875rem; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); white-space: nowrap; }
-.sheetHead em { overflow: hidden; font-family: var(--font-kmono), monospace; font-size: 0.75rem; font-style: normal; color: var(--faint); white-space: nowrap; text-overflow: ellipsis; }
+.sheetHead em { overflow: hidden; font-family: inherit; font-size: 0.75rem; font-style: normal; color: var(--faint); white-space: nowrap; text-overflow: ellipsis; }
 
 .shot { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 0.5rem 1fr; gap: 0.35rem; height: 6.4rem; margin-bottom: 0.9rem; padding: 0.55rem; border-radius: 0.6rem; background: #1e2130; }
 .shot > i { grid-column: 1 / -1; width: 40%; border-radius: 0.2rem; background: linear-gradient(90deg, #8b5cf6, #ec4899); }
@@ -771,7 +771,7 @@
 .sec .check { width: 0.75rem; height: 0.75rem; animation: popLoop 500ms var(--out) 1 both; animation-delay: calc(var(--i) * 0.18s + 0.2s); }
 
 /* ---- the sample teardown -------------------------------------------------------------- */
-.tdHead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.6rem 1rem; padding: 1.1rem 1.6rem; box-shadow: inset 0 -1px 0 0 var(--line); font-family: var(--font-kmono), monospace; font-size: 0.75rem; color: var(--faint); }
+.tdHead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.6rem 1rem; padding: 1.1rem 1.6rem; box-shadow: inset 0 -1px 0 0 var(--line); font-family: inherit; font-size: 0.8125rem; color: var(--faint); }
 .tdHead b { padding: 0.3rem 0.7rem; border-radius: 0.35rem; background: var(--tag); font-weight: 600; color: var(--tagInk); }
 .tdBody { display: grid; grid-template-columns: 5fr 6fr; }
 .tdNotes { padding: 2.4rem; }
