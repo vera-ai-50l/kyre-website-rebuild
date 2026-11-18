@@ -1,27 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore, type CSSProperties, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { useScrollProgress } from "../useScrollProgress";
 import { Arrow, Logo } from "./bits";
+import { DotField } from "./DotField";
 import { isLite } from "./useLite";
-import { Enter, m, SETTLE } from "./motion";
-import { CALL, STUDIO } from "./brand";
-import { After, Before, EMOJI } from "./Screen";
+import { Enter, m, Magnetic, SETTLE } from "./motion";
+import { STUDIO } from "./brand";
+import { PLATES } from "./glass/plates";
+import type { Shatter } from "./glass/scene";
+import { Screen, type Side } from "./Screen";
 import s from "./hero.module.css";
 import ui from "./site.module.css";
 
-/* The hero is a teardown on a cutting mat. Scrolling takes the sample app's
-   screen apart, labels each part with what is wrong with it, clears it off the
-   mat and puts the redesign together in its place. Everything that moves is a
-   function of one number, --p, which useScrollProgress writes on the section;
-   the stylesheet turns it into how far each screen is apart. The stages below
-   are only the things that switch rather than slide. */
-type Stage = "intro" | "apart" | "swap" | "together" | "live";
-const stageAt = (p: number): Stage =>
-  p < 0.07 ? "intro" : p < 0.56 ? "apart" : p < 0.62 ? "swap" : p < 0.86 ? "together" : "live";
-
-/* Which pieces wear their numbers. */
-const PINS: Record<Stage, string> = { intro: "", apart: "b", swap: "", together: "a", live: "a" };
+/* Marks along the scroll that are events rather than positions. Crossing one
+   sets an attribute and whatever it starts runs on its own clock. */
+const CRACK_AT = 0.198;
+const FIX_AT = 0.6;
+const LIVE_AT = 0.76;
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
 const subscribe = (cb: () => void) => {
@@ -34,94 +30,136 @@ const HEAD = [
   ["Your", "product", "works."],
   ["The", "interface", "is", "holding", "it", "back."],
 ];
+/* Where each word goes when the headline leaves: sideways by its place in the
+   line, up or down by turns, so the lens passes through a gap in the middle. */
+const DRIFT_Y = [-9, 7, -5, 9, -7, 5, -8, 10, -4];
+const DRIFT_R = [-5, 3, -2, 4, -3, 2, -4, 5, -2];
 
-/* What the old screen gets wrong, one line per numbered part. */
-const FINDINGS = [
-  ["The template.", "Gradient logo, gradient upsell: it reads as every other AI-built app."],
-  ["A greeting, not an answer.", "“Welcome back” takes the top of the screen."],
-  ["Four tiles, one weight.", "Nothing says where to look first."],
-  ["Five lines, no answer.", "A chart that decides nothing."],
-  ["Every status shouts.", "Four colours of pill, none of them ranked."],
-  ["Twelve emoji", "standing in for an icon set."],
+type Note = { x: number; y: number; head: string; body: string; left?: boolean };
+
+/* Percent of the pane. On the old screen: what is wrong with it. */
+const BREAKS: Note[] = [
+  { x: 60.5, y: 31, head: "Four tiles, one weight", body: "Nothing says where to look." },
+  { x: 43, y: 73, head: "Five lines, no answer", body: "A chart that decides nothing." },
+  { x: 16.2, y: 86, head: "The template", body: "Reads as every other AI-built app.", left: false },
 ];
-/* What the new one does instead. */
-const FIXES = [
-  ["One number, first.", "The one the support team is judged on."],
-  ["Ranked by what hurts.", "Where the agent hands off, worst first."],
-  ["One next step.", "Three conversations waiting, and the button for them."],
-  ["The old tiles, demoted.", "A strip at the foot, each with its week behind it."],
+/* On the new one: what changed. */
+const FIXES: Note[] = [
+  { x: 37.5, y: 24, head: "One number, first", body: "The one the business runs on." },
+  { x: 72.4, y: 16.4, head: "Ranked by what hurts", body: "The reason, not a legend." },
+  { x: 76.5, y: 88.5, head: "One next step", body: "What to do about it." },
 ];
 
-function List({ items, heading, id }: { items: string[][]; heading: string; id: string }) {
+function Notes({ list, className }: { list: Note[]; className: string }) {
   return (
-    <div className={s.list} data-list={id}>
-      <h2 className={s.listHead}>{heading}</h2>
-      <ol>
-        {items.map(([h, b], i) => (
-          <li key={h} style={{ "--n": i } as CSSProperties}>
-            <b className={s.dot} aria-hidden>
-              {i + 1}
-            </b>
-            <span>
-              <strong>{h}</strong> <span className={s.body}>{b}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
+    <div className={className}>
+      {list.map((n, i) => (
+        <div
+          key={n.head}
+          className={`${s.note} ${n.left ? s.noteL : ""}`}
+          style={{ left: `${n.x}%`, top: `${n.y}%`, "--n": i } as CSSProperties}
+        >
+          <i className={s.noteDot} />
+          <i className={s.noteLine} />
+          <span className={s.noteBox}>
+            <b>{n.head}</b>
+            {n.body}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
 
 export function Hero() {
-  /* The switch under the screen. The scroll decides which face is up until
-     someone uses it, and crossing the next stage hands it back. */
-  const [picked, setPicked] = useState<"before" | "after" | null>(null);
-  const [stage, setStage] = useState<Stage>("intro");
+  const shatter = useRef<Shatter | null>(null);
+  const progress = useRef(0);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
+
+  /* Which face the pane shows: the scroll decides until someone uses the
+     switch, and deciding again by scroll hands it back. */
+  const [fixed, setFixed] = useState(false);
+  const [picked, setPicked] = useState<Side | null>(null);
   const reduced = useSyncExternalStore(
     subscribe,
     () => window.matchMedia(REDUCED).matches,
     () => false,
   );
+  const side: Side = picked ?? (fixed || reduced ? "after" : "before");
 
-  const onProgress = useCallback((p: number, el: HTMLElement) => {
-    const next = stageAt(p);
-    if (el.dataset.stage === next) return;
-    el.dataset.stage = next;
-    el.dataset.pins = PINS[next];
-    el.dataset.live = next === "live" ? "on" : "";
-    setStage(next);
-    setPicked(null);
+  const milestones = useCallback((p: number, el: HTMLElement) => {
+    progress.current = p;
+    shatter.current?.set(p);
+    const mark = (k: string, v: string) => {
+      if (el.dataset[k] !== v) el.dataset[k] = v;
+    };
+    mark("jolt", p >= CRACK_AT ? "break" : "");
+    mark("live", p >= LIVE_AT ? "on" : "");
+    /* The capture script photographs the old face on the standing pane. */
+    const fix = p >= FIX_AT && !("capture" in document.documentElement.dataset) ? "on" : "";
+    if (el.dataset.fix !== fix) {
+      el.dataset.fix = fix;
+      setFixed(fix === "on");
+      setPicked(null);
+    }
   }, []);
 
-  const ref = useScrollProgress<HTMLElement>(onProgress, "pinned", 110);
+  const ref = useScrollProgress<HTMLElement>(milestones, "pinned", 110);
 
-  /* Reduced motion lands on the finished screen with nothing taken apart and
-     the opening words still on the left. */
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !reduced) return;
-    el.dataset.stage = "live";
-    el.dataset.pins = "a";
-    el.dataset.live = "on";
-    el.dataset.rm = "";
-  }, [ref, reduced]);
-
-  /* A face picked with the switch sits assembled, so only the new one keeps
-     its numbers. */
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.dataset.pins = picked === "before" ? "" : picked === "after" ? "a" : PINS[(el.dataset.stage as Stage) ?? "intro"];
-  }, [ref, picked]);
-
-  /* Once the new screen is together it leans a few degrees toward the
-     pointer, on a slow clock so it turns a beat behind the hand. Small
-     machines and reduced motion keep it flat. */
   useEffect(() => {
     const reel = ref.current;
-    if (!reel || window.matchMedia(REDUCED).matches || isLite()) return;
+    if (!reel || !canvas.current || !stage.current) return;
+    /* Reduced motion parks on the new screen and never shows the break. */
+    if (window.matchMedia(REDUCED).matches) return;
+
+    let live = true;
+    let scene: Shatter | null = null;
+    const narrow = window.matchMedia("(max-width: 900px)");
+
+    /* three.js is most of this page's JavaScript and none of it is needed to
+       read the headline, so it arrives after first paint in its own chunk. */
+    import("./glass/scene")
+      .then(({ mountShatter }) => {
+        if (!live || !canvas.current || !stage.current) return;
+        scene = mountShatter(
+          canvas.current,
+          stage.current,
+          () => (narrow.matches ? PLATES.narrow : PLATES.wide),
+          () => {
+            reel.dataset.gl = "on";
+          },
+        );
+        scene.set(progress.current);
+        shatter.current = scene;
+      })
+      /* No WebGL, or the chunk never came: the flat picture already in the
+         markup takes over without being asked. */
+      .catch(() => {});
+
+    return () => {
+      live = false;
+      scene?.dispose();
+      shatter.current = null;
+      delete reel.dataset.gl;
+    };
+  }, [ref]);
+
+  /* The lights lean after the pointer, each by its own share of the distance
+     from the centre (data-glow) and on a slow clock, so the room turns a beat
+     behind the hand. Transforms only, and the loop stops when they settle. */
+  useEffect(() => {
+    const reel = ref.current;
+    if (!reel || window.matchMedia(REDUCED).matches) return;
+    /* Each light is a layer wider than the window. Moving them is free on a GPU
+       and a full-window blend per frame on a CPU (measured: 59fps -> 32fps
+       with the mouse moving), so small machines keep them where they drift. */
+    if (isLite()) return;
+    const glows = [...reel.querySelectorAll<HTMLElement>("[data-glow]")].map((el) => ({
+      el,
+      k: Number(el.dataset.glow),
+    }));
     const tilt = reel.querySelector<HTMLElement>("[data-tilt]");
-    if (!tilt) return;
     let tx = 0;
     let ty = 0;
     let x = 0;
@@ -134,14 +172,23 @@ export function Hero() {
       last = now;
       x += (tx - x) * e;
       y += (ty - y) * e;
-      const on = reel.dataset.stage === "live";
-      tilt.style.transform = on ? `rotateX(${(-y * 2.5).toFixed(2)}deg) rotateY(${(x * 3.5).toFixed(2)}deg)` : "";
-      if (Math.abs(tx - x) + Math.abs(ty - y) > 0.002) raf = requestAnimationFrame(tick);
+      for (const g of glows) g.el.style.transform = `translate3d(${(x * g.k).toFixed(1)}px, ${(y * g.k).toFixed(1)}px, 0)`;
+      /* The risen pane leans toward the hand, a few degrees at most, and only
+         once it has stood up: tied to how far the rise has come. */
+      if (tilt) {
+        const rise = Math.min(1, Math.max(0, (progress.current - 0.64) / 0.2));
+        const nx = x / (window.innerWidth / 2);
+        const ny = y / (window.innerHeight / 2);
+        tilt.style.transform = rise
+          ? `rotateX(${(-ny * 3 * rise).toFixed(2)}deg) rotateY(${(nx * 4 * rise).toFixed(2)}deg)`
+          : "";
+      }
+      if (Math.abs(tx - x) + Math.abs(ty - y) > 0.5) raf = requestAnimationFrame(tick);
     };
     const onMove = (e: PointerEvent) => {
-      if (e.pointerType === "touch") return;
-      tx = e.clientX / window.innerWidth - 0.5;
-      ty = e.clientY / window.innerHeight - 0.5;
+      if (e.pointerType === "touch" || "off" in reel.dataset) return;
+      tx = e.clientX - window.innerWidth / 2;
+      ty = e.clientY - window.innerHeight / 2;
       if (!raf) {
         last = performance.now();
         raf = requestAnimationFrame(tick);
@@ -154,51 +201,108 @@ export function Hero() {
     };
   }, [ref]);
 
-  /* The address goes into the request form at the foot of the page, which
-     asks only for where to send the teardown. */
-  const start = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const url = String(new FormData(e.currentTarget).get("url") ?? "").trim();
-    const field = document.querySelector<HTMLInputElement>('#teardown input[name="url"]');
-    if (field) field.value = url;
-    document.getElementById("teardown")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
-    window.setTimeout(() => document.querySelector<HTMLInputElement>('#teardown input[name="email"]')?.focus({ preventScroll: true }), reduced ? 0 : 700);
-  };
+  /* The room's light drifts on a loop; once the reel is scrolled past there
+     is nothing to see it, so it stops rather than repainting off screen. */
+  useEffect(() => {
+    const reel = ref.current;
+    if (!reel) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) delete reel.dataset.off;
+      else reel.dataset.off = "";
+    });
+    io.observe(reel);
+    return () => io.disconnect();
+  }, [ref]);
 
-  const showing = picked ?? (stage === "intro" || stage === "apart" ? "before" : "after");
   let w = 0;
-
   return (
-    <section ref={ref} className={s.reel} data-reel data-stage="intro" data-pick={picked ?? undefined}>
+    <section ref={ref} className={s.reel} data-reel data-live={reduced ? "on" : undefined}>
       <div className={s.viewport}>
-        <div className={s.rulerTop} aria-hidden>
-          {Array.from({ length: 41 }, (_, i) => (
-            <i key={i}>{i}</i>
-          ))}
+        <div className={s.field} aria-hidden>
+          <span className={s.glow} data-glow="0.05">
+            <span className={s.wash1} />
+          </span>
+          <span className={s.glow} data-glow="-0.045">
+            <span className={s.wash2} />
+          </span>
+          <span className={s.glow} data-glow="0.03">
+            <span className={s.wash3} />
+          </span>
+          <DotField />
+          <span className={s.veil} />
         </div>
-        <div className={s.rulerSide} aria-hidden>
-          {Array.from({ length: 25 }, (_, i) => (
-            <i key={i}>{i}</i>
-          ))}
-        </div>
+        <span className={s.ticks} aria-hidden />
 
-        <div className={s.side}>
-          <div className={s.intro}>
+        <div className={s.camera}>
+          <span className={s.shadow} aria-hidden />
+          <canvas ref={canvas} className={s.gl} aria-hidden />
+
+          <div ref={stage} className={s.stage}>
+            <picture>
+              <source media="(max-width: 900px)" srcSet={PLATES.narrow.src} />
+              <img className={s.paneImg} src={PLATES.wide.src} alt="A sample dashboard as an AI builder made it" />
+            </picture>
+            <Notes list={BREAKS} className={s.notes} />
+          </div>
+
+          <div className={s.glassWrap}>
+            <div className={s.glassTilt} data-tilt>
+              <span className={s.slab} aria-hidden />
+              <div className={s.glass} data-side={side} data-shot="glass">
+                <div className={s.rail} aria-hidden>
+                  <i />
+                  <i />
+                  <i />
+                  <span>marlo.example/overview</span>
+                  <em>Sample</em>
+                </div>
+                <div className={s.face}>
+                  <Screen side={side} />
+                </div>
+                {side === "after" && <Notes list={FIXES} className={s.notesFix} />}
+              </div>
+              <span className={s.reflect} aria-hidden />
+            </div>
+          </div>
+        </div>
+        <div className={s.floor} aria-hidden />
+
+        <div className={s.copy}>
+          <div className={s.copyInner}>
+            <p className={`${ui.eyebrow} ${s.eyebrow}`}>
+              <i />
+              Interface redesign for products AI built
+            </p>
             <h1 className={s.headline}>
               {HEAD.map((line, li) => (
                 <span key={li} className={s.line}>
                   {line.map((word) => {
                     const i = w++;
                     return (
-                      <span key={word} className={s.mask}>
-                        <m.span
-                          className={s.wordIn}
-                          initial={{ y: "112%" }}
-                          animate={{ y: "0%" }}
-                          transition={{ ...SETTLE, delay: 0.15 + i * 0.05 }}
-                        >
-                          {word}
-                        </m.span>
+                      <span
+                        key={word}
+                        className={s.word}
+                        style={
+                          {
+                            "--wi": i,
+                            "--wx": `${((i - 4) * 5.5).toFixed(1)}vw`,
+                            "--wy": `${DRIFT_Y[i]}vh`,
+                            "--wr": `${DRIFT_R[i]}deg`,
+                          } as CSSProperties
+                        }
+                      >
+                        {/* The mask the word rises out of on load. Motion owns
+                            the inner span; the outer one belongs to the scroll. */}
+                        <span className={s.mask}>
+                          <m.span
+                            className={s.wordIn}
+                            initial={{ y: "118%", rotate: 5 }}
+                            animate={{ y: "0%", rotate: 0 }}
+                            transition={{ ...SETTLE, delay: 0.18 + i * 0.06 }}
+                          >
+                            {word}
+                          </m.span>
+                        </span>
                       </span>
                     );
                   })}
@@ -206,105 +310,71 @@ export function Hero() {
               ))}
             </h1>
             <p className={s.sub}>
-              <Enter delay={0.55}>
-                {STUDIO} redesigns apps and dashboards built in the AI era, delivered as a pull request in your own
-                code, in days, and judged on the one number that matters.
+              <Enter delay={0.62}>
+                {STUDIO} redesigns apps and dashboards built in the AI era — delivered as a pull request in your own
+                code, in days, measured on the number that matters.
               </Enter>
             </p>
-          </div>
-
-          <List id="findings" heading="Taken apart: six things holding it back." items={FINDINGS} />
-          <List id="fixes" heading="Put back together: same data, decided." items={FIXES} />
-
-          <div className={s.actions}>
-            <Enter delay={0.7}>
-              <form className={s.start} onSubmit={start}>
-                <label>
-                  <span className={s.srOnly}>Your product&apos;s address</span>
-                  <input name="url" type="text" inputMode="url" autoComplete="url" placeholder="your-product.com" required />
-                </label>
-                <button type="submit" className={ui.btn}>
+            <div className={s.actions}>
+              <Enter delay={0.74}>
+                <Magnetic href="#teardown" className={ui.btn}>
                   Get a free teardown
                   <Arrow />
-                </button>
-              </form>
-              <p className={s.secondary}>
-                Or <a href="#how">see how it works</a>, or <a href={CALL} target="_blank" rel="noopener noreferrer">book a 15-minute call</a>.
-              </p>
-            </Enter>
+                </Magnetic>
+              </Enter>
+              <Enter delay={0.82}>
+                <Magnetic href="#how" className={`${ui.btn} ${ui.btnGhost}`}>
+                  See how it works
+                  <Arrow down />
+                </Magnetic>
+              </Enter>
+            </div>
+            <p className={s.micro}>
+              <Enter delay={0.95}>No call, no pitch. Your biggest wins and a before/after of one screen.</Enter>
+            </p>
           </div>
-          <p className={s.micro}>
-            <Enter delay={0.9}>Free, and no call needed. Your biggest wins and a before/after of one screen.</Enter>
-          </p>
         </div>
 
-        <div className={s.bench}>
-          <figure className={s.figure}>
-            <div className={s.tiltWrap}>
-              <div className={s.housing} data-tilt>
-                <div className={s.rail} aria-hidden>
-                  <i />
-                  <i />
-                  <i />
-                  <span>marlo.example/overview</span>
-                </div>
-                <div className={s.face}>
-                  <div
-                    className={s.layer}
-                    data-layer="b"
-                    role="img"
-                    aria-label="Sample dashboard for a fictional product, Marlo, as an AI builder made it"
-                    aria-hidden={showing !== "before"}
-                  >
-                    <Before />
-                  </div>
-                  <div
-                    className={s.layer}
-                    data-layer="a"
-                    role="img"
-                    aria-label="The same dashboard redesigned: one number first, the reason second, the next step third"
-                    aria-hidden={showing !== "after"}
-                  >
-                    <After />
-                  </div>
-                </div>
-              </div>
-            </div>
+        <p className={s.tag} data-when="now">
+          <i />
+          Sample app, as the AI builder left it
+        </p>
+        <p className={s.tag} data-when="then">
+          <i />
+          Sample redesign. Same product, same data
+        </p>
 
-            <div className={s.tray} aria-hidden>
-              <b className={s.dot}>6</b>
-              {EMOJI.map((e, i) => (
-                <span key={i} style={{ "--n": i } as CSSProperties}>
-                  {e}
-                </span>
-              ))}
-            </div>
+        <p className={s.card}>
+          <span className={s.cardBadge}>
+            <em>Rebuilt with</em>
+            <Logo />
+          </span>
+          <span className={s.cardText}>
+            Same product. <span>New interface.</span>
+          </span>
+          <span className={s.cardMeta}>
+            <i />
+            pull request merged into your repo
+          </span>
+        </p>
 
-            <figcaption className={s.caption}>
-              <span data-cap="b">Sample app, as the AI builder left it.</span>
-              <span data-cap="a">
-                Sample redesign, same product and data. Rebuilt with <Logo />
-              </span>
-            </figcaption>
-            <div className={s.toggle} role="group" aria-label="Show the screen before or after">
-              {(["before", "after"] as const).map((x) => (
-                <button
-                  key={x}
-                  type="button"
-                  className={s.tgBtn}
-                  aria-pressed={showing === x}
-                  onClick={() => setPicked(x)}
-                >
-                  {x === "before" ? "Before" : "After"}
-                </button>
-              ))}
-            </div>
-          </figure>
-
+        <div className={s.toggle} data-side={side} role="group" aria-label="Compare the screen before and after">
+          <m.span
+            className={s.tgPill}
+            aria-hidden
+            initial={false}
+            animate={{ x: side === "after" ? "100%" : "0%" }}
+            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+          />
+          {(["before", "after"] as const).map((x) => (
+            <button key={x} type="button" className={s.tgBtn} aria-pressed={side === x} onClick={() => setPicked(x)}>
+              {x === "before" ? "Before" : "After"}
+            </button>
+          ))}
         </div>
 
         <span className={s.hint} aria-hidden>
-          Scroll to take it apart
+          Scroll
           <i />
         </span>
       </div>

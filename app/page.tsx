@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { Archivo, Martian_Mono } from "next/font/google";
+import { Geist_Mono, Inter_Tight, Mona_Sans } from "next/font/google";
 import { Site } from "@/components/studio/Site";
 import { STUDIO } from "@/components/studio/brand";
 
-/* Two faces, scoped to this route. Archivo is a grotesque with a width axis,
-   so one file is the wide display cut, the text and the wordmark. Martian Mono
-   only measures: part numbers, rulers, counts and prices. */
-const kyre = Archivo({ variable: "--font-kyre", subsets: ["latin"], axes: ["wdth"] });
-const kmono = Martian_Mono({ variable: "--font-kmono", subsets: ["latin"], axes: ["wdth"] });
+/* A different pair from the rest of the repo, scoped to this route. Mona Sans
+   carries a width axis, so one file is both the wide, tight display cut and the
+   normal-width text; Geist Mono is the label and the code. */
+const mona = Mona_Sans({ variable: "--font-mona", subsets: ["latin"], axes: ["wdth"] });
+const gmono = Geist_Mono({ variable: "--font-gmono", subsets: ["latin"] });
+/* Only for the wordmark, which is what the first site's logo was set in. */
+const logo = Inter_Tight({ variable: "--font-logo", subsets: ["latin"], weight: "700" });
 
 export const metadata: Metadata = {
   title: `${STUDIO} — the first real redesign after AI built your product`,
@@ -17,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className={`${kyre.variable} ${kmono.variable}`}>
+    <div className={`${mona.variable} ${gmono.variable} ${logo.variable}`}>
       <Site />
     </div>
   );

@@ -185,7 +185,7 @@
   flex-direction: column;
   background: linear-gradient(180deg, #151516 0%, #121213 100%);
   color: var(--aInk);
-  font-family: var(--font-kyre), system-ui, sans-serif;
+  font-family: var(--font-mona), system-ui, sans-serif;
 }
 .a p { margin: 0; }
 .a i,
@@ -242,7 +242,7 @@
   border-radius: 99em;
   background: rgba(76, 195, 138, 0.12);
   color: var(--aOk);
-  font-family: var(--font-kmono), monospace;
+  font-family: var(--font-gmono), monospace;
   font-size: 0.78em;
   letter-spacing: 0.04em;
 }
@@ -264,7 +264,7 @@
   border-radius: 99em;
   background: var(--aCard);
   box-shadow: inset 0 0 0 1px var(--aLine);
-  font-family: var(--font-kmono), monospace;
+  font-family: var(--font-gmono), monospace;
   font-size: 0.8em;
   color: var(--aDim);
 }
@@ -306,14 +306,14 @@
 }
 .aHead { display: flex; align-items: center; justify-content: space-between; gap: 1em; }
 .aLabel {
-  font-family: var(--font-kmono), monospace;
+  font-family: var(--font-gmono), monospace;
   font-size: 0.78em;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--aDim);
 }
 .aTag {
-  font-family: var(--font-kmono), monospace;
+  font-family: var(--font-gmono), monospace;
   font-size: 0.74em;
   color: var(--aFaint);
 }
@@ -374,7 +374,7 @@
   transform: scaleX(0.94);
   transform-origin: 0 50%;
 }
-.aGoal em { grid-column: 1 / -1; font-family: var(--font-kmono), monospace; font-size: 0.86em; color: var(--aFaint); }
+.aGoal em { grid-column: 1 / -1; font-family: var(--font-gmono), monospace; font-size: 0.86em; color: var(--aFaint); }
 
 /* The reason. */
 .aSay {
@@ -411,7 +411,7 @@
   position: absolute;
   left: 1.8em;
   top: calc((100% - 2.4em) * 0.275 - 1.75em);
-  font-family: var(--font-kmono), monospace;
+  font-family: var(--font-gmono), monospace;
   font-size: 0.72em;
   color: var(--aOk);
 }
@@ -447,7 +447,7 @@
   background: var(--aInk);
   box-shadow: 0 0.8em 1.6em -0.8em rgba(0, 0, 0, 0.7);
   color: rgba(11, 12, 15, 0.6);
-  font-family: var(--font-kmono), monospace;
+  font-family: var(--font-gmono), monospace;
   font-size: 0.74em;
   white-space: nowrap;
 }
@@ -459,7 +459,7 @@
   bottom: 0.85em;
   display: flex;
   justify-content: space-between;
-  font-family: var(--font-kmono), monospace;
+  font-family: var(--font-gmono), monospace;
   font-size: 0.72em;
   color: var(--aFaint);
 }
@@ -539,7 +539,7 @@
 .aQueue b {
   padding: 0.3em 0.65em;
   border-radius: 99em;
-  font-family: var(--font-kmono), monospace;
+  font-family: var(--font-gmono), monospace;
   font-size: 0.78em;
   font-weight: 500;
 }
@@ -585,7 +585,7 @@
   padding: 0 2.2em;
   border-top: 1px solid var(--aLine);
   background: rgba(255, 255, 255, 0.015);
-  font-family: var(--font-kmono), monospace;
+  font-family: var(--font-gmono), monospace;
   font-size: 0.8em;
   color: var(--aDim);
 }
@@ -624,6 +624,45 @@
 :global([data-off]) .aLive > i::after,
 :global(html[data-lite]) .aLive > i::after { animation: none; opacity: 0; }
 
+/* ---- a phone-shaped pane ---------------------------------------------------
+   A different layout, not a smaller one: the desktop screen at 360px is a
+   texture of grey lines. */
+@container (max-width: 620px) {
+  .b,
+  .a { font-size: 2.72cqw; }
+
+  .bSide { display: none; }
+  .bMain { padding: 1.5em 1.3em; gap: 1.1em; }
+  .bHello { font-size: 1.5em; }
+  .bBtn { display: none; }
+  .bTiles { grid-template-columns: 1fr 1fr; gap: 0.8em; }
+  .bTile b { font-size: 1.7em; }
+  .bGrid { grid-template-columns: 1fr; grid-template-rows: 1.1fr 1fr; gap: 0.8em; }
+  .bCardHead span i:nth-child(n + 4) { display: none; }
+
+  .aTop { height: 4.4em; padding: 0 1.3em; gap: 0; }
+  .aNav,
+  .aRange,
+  .aMe { display: none; }
+  .aBody { display: flex; flex-direction: column; gap: 0.9em; padding: 1em 1.1em; }
+  .aCard { padding: 1.3em 1.3em; border-radius: 1.2em; }
+  .aLead { flex: none; }
+  .aHero { gap: 1em; }
+  .aNum { font-size: 6.6em; }
+  .aGoal,
+  .aTag { display: none; }
+  .aMeta { padding-bottom: 0.5em; }
+  .aSay { font-size: 1.2em; }
+  .aChart { height: 7.5em; flex: none; margin: 0.8em -1.3em -1.3em; }
+  .aGoalTag { left: 1.3em; }
+  .aDays { left: 1.3em; right: 1.3em; }
+  .aCol { flex: 1; }
+  .aRank li { grid-template-columns: 8.4em 1fr 2.4em; gap: 0.7em; }
+  .aRank { gap: 0.7em; margin-top: 0.9em; }
+  .aQueueCard,
+  .aFoot { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aRank li > i > i { transform: scaleX(var(--v)); animation: none !important; }
   .aReveal { transform: none; animation: none !important; }
@@ -632,54 +671,3 @@
   .aTip { transform: none; opacity: 1; animation: none !important; }
   .aLive > i::after { animation: none; opacity: 0; }
 }
-
-/* ==== teardown marks ========================================================
-   Only the hero sets the numbers these read (--te how far the old screen is
-   taken apart, --ao how far the new one is on the board); elsewhere they rest
-   at 0, so a part sits in its layout and wears nothing. */
-.b [data-part],
-.a [data-part] { position: relative; }
-.b .pin,
-.a .pin {
-  position: absolute;
-  z-index: 3;
-  left: -2.56em;
-  top: -2.56em;
-  display: grid;
-  place-items: center;
-  width: 2.2em;
-  height: 2.2em;
-  border-radius: 50%;
-  background: #f2d24b;
-  box-shadow: 0 0.1em 0.18em rgba(9, 30, 20, 0.4), inset 0 -0.1em 0 rgba(120, 90, 0, 0.18);
-  color: #13241c;
-  font-family: var(--font-kmono), monospace;
-  font-size: 1.3em;
-  font-style: normal;
-  font-weight: 600;
-  line-height: 1;
-  opacity: 0;
-  transform: scale(0.6);
-  transition: opacity 260ms cubic-bezier(0.16, 1, 0.3, 1), transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: none;
-}
-/* The sticker sits on the mat beside its part, off the corner, with a
-   hairline running to the corner it labels. */
-.b .pin::after,
-.a .pin::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1.05em;
-  height: 1px;
-  background: #f2d24b;
-  transform-origin: 0 0;
-  transform: rotate(45deg) translateX(1.05em);
-}
-/* The strip at the foot runs edge to edge, so its sticker sits off the left. */
-.a [data-part="foot"] > .pin { top: 50%; left: -2.9em; margin-top: -1.1em; }
-.a [data-part="foot"] > .pin::after { transform: translateX(1.1em); width: 0.7em; }
-:global([data-pins~="b"]) .b .pin,
-:global([data-pins~="a"]) .a .pin { opacity: 1; transform: none; }
-.emo { display: inline-block; opacity: calc(1 - var(--te, 0)); }

@@ -139,13 +139,13 @@ export function Funnel({ fixed, onToggle }: { fixed: boolean; onToggle: () => vo
       <svg ref={svg} className={ui.fSvg} viewBox="0 0 600 262" preserveAspectRatio="none" aria-hidden>
         <defs>
           <linearGradient id="fBand" x1="0" x2="1" y1="0" y2="0">
-            <m.stop offset="0" initial={false} animate={{ stopColor: fixed ? "#1f7a55" : "#17191e" }} transition={MORPH} />
+            <m.stop offset="0" initial={false} animate={{ stopColor: fixed ? "#2f4cff" : "#17191e" }} transition={MORPH} />
             <m.stop offset="0.6" initial={false} animate={{ stopColor: fixed ? "#1f7cf2" : "#3a3d45" }} transition={MORPH} />
             <m.stop offset="1" initial={false} animate={{ stopColor: fixed ? "#0fb5b0" : "#6b6f78" }} transition={MORPH} />
           </linearGradient>
           <linearGradient id="fStream" x1="0" x2="0" y1={C} y2="262" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#c2412d" stopOpacity="0.85" />
-            <stop offset="1" stopColor="#c2412d" stopOpacity="0" />
+            <stop offset="0" stopColor="#ff4a1f" stopOpacity="0.85" />
+            <stop offset="1" stopColor="#ff4a1f" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="fSheen" x1="0" x2="0" y1="0" y2="1">
             <stop offset="0" stopColor="#fff" stopOpacity="0.32" />
