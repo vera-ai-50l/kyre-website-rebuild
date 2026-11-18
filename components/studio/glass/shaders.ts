@@ -38,6 +38,7 @@ varying float vFace;
 varying float vAlpha;
 varying float vBroken;
 varying float vTint;
+varying float vSmall;
 
 mat3 rotAxis(vec3 a, float t) {
   float c = cos(t), s = sin(t), o = 1.0 - c;
@@ -103,6 +104,7 @@ void main() {
   vAlpha = 1.0 - smoothstep(0.72, 1.0, sa);
   vBroken = crack;
   vTint = aRand.x - 0.5;
+  vSmall = small;
 }
 `;
 
@@ -113,6 +115,7 @@ uniform float uRadius;
 uniform float uBright;
 uniform float uFog;
 uniform float uFlash;
+uniform float uDark;
 uniform vec2 uImpact;
 
 varying vec2 vUv;
@@ -123,6 +126,7 @@ varying float vFace;
 varying float vAlpha;
 varying float vBroken;
 varying float vTint;
+varying float vSmall;
 
 float sdRound(vec2 p, vec2 b, float r) {
   vec2 q = abs(p) - b + r;
@@ -171,7 +175,9 @@ void main() {
   float ndv = clamp(dot(N, V), 0.0, 1.0);
   float F = pow(1.0 - ndv, 4.0);
   vec3 Rv = reflect(-V, N);
-  vec3 E = env(Rv);
+  /* With the page dark the room around the pane is dark too, so what the
+     glass reflects is mostly shadow. */
+  vec3 E = env(Rv) * mix(1.0, 0.32, uDark);
 
   vec3 tex = texture2D(uTex, vUv).rgb;
 
@@ -179,18 +185,14 @@ void main() {
      reflected on top of it — barely, square on, and a great deal at a glancing
      angle. The lamp term is what separates one piece from the next once the
      pane has broken: same picture, different piece of the ceiling. */
+  /* Once broken, a piece reflects less of the room: the break should read as
+     the picture coming apart, not as a burst of light. */
   vec3 cFront = tex * uBright * (1.0 + vBroken * vTint * 0.1)
-    + E * (0.03 + 0.8 * F)
-    + lamps(Rv) * 0.05 * vBroken;
+    + E * (0.03 + mix(0.8, 0.4, vBroken) * F)
+    + lamps(Rv) * 0.025 * vBroken;
 
-  /* Where it was hit the glass is not cracked, it is crushed: a patch of sugar
-     a few millimetres across that shows white and hides the picture. */
-  float hit = length(p - uImpact);
-  float crush = vBroken * smoothstep(0.05, 0.004, hit);
-  float grit = hash(floor(vUv * vec2(uAr, 1.0) * 760.0));
-  cFront = mix(cFront, vec3(0.8, 0.86, 0.86) * (0.55 + 0.6 * grit), crush * (0.35 + 0.5 * grit));
-  /* And around that, a bruise: fine haze that thins out within a hand's width. */
-  cFront += vec3(0.75, 0.82, 0.82) * vBroken * smoothstep(0.2, 0.0, hit) * grit * grit * 0.11;
+  /* No crushed-glass speckle and no haze at the point of impact: the centre
+     stays clean, and the cracks alone say where it was hit. */
 
   /* The cut. Glass is green-blue through its edge and mirrors the room almost
      completely, so a facet that faces the ceiling is a bright line and one that
@@ -201,20 +203,23 @@ void main() {
   vec3 piped = texture2D(uTex, vUv, 6.0).rgb;
   vec3 cEdge = glass * 0.02
     + piped * 0.4 * uBright
-    + E * E * E * glass * (0.34 + 1.1 * F)
-    + glass * uFlash * 0.3 * smoothstep(0.5, 0.0, hit);
+    + E * E * E * glass * (0.18 + 0.55 * F);
 
   /* The back of the panel: dark, and it still has a surface. */
   vec3 cBack = vec3(0.03, 0.032, 0.038) + tex * 0.04 + E * (0.05 + 0.6 * F);
 
   vec3 col = cFront * front + cBack * back + mix(cFront, cEdge, vBroken) * edge;
 
+  /* Broken glass is dimmer than the whole pane, and the crumbs from near the
+     impact dimmer still, so the small pieces never sparkle. */
+  col *= 1.0 - vBroken * (0.16 + 0.34 * vSmall);
+
   /* Lying back at rest, the far end goes to the colour of the room rather than
      to black: the room is light, so distance is haze, not shadow. Mixed in the
      colour and not the alpha — a see-through pane shows the walls of every cut
      inside it, which is a cracked screen before anything has hit it. */
   float depth = clamp((-vV.z - ${DIST}.0 * 0.86) / (${DIST}.0 * 0.62), 0.0, 1.0);
-  col = mix(col, vec3(0.83, 0.835, 0.855), uFog * (0.3 + 0.68 * depth));
+  col = mix(col, mix(vec3(0.83, 0.835, 0.855), vec3(0.047, 0.051, 0.063), uDark), uFog * (0.3 + 0.68 * depth));
 
   gl_FragColor = vec4(col, vAlpha);
   #include <colorspace_fragment>
@@ -254,8 +259,8 @@ void main() {
 
   /* A chip shows white for the instant it faces a lamp; the rest of the time
      it is a grey speck. Spent well before the piece it came off has left. */
-  vTw = pow(abs(sin(uTime * (1.4 + aSeed.x * 4.2) + aSeed.y * 6.283)), 14.0);
-  vA = born * (1.0 - smoothstep(0.3, 0.8, sa)) * (0.3 + 0.7 * vTw);
+  vTw = 0.0;
+  vA = born * (1.0 - smoothstep(0.3, 0.8, sa)) * 0.22;
   gl_PointSize = (1.0 + aSeed.z * 2.4) * uPx * (${DIST}.0 / max(-mv.z, 1.0));
 }
 `;
@@ -268,6 +273,6 @@ void main() {
   float core = smoothstep(0.5, 0.1, r);
   /* Normal blending, not additive: the room is light, and a white point added
      to a white wall is nothing. */
-  gl_FragColor = vec4(mix(vec3(0.2, 0.25, 0.27), vec3(1.0), vTw), core * vA);
+  gl_FragColor = vec4(vec3(0.2, 0.24, 0.26), core * vA);
 }
 `;

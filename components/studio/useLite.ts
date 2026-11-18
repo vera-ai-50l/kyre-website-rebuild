@@ -9,6 +9,8 @@ import { useEffect } from "react";
    resize its canvas. It only ever steps down, once, and never on a page that
    was asked for the full version with ?fx=full. */
 export const LITE_EVENT = "kyre:lite";
+/* Fired by the theme switch in the nav, for the canvases that draw colour. */
+export const THEME_EVENT = "kyre:theme";
 
 export function isLite() {
   return typeof document !== "undefined" && "lite" in document.documentElement.dataset;

@@ -54,6 +54,11 @@ export const metadata: Metadata = {
    through the hero. components/studio/useLite.ts can still switch to "low"
    later if scrolling turns out slow. ?fx=full, ?fx=low and ?fx=nogpu force a
    tier. */
+/* Dark unless the visitor picked light before (the switch in the nav keeps
+   the choice in localStorage). Set before first paint, so there is no flash
+   of the other theme. */
+const THEME = `(function(){try{var t=localStorage.getItem("kyre-theme");document.documentElement.dataset.theme=t==="light"?"light":"dark"}catch(x){document.documentElement.dataset.theme="dark"}})()`;
+
 const LITE = `(function(){try{
 var d=document.documentElement,f=new URLSearchParams(location.search).get("fx");
 if(f==="full")return;if(f==="low"||f==="nogpu"){d.dataset.lite=f;return}
@@ -78,6 +83,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME }} />
         <script dangerouslySetInnerHTML={{ __html: LITE }} />
       </head>
       <body className="min-h-full flex flex-col font-sans">{children}</body>

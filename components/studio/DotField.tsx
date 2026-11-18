@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { isLite, LITE_EVENT } from "./useLite";
+import { isLite, LITE_EVENT, THEME_EVENT } from "./useLite";
 import s from "./hero.module.css";
 
 /* The room's floor, as a field of dots that notices you.
@@ -50,6 +50,8 @@ const RAMP = Array.from({ length: 24 }, (_, i) => {
   return t < 0.5 ? `rgba(47,76,255,${a})` : `rgba(255,74,31,${a})`;
 });
 const REST = "rgba(28, 36, 80, 0.18)";
+const REST_DARK = "rgba(220, 226, 255, 0.14)";
+const restColour = () => (document.documentElement.dataset.theme === "light" ? REST : REST_DARK);
 
 function CanvasField() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -90,7 +92,7 @@ function CanvasField() {
       for (let i = rings.length - 1; i >= 0; i--) if (now - rings[i].t > RING_LIFE) rings.splice(i, 1);
 
       ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = REST;
+      ctx.fillStyle = restColour();
       const R2 = REACH * REACH;
       const lit: number[] = [];
 
@@ -170,11 +172,13 @@ function CanvasField() {
     const ro = new ResizeObserver(build);
     ro.observe(cv);
     window.addEventListener(LITE_EVENT, build);
+    window.addEventListener(THEME_EVENT, build);
     build();
     if (reduced) {
       return () => {
         ro.disconnect();
         window.removeEventListener(LITE_EVENT, build);
+        window.removeEventListener(THEME_EVENT, build);
       };
     }
 
@@ -246,6 +250,7 @@ function CanvasField() {
       io.disconnect();
       ro.disconnect();
       window.removeEventListener(LITE_EVENT, build);
+      window.removeEventListener(THEME_EVENT, build);
       window.removeEventListener("pointermove", onMove);
       document.documentElement.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("pointerdown", onDown);
@@ -382,13 +387,15 @@ function LensField() {
   );
 }
 
-/* The canvas where there is a GPU to draw it; the lenses everywhere else, and
-   the moment useLite.ts decides mid-visit that scrolling is slow. Chosen after
-   mount, so the server and the first client render agree. */
+/* The canvas wherever there is a GPU, the lenses only where the browser is
+   drawing with the CPU. A slow GPU ("low", which useLite.ts can also decide
+   mid-visit) keeps the canvas at 1x: swapping to the lenses there took the
+   click rings away a few minutes into a visit. Chosen after mount, so the
+   server and the first client render agree. */
 export function DotField() {
   const [mode, setMode] = useState<"canvas" | "lens" | null>(null);
   useEffect(() => {
-    const pick = () => setMode(isLite() ? "lens" : "canvas");
+    const pick = () => setMode(document.documentElement.dataset.lite === "nogpu" ? "lens" : "canvas");
     pick();
     window.addEventListener(LITE_EVENT, pick);
     return () => window.removeEventListener(LITE_EVENT, pick);

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { fracture } from "./fracture";
 import { DUST_FRAG, DUST_VERT, FRAG, VERT } from "./shaders";
-import { isLite, LITE_EVENT } from "../useLite";
+import { isLite, LITE_EVENT, THEME_EVENT } from "../useLite";
 
 /* The old screen, as an object.
 
@@ -159,6 +159,7 @@ export function mountShatter(
     uBright: { value: 1 },
     uFog: { value: 1 },
     uFlash: { value: 0 },
+    uDark: { value: 1 },
     uCrack: { value: 0 },
     uFly: { value: 0 },
     uTime: { value: 0 },
@@ -292,6 +293,7 @@ export function mountShatter(
 
     uniforms.uBright.value = mix(1.25, 1, exitE);
     uniforms.uFog.value = 1 - exitE;
+    uniforms.uDark.value = document.documentElement.dataset.theme === "light" ? 0 : 1;
     uniforms.uCrack.value = crackE;
     uniforms.uFly.value = fly;
     /* Hot along the cuts at the instant it gives, cooling as the crack runs. */
@@ -300,9 +302,8 @@ export function mountShatter(
 
     renderer.render(scene, camera);
 
-    /* The chips twinkle on their own clock, so the loop has to keep running
-       for as long as there are any on screen. Otherwise it stops with the hand. */
-    if (settling || (crackE > 0 && fly < 1)) raf = requestAnimationFrame(draw);
+    /* Nothing moves on its own clock any more, so the loop stops with the hand. */
+    if (settling) raf = requestAnimationFrame(draw);
   };
 
   const kick = () => {
@@ -332,6 +333,7 @@ export function mountShatter(
   ro.observe(stage);
   window.addEventListener("pointermove", onMove, { passive: true });
   window.addEventListener(LITE_EVENT, resize);
+  window.addEventListener(THEME_EVENT, kick);
   canvas.addEventListener("webglcontextlost", onLost);
   canvas.addEventListener("webglcontextrestored", kick);
   resize();
@@ -347,6 +349,7 @@ export function mountShatter(
       ro.disconnect();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener(LITE_EVENT, resize);
+      window.removeEventListener(THEME_EVENT, kick);
       canvas.removeEventListener("webglcontextlost", onLost);
       canvas.removeEventListener("webglcontextrestored", kick);
       mesh?.geometry.dispose();

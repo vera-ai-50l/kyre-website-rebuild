@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { Arrow, Logo } from "./bits";
 import { Hero } from "./Hero";
 import { Concept } from "./Concept";
 import { Approach, Faq, How, Offers, Paths, Sample, Team, Teardown, Trust, Why } from "./Sections";
 import { MotionRoot } from "./motion";
-import { useLite } from "./useLite";
+import { THEME_EVENT, useLite } from "./useLite";
 import ui from "./site.module.css";
 
 const LINKS = [
@@ -19,6 +19,48 @@ const LINKS = [
   ["#team", "Team"],
   ["#faq", "FAQ"],
 ];
+
+/* Dark or light. The page starts dark (app/layout.tsx sets data-theme before
+   first paint); the choice is remembered for the next visit. */
+const onTheme = (cb: () => void) => {
+  window.addEventListener(THEME_EVENT, cb);
+  return () => window.removeEventListener(THEME_EVENT, cb);
+};
+function ThemeButton() {
+  const dark = useSyncExternalStore(
+    onTheme,
+    () => document.documentElement.dataset.theme !== "light",
+    () => true,
+  );
+  const flip = () => {
+    const next = dark ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem("kyre-theme", next);
+    } catch {}
+    window.dispatchEvent(new Event(THEME_EVENT));
+  };
+  return (
+    <button
+      type="button"
+      className={ui.themeBtn}
+      onClick={flip}
+      aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
+      title={dark ? "Light theme" : "Dark theme"}
+    >
+      {dark ? (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden>
+          <circle cx="10" cy="10" r="3.6" />
+          <path d="M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" aria-hidden>
+          <path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z" />
+        </svg>
+      )}
+    </button>
+  );
+}
 
 /* An island, not a bar: it floats clear of the top edge, leaves on the way down
    the page so the scene has the whole frame, and is back the moment the reader
@@ -73,6 +115,7 @@ function Nav() {
           <span />
           <span />
         </button>
+        <ThemeButton />
       </div>
 
       <div className={ui.menu} data-open={open || undefined} inert={!open}>
