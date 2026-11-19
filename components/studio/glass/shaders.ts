@@ -175,9 +175,7 @@ void main() {
   float ndv = clamp(dot(N, V), 0.0, 1.0);
   float F = pow(1.0 - ndv, 4.0);
   vec3 Rv = reflect(-V, N);
-  /* With the page dark the room around the pane is dark too, so what the
-     glass reflects is mostly shadow. */
-  vec3 E = env(Rv) * mix(1.0, 0.32, uDark);
+  vec3 E = env(Rv);
 
   vec3 tex = texture2D(uTex, vUv).rgb;
 
@@ -185,11 +183,9 @@ void main() {
      reflected on top of it — barely, square on, and a great deal at a glancing
      angle. The lamp term is what separates one piece from the next once the
      pane has broken: same picture, different piece of the ceiling. */
-  /* Once broken, a piece reflects less of the room: the break should read as
-     the picture coming apart, not as a burst of light. */
   vec3 cFront = tex * uBright * (1.0 + vBroken * vTint * 0.1)
-    + E * (0.03 + mix(0.8, 0.4, vBroken) * F)
-    + lamps(Rv) * 0.025 * vBroken;
+    + E * (0.03 + 0.8 * F)
+    + lamps(Rv) * 0.05 * vBroken;
 
   /* No crushed-glass speckle and no haze at the point of impact: the centre
      stays clean, and the cracks alone say where it was hit. */
@@ -203,16 +199,13 @@ void main() {
   vec3 piped = texture2D(uTex, vUv, 6.0).rgb;
   vec3 cEdge = glass * 0.02
     + piped * 0.4 * uBright
-    + E * E * E * glass * (0.18 + 0.55 * F);
+    + E * E * E * glass * (0.34 + 1.1 * F);
 
   /* The back of the panel: dark, and it still has a surface. */
   vec3 cBack = vec3(0.03, 0.032, 0.038) + tex * 0.04 + E * (0.05 + 0.6 * F);
 
   vec3 col = cFront * front + cBack * back + mix(cFront, cEdge, vBroken) * edge;
 
-  /* Broken glass is dimmer than the whole pane, and the crumbs from near the
-     impact dimmer still, so the small pieces never sparkle. */
-  col *= 1.0 - vBroken * (0.16 + 0.34 * vSmall);
 
   /* Lying back at rest, the far end goes to the colour of the room rather than
      to black: the room is light, so distance is haze, not shadow. Mixed in the
