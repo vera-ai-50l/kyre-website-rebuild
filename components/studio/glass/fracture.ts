@@ -105,7 +105,7 @@ export function fracture(ar: number, impact: P, seed = 23): Cell[] {
   /* ---- 1. the radials ----------------------------------------------------
      Gaps drawn from a skewed distribution, then scaled to a full turn: most
      are narrow, a few are several times wider. */
-  const N = ar > 1 ? 12 : 9;
+  const N = ar > 1 ? 10 : 8;
   const gaps = Array.from({ length: N }, () => 0.3 + rnd() ** 1.7 * 2.4);
   const turn = gaps.reduce((n, g) => n + g, 0);
   let bearing = rnd() * TAU;
@@ -206,7 +206,7 @@ export function fracture(ar: number, impact: P, seed = 23): Cell[] {
     /* How big a piece may stay, by how far it is from the hit — and a wide
        spread on top of that, so neighbours at the same distance still differ
        by a factor of four. */
-    const allow = (0.0014 + 0.075 * d ** 1.6) * (0.5 + rnd() * 1.7);
+    const allow = (0.002 + 0.1 * d ** 1.6) * (0.5 + rnd() * 1.7);
     const spared = depth > 0 && d > 0.3 && rnd() < 0.14;
     if (depth >= 5 || A < 0.0012 || A < allow || spared) return void done.push(pts);
 
@@ -228,11 +228,10 @@ export function fracture(ar: number, impact: P, seed = 23): Cell[] {
     const across = hi2 - lo2;
 
     /* Across its long side, usually: a dagger snaps, a wide plate splits down
-       the middle. Half go on a hard diagonal, which is where the triangles and
-       the long pointed slivers come from: the pieces read as sharp glass, not
-       as tiles. */
+       the middle. One in four goes on a hard diagonal, which is where the
+       triangles come from. */
     const base = Math.atan2(uy, ux) + (along > across * 1.25 ? 0 : Math.PI / 2);
-    const na = base + (rnd() - 0.5) * (rnd() < 0.5 ? 2.3 : 0.9);
+    const na = base + (rnd() - 0.5) * (rnd() < 0.26 ? 1.8 : 0.8);
     const nx = Math.cos(na);
     const ny = Math.sin(na);
     const px = cx + ux * (rnd() - 0.5) * along * 0.36 - uy * (rnd() - 0.5) * across * 0.36;

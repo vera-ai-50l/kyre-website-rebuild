@@ -133,14 +133,16 @@ export function mountShatter(
   onReady: () => void,
 ): Shatter {
   const host = canvas.parentElement as HTMLElement;
-  /* A small machine (see app/layout.tsx) draws at 1x and without MSAA. It can
-     also be marked small later, mid-visit, so the pixel ratio is re-read on
-     every resize; antialiasing is fixed at creation and stays on there. */
+  /* Antialiasing is on wherever there is a GPU, small machines included:
+     without it the shards' edges stair-step. Only a page the browser draws
+     on the CPU ("nogpu", app/layout.tsx) goes without. A machine can also be
+     marked small later, mid-visit, so the pixel ratio is re-read on every
+     resize; antialiasing is fixed at creation. */
   const lite = () => isLite();
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
-    antialias: !lite(),
+    antialias: document.documentElement.dataset.lite !== "nogpu",
     powerPreference: "high-performance",
   });
   renderer.setClearColor(0x000000, 0);
@@ -239,10 +241,10 @@ export function mountShatter(
   const resize = () => {
     W = host.clientWidth || 1;
     H = host.clientHeight || 1;
-    /* Sharp on a screen that can show it (up to 2x); a slow GPU still gets a
-       little over 1x, and only a CPU-drawn page stays at 1x. */
+    /* Sharp on a screen that can show it (up to 2x); a slow GPU still gets
+       1.5x, and only a CPU-drawn page stays at 1x. */
     const tier = document.documentElement.dataset.lite;
-    const dpr = tier === "nogpu" ? 1 : Math.min(window.devicePixelRatio || 1, tier === "low" ? 1.25 : 2);
+    const dpr = tier === "nogpu" ? 1 : Math.min(window.devicePixelRatio || 1, tier === "low" ? 1.5 : 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(W, H, false);
     uniforms.uPx.value = dpr;
