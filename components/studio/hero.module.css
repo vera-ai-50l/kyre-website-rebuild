@@ -15,7 +15,8 @@
   --p: 0;
   --room: #e7e8eb;
   position: relative;
-  height: 440vh;
+  /* 100vh pinned plus 340vh of scene, the shards' flight drawn out to 1.17x. */
+  height: calc(100vh + 340vh * 1.17);
   background: var(--room);
 }
 
@@ -755,7 +756,7 @@
 
 /* ---- narrow ------------------------------------------------------------------ */
 @media (max-width: 900px) {
-  .reel { height: 300vh; }
+  .reel { height: calc(100vh + 200vh * 1.17); }
   .viewport {
     --ar: 0.7141;
     --stW: min(93vw, calc(72svh * var(--ar)));

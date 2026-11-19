@@ -239,7 +239,10 @@ export function mountShatter(
   const resize = () => {
     W = host.clientWidth || 1;
     H = host.clientHeight || 1;
-    const dpr = lite() ? 1 : Math.min(window.devicePixelRatio || 1, 1.75);
+    /* Sharp on a screen that can show it (up to 2x); a slow GPU still gets a
+       little over 1x, and only a CPU-drawn page stays at 1x. */
+    const tier = document.documentElement.dataset.lite;
+    const dpr = tier === "nogpu" ? 1 : Math.min(window.devicePixelRatio || 1, tier === "low" ? 1.25 : 2);
     renderer.setPixelRatio(dpr);
     renderer.setSize(W, H, false);
     uniforms.uPx.value = dpr;

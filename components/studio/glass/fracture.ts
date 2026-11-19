@@ -105,7 +105,7 @@ export function fracture(ar: number, impact: P, seed = 23): Cell[] {
   /* ---- 1. the radials ----------------------------------------------------
      Gaps drawn from a skewed distribution, then scaled to a full turn: most
      are narrow, a few are several times wider. */
-  const N = ar > 1 ? 13 : 10;
+  const N = ar > 1 ? 10 : 8;
   const gaps = Array.from({ length: N }, () => 0.3 + rnd() ** 1.7 * 2.4);
   const turn = gaps.reduce((n, g) => n + g, 0);
   let bearing = rnd() * TAU;
@@ -173,7 +173,7 @@ export function fracture(ar: number, impact: P, seed = 23): Cell[] {
        ±10% can never put one inside the previous. */
     let pa = 0;
     let pb = 0;
-    for (let base = 0.022 + rnd() * 0.035; base < lim * 0.8; base *= 1.4 + rnd() * 1.3) {
+    for (let base = 0.035 + rnd() * 0.04; base < lim * 0.8; base *= 1.6 + rnd() * 1.4) {
       const ra = base * (0.9 + rnd() * 0.2);
       const rb = base * (0.9 + rnd() * 0.2);
       rough.push([...A.seg(pa, ra), ...B.seg(pb, rb).reverse()]);
@@ -206,9 +206,9 @@ export function fracture(ar: number, impact: P, seed = 23): Cell[] {
     /* How big a piece may stay, by how far it is from the hit — and a wide
        spread on top of that, so neighbours at the same distance still differ
        by a factor of four. */
-    const allow = (0.0008 + 0.05 * d ** 1.6) * (0.5 + rnd() * 1.7);
+    const allow = (0.002 + 0.1 * d ** 1.6) * (0.5 + rnd() * 1.7);
     const spared = depth > 0 && d > 0.3 && rnd() < 0.14;
-    if (depth >= 6 || A < 0.0005 || A < allow || spared) return void done.push(pts);
+    if (depth >= 5 || A < 0.0012 || A < allow || spared) return void done.push(pts);
 
     const ux = (cx - ix) / (d || 1);
     const uy = (cy - iy) / (d || 1);
@@ -239,7 +239,7 @@ export function fracture(ar: number, impact: P, seed = 23): Cell[] {
 
     const one = clip(pts, px, py, nx, ny);
     const two = clip(pts, px, py, -nx, -ny);
-    if (one.length < 3 || two.length < 3 || areaOf(one) < 0.00018 || areaOf(two) < 0.00018) {
+    if (one.length < 3 || two.length < 3 || areaOf(one) < 0.0004 || areaOf(two) < 0.0004) {
       return void done.push(pts);
     }
     split(one, depth + 1);

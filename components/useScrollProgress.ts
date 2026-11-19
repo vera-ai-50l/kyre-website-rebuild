@@ -42,14 +42,20 @@ export function useScrollProgress<T extends HTMLElement>(
      short glide, which is the difference between a scene that is scrubbed and
      one that is filmed. A trackpad is already continuous and barely notices. */
   smooth = 0,
+  /* Optional remap of the published number, for a scene that wants one stretch
+     of its timeline to take more scrolling than the rest. Must be a pure
+     function of its input; called once per frame. */
+  map?: (p: number) => number,
 ) {
   const ref = useRef<T>(null);
   /* Held in a ref so a caller passing an inline arrow does not tear the scroll
      listener down and rebuild it on every render. Refreshed in its own effect
      rather than during render, which is not a safe place to write one. */
   const cb = useRef(onProgress);
+  const remap = useRef(map);
   useEffect(() => {
     cb.current = onProgress;
+    remap.current = map;
   });
 
   useEffect(() => {
@@ -121,14 +127,15 @@ export function useScrollProgress<T extends HTMLElement>(
       /* Still gliding: keep the loop alive until it lands. */
       if (cur !== target) raf = requestAnimationFrame(write);
 
-      const v = cur.toFixed(4);
+      const out = remap.current ? remap.current(cur) : cur;
+      const v = out.toFixed(4);
       /* Parked at either end — or moved by less than the four decimals anyone
          downstream can see — the write would dirty the whole subtree for a
          frame that renders identically. */
       if (v === last) return;
       last = v;
       el.style.setProperty("--p", v);
-      cb.current?.(cur, el);
+      cb.current?.(out, el);
     };
 
     const onScroll = () => {

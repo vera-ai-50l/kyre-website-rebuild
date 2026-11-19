@@ -19,6 +19,21 @@ const CRACK_AT = 0.198;
 const FIX_AT = 0.6;
 const LIVE_AT = 0.76;
 
+/* The shards' flight (0.40 to 0.57 of the scene) takes twice the scrolling of
+   everything around it. The reel is taller by the same amount (hero.module.css:
+   its runway is 1.17x what it was), so every other beat keeps its old pace.
+   Scroll position in, scene time out. */
+const FLY_FROM = 0.4;
+const FLY_SPAN = 0.17;
+const FLY_SLOW = 2;
+const RUNWAY = 1 + (FLY_SLOW - 1) * FLY_SPAN;
+function stretchFly(raw: number) {
+  const u = raw * RUNWAY;
+  if (u <= FLY_FROM) return u;
+  if (u <= FLY_FROM + FLY_SPAN * FLY_SLOW) return FLY_FROM + (u - FLY_FROM) / FLY_SLOW;
+  return Math.min(1, u - (FLY_SLOW - 1) * FLY_SPAN);
+}
+
 const REDUCED = "(prefers-reduced-motion: reduce)";
 const subscribe = (cb: () => void) => {
   const mq = window.matchMedia(REDUCED);
@@ -105,7 +120,7 @@ export function Hero() {
     }
   }, []);
 
-  const ref = useScrollProgress<HTMLElement>(milestones, "pinned", 110);
+  const ref = useScrollProgress<HTMLElement>(milestones, "pinned", 110, stretchFly);
 
   useEffect(() => {
     const reel = ref.current;
