@@ -19,13 +19,14 @@ const CRACK_AT = 0.198;
 const FIX_AT = 0.6;
 const LIVE_AT = 0.76;
 
-/* The shards' flight (0.40 to 0.57 of the scene) takes twice the scrolling of
-   everything around it. The reel is taller by the same amount (hero.module.css:
-   its runway is 1.17x what it was), so every other beat keeps its old pace.
+/* The shards' flight (0.40 to 0.57 of the scene) takes three times the
+   scrolling of everything around it. The reel is taller by the same amount
+   (hero.module.css: its runway is 1.34x what it was), so every other beat
+   keeps its old pace.
    Scroll position in, scene time out. */
 const FLY_FROM = 0.4;
 const FLY_SPAN = 0.17;
-const FLY_SLOW = 2;
+const FLY_SLOW = 3;
 const RUNWAY = 1 + (FLY_SLOW - 1) * FLY_SPAN;
 function stretchFly(raw: number) {
   const u = raw * RUNWAY;
