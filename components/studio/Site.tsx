@@ -11,12 +11,12 @@ import { THEME_EVENT, useLite } from "./useLite";
 import ui from "./site.module.css";
 
 const LINKS = [
+  ["#team", "Team"],
   ["#how", "How it works"],
   ["#offers", "Offers"],
   ["#approach", "Approach"],
   ["#sample", "Sample"],
   ["#concept", "Concept"],
-  ["#team", "Team"],
   ["#faq", "FAQ"],
 ];
 
@@ -176,6 +176,7 @@ export function Site() {
       <Nav />
       <Hero />
       <main>
+        <Team />
         <Paths />
         <Why />
         <How />
@@ -184,7 +185,6 @@ export function Site() {
         <Trust />
         <Sample />
         <Concept />
-        <Team />
         <Faq />
         <Teardown />
       </main>
