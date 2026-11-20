@@ -42,33 +42,18 @@ export const metadata: Metadata = {
     "I rebuild AI-infra dashboards into interfaces that look like products. Deployed live, in 5 days.",
 };
 
-/* Decides, before the first paint, whether this machine gets the lighter page.
-   Sets <html data-lite>:
-     "nogpu"  the browser is drawing with the CPU (no GPU, or GPU acceleration
-              switched off).
-     "low"    a GPU, but a small machine (≤4 GB memory or ≤4 threads).
-   Both keep the WebGL glass, drawn at 1x without antialiasing, and drop the
-   always-running decoration that costs a full-window blend per frame on a CPU:
-   backdrop blur, drifting light, the paper grain, blur on reveals. Measured on
-   two CPU cores with no GPU, that is the difference between ~23fps and 60fps
-   through the hero. components/studio/useLite.ts can still switch to "low"
-   later if scrolling turns out slow. ?fx=full, ?fx=low and ?fx=nogpu force a
-   tier. */
 /* Dark unless the visitor picked light before (the switch in the nav keeps
    the choice in localStorage). Set before first paint, so there is no flash
    of the other theme. */
 const THEME = `(function(){try{var t=localStorage.getItem("kyre-theme");document.documentElement.dataset.theme=t==="light"?"light":"dark"}catch(x){document.documentElement.dataset.theme="dark"}})()`;
 
+/* Every machine gets the same page, with or without a GPU: the glass, the
+   drifting light, the blur, the grain and the click rings all run everywhere.
+   The lighter tiers still exist for testing and can be forced with ?fx=low or
+   ?fx=nogpu (sets <html data-lite>); nothing sets them on its own any more. */
 const LITE = `(function(){try{
-var d=document.documentElement,f=new URLSearchParams(location.search).get("fx");
-if(f==="full")return;if(f==="low"||f==="nogpu"){d.dataset.lite=f;return}
-var c=document.createElement("canvas"),g=c.getContext("webgl",{failIfMajorPerformanceCaveat:true});
-if(!g){d.dataset.lite="nogpu";return}
-var e=g.getExtension("WEBGL_debug_renderer_info"),r=e?String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)):"";
-var l=g.getExtension("WEBGL_lose_context");if(l)l.loseContext();
-if(/swiftshader|llvmpipe|softpipe|software|basic render/i.test(r)){d.dataset.lite="nogpu";return}
-var m=navigator.deviceMemory,h=navigator.hardwareConcurrency;
-if((m&&m<=4)||(h&&h<=4))d.dataset.lite="low";
+var f=new URLSearchParams(location.search).get("fx");
+if(f==="low"||f==="nogpu")document.documentElement.dataset.lite=f;
 }catch(x){}})()`;
 
 export default function RootLayout({
