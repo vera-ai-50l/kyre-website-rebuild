@@ -149,8 +149,26 @@ export function Hero() {
         scene.set(progress.current);
         shatter.current = scene;
       })
-      /* No WebGL, or the chunk never came: the flat picture already in the
-         markup takes over without being asked. */
+      /* No WebGL (a laptop without a GPU gets none in current browsers): the
+         same break, drawn with a 2D canvas. The flat picture in the markup
+         shows the whole pane until the first crack, then the canvas takes
+         over. If even that fails, the flat picture stays. */
+      .catch(() =>
+        import("./glass/flat").then(({ mountShatter2D }) => {
+          if (!live || !canvas.current || !stage.current) return;
+          scene = mountShatter2D(
+            canvas.current,
+            stage.current,
+            () => (narrow.matches ? PLATES.narrow : PLATES.wide),
+            (on) => {
+              if (on) reel.dataset.gl2 = "on";
+              else delete reel.dataset.gl2;
+            },
+          );
+          scene.set(progress.current);
+          shatter.current = scene;
+        }),
+      )
       .catch(() => {});
 
     return () => {
@@ -158,6 +176,7 @@ export function Hero() {
       scene?.dispose();
       shatter.current = null;
       delete reel.dataset.gl;
+      delete reel.dataset.gl2;
     };
   }, [ref]);
 

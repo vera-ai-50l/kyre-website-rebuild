@@ -253,6 +253,8 @@
   opacity: calc(var(--exit) * clamp(0, calc(1 - var(--fly) * 1.6), 1));
 }
 .reel[data-gl="on"] .paneImg { display: none; }
+/* The 2D break (glass/flat.ts) has taken over from the first crack. */
+.reel[data-gl2="on"] .paneImg { visibility: hidden; }
 
 /* ---- callouts ---------------------------------------------------------------
    Text, on a layer of its own, because these have to be read rather than
