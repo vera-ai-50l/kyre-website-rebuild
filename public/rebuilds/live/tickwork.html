@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tickwork · Kyre rebuild</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="kit.css">
+<style>
+  :root { --acc: #5B5BD6; --acc-soft: rgba(91, 91, 214, .1); --side-w: 224px; }
+  body { background: #FCFCFB; }
+  .side .proj { display: flex; align-items: center; gap: 9px; height: 30px; padding: 0 8px; border-radius: 7px; color: var(--ink-3); text-decoration: none; }
+  .side .proj:hover { background: var(--hover); }
+  .side .proj i { width: 8px; height: 8px; border-radius: 2px; }
+  .side .proj em { margin-left: auto; color: var(--mut-2); font-size: 11.5px; font-style: normal; }
+  .keys { margin-top: auto; padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .07); font-size: 12px; }
+  .keys b { display: block; margin-bottom: 6px; font-weight: 500; font-size: 12.5px; }
+  .keys div { display: flex; justify-content: space-between; padding: 2px 0; color: var(--mut); }
+  .top { gap: 12px; }
+  .top h1 { margin-right: 0; }
+  .cyc { display: flex; align-items: center; gap: 10px; color: var(--mut); font-size: 12.5px; }
+  .cyc .meter { width: 90px; } .cyc .meter span { background: var(--acc); transition: width .5s var(--e-out); }
+  .top .seg { margin-left: auto; }
+  .scroll { padding: 0; }
+  .bar2 { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border-bottom: 1px solid rgba(11, 12, 15, .06); }
+  .bar2 .input { width: 220px; height: 30px; margin-left: auto; }
+
+  .grp { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 20px; background: #F6F6F4; border-bottom: 1px solid rgba(11, 12, 15, .05); font-weight: 500; position: sticky; top: 0; z-index: 1; }
+  .grp em { color: var(--mut-2); font-style: normal; font-weight: 400; }
+  .grp button.tg { display: flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; font: inherit; }
+  .grp button.tg .ic { width: 12px; height: 12px; color: var(--mut-2); transition: transform .2s var(--e); }
+  .grp.shut button.tg .ic { transform: rotate(-90deg); }
+  .grp .add { margin-left: auto; }
+  .row { display: grid; grid-template-columns: 18px 62px 16px minmax(0, 1fr) auto 26px 22px 52px; align-items: center; gap: 10px; height: 40px; padding: 0 20px; border-bottom: 1px solid rgba(11, 12, 15, .045); cursor: pointer; transition: background-color .1s; }
+  .row:hover { background: #F7F7F5; }
+  .row.sel { background: var(--acc-soft); box-shadow: inset 2px 0 0 var(--acc); }
+  .row .id { color: var(--mut-2); font: 500 11.5px var(--mono); }
+  .row .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .row.done .t { color: var(--mut); font-weight: 400; }
+  .row .est { color: var(--mut-2); font-size: 11.5px; text-align: center; }
+  .row .dt { color: var(--mut-2); font-size: 12px; text-align: right; }
+  .lbls { display: flex; gap: 4px; }
+  .lb { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(11, 12, 15, .1); color: var(--ink-3); font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .lb i { width: 6px; height: 6px; border-radius: 50%; }
+  .pr { display: inline-grid; place-items: center; width: 16px; height: 16px; }
+  .pr svg { width: 14px; height: 14px; }
+  .pr.u { border-radius: 4px; background: #E5484D; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; }
+  .st { width: 14px; height: 14px; }
+  .who { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 9.5px; font-weight: 600; }
+  .who.none { box-shadow: inset 0 0 0 1.2px #B9B7B0; background: none; border: 0; }
+  .who.none::after { content: ''; width: 8px; height: 1.2px; background: #B9B7B0; }
+  .nores { padding: 40px 20px; }
+
+  .board { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 12px; height: 100%; padding: 14px 20px; overflow-x: auto; }
+  .col { display: flex; flex-direction: column; min-height: 0; border-radius: 12px; background: #F4F4F1; transition: background-color .15s, box-shadow .15s; }
+  .col.over { background: var(--acc-soft); box-shadow: inset 0 0 0 1.5px var(--acc); }
+  .col header { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; font-weight: 500; }
+  .col header em { color: var(--mut-2); font-style: normal; font-weight: 400; }
+  .col .cards { flex: 1; display: grid; align-content: start; gap: 8px; padding: 0 8px 10px; overflow: auto; }
+  .card { padding: 10px 12px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .07), 0 1px 2px rgba(11, 12, 15, .04); cursor: grab; transition: box-shadow .15s, transform .15s var(--e), opacity .15s; }
+  .card:hover { box-shadow: 0 0 0 1px rgba(11, 12, 15, .14), 0 4px 10px -4px rgba(11, 12, 15, .12); }
+  .card.drag { opacity: .4; }
+  .card .hd { display: flex; align-items: center; gap: 8px; color: var(--mut-2); font: 500 11px var(--mono); }
+  .card .hd .who { margin-left: auto; width: 20px; height: 20px; font: 600 9px var(--sans, inherit); }
+  .card p { margin: 6px 0 8px; font-weight: 500; line-height: 1.35; }
+  .card .ft { display: flex; align-items: center; gap: 6px; }
+
+  .dt-id { color: var(--mut-2); font: 500 12px var(--mono); }
+  .ttl { width: 100%; margin: 14px 0 4px; padding: 4px 6px; border: 0; border-radius: 6px; outline: 0; background: none; font-size: 19px; font-weight: 600; letter-spacing: -.02em; line-height: 1.3; resize: none; transition: box-shadow .15s; }
+  .ttl:hover { box-shadow: inset 0 0 0 1px var(--line); } .ttl:focus { box-shadow: 0 0 0 1px var(--acc), 0 0 0 4px var(--acc-soft); }
+  .desc { margin: 4px 6px 0; color: var(--ink-3); line-height: 1.55; }
+  .pp { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 4px 10px; margin: 18px 0 0; }
+  .pp dt { color: var(--mut); font-size: 12.5px; }
+  .pp dd { margin: 0; }
+  .pp .btn { justify-content: flex-start; gap: 8px; height: 30px; padding: 0 8px; background: none; box-shadow: none; font-weight: 500; }
+  .pp .btn:hover { background: var(--hover); }
+  .pp .who { width: 18px; height: 18px; font-size: 8.5px; }
+  .act { margin: 22px 0 0; padding: 14px 0 0; border-top: 1px solid var(--line-2); list-style: none; }
+  .act li { display: flex; gap: 8px; padding: 5px 0; color: var(--mut); font-size: 12.5px; }
+  .act li b { color: var(--ink); font-weight: 500; }
+  .act time { margin-left: auto; color: var(--mut-2); white-space: nowrap; }
+  .menu .who, .menu .pr { margin-right: 8px; vertical-align: middle; }
+  .menu .who { display: inline-grid; width: 18px; height: 18px; font-size: 8.5px; }
+
+  @media (max-width: 760px) {
+    .cyc { display: none; }
+    .row { grid-template-columns: 18px 58px minmax(0, 1fr) 22px; padding: 0 14px; }
+    .row > .st, .row .lbls, .row .est, .row .dt { display: none; }
+    .bar2 { padding: 0 14px; } .bar2 .input { width: auto; flex: 1; }
+    .board { grid-template-columns: repeat(4, 240px); }
+  }
+</style>
+</head>
+<body data-app="Tickwork" data-kind="issue tracker">
+<div class="app">
+  <aside class="side">
+    <button class="ws" id="ws" type="button"><span class="mono-av" style="background:#5B5BD6">F</span>Fieldnote<svg class="ic"><use href="#i-updown"/></svg></button>
+    <a class="nav" href="#mine"><svg class="ic"><use href="#i-user"/></svg>My issues<em id="n-mine"></em></a>
+    <a class="nav" href="#cycle"><svg class="ic"><use href="#i-cycle"/></svg>Cycle 14<em id="n-cyc"></em></a>
+    <a class="nav" href="#backlog"><svg class="ic"><use href="#i-layers"/></svg>Backlog<em id="n-back"></em></a>
+    <div class="sec">Projects</div>
+    <div id="projs"></div>
+    <div class="keys" data-note="Shortcuts for the people who live in here all day."><b>Shortcuts</b><div><span>New issue</span><span class="kbd">C</span></div><div><span>Search</span><span class="kbd">/</span></div><div><span>Move up, down</span><span><span class="kbd">K</span> <span class="kbd">J</span></span></div><div><span>Open</span><span class="kbd">↵</span></div></div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <h1 id="title">Cycle 14</h1>
+      <div class="cyc" id="cyc" data-note="The cycle, its dates, and how far along it is."><span>Nov 11 – 24</span><span class="meter"><span id="cyc-m"></span></span><span id="cyc-t"></span></div>
+      <div class="seg" id="view"><button type="button" data-v="list" aria-pressed="true"><svg class="ic"><use href="#i-list"/></svg>List</button><button type="button" data-v="board" aria-pressed="false"><svg class="ic"><use href="#i-board"/></svg>Board</button></div>
+      <button class="btn ink" type="button" id="new" data-note="One way to add work, with a shortcut."><svg class="ic"><use href="#i-plus"/></svg>New issue<span class="kbd" style="margin-left:4px;background:rgba(255,255,255,.14);color:rgba(255,255,255,.8)">C</span></button>
+    </header>
+    <div class="bar2">
+      <button class="btn sm" type="button" id="who-f"><svg class="ic"><use href="#i-users"/></svg><span id="who-l">Everyone</span><svg class="ic"><use href="#i-chev"/></svg></button>
+      <button class="btn sm" type="button" id="pri-f"><svg class="ic"><use href="#i-flag"/></svg><span id="pri-l">Any priority</span><svg class="ic"><use href="#i-chev"/></svg></button>
+      <button class="btn ghost sm" type="button" id="clr" hidden>Clear</button>
+      <label class="input"><svg class="ic"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Search by title or ID" autocomplete="off"><span class="kbd">/</span></label>
+    </div>
+    <div class="scroll" id="scroll">
+      <section data-page="cycle"></section>
+      <section data-page="mine" hidden></section>
+      <section data-page="backlog" hidden></section>
+      <div id="view-el" style="height:100%"></div>
+    </div>
+  </main>
+</div>
+
+<script src="kit.js"></script>
+<script>
+(() => {
+  const { $, $$, ic, esc, fdate, day } = K;
+  const ME = 'ana';
+  const PPL = { ana: ['Ana Ruiz', '#C2410C'], ben: ['Ben Okoro', '#0E7C6B'], chloe: ['Chloe Park', '#6E56CF'], dev: ['Dev Mehta', '#2554D9'] };
+  const STATUS = ['Backlog', 'Todo', 'In progress', 'In review', 'Done'];
+  const PRI = [['No priority', 0], ['Urgent', 4], ['High', 3], ['Medium', 2], ['Low', 1]];
+  const LBL = { Bug: '#E5484D', Feature: '#5B5BD6', Polish: '#D97706' };
+  const PROJ = { 'Offline sync': '#0E7C6B', 'Onboarding v2': '#C2410C' };
+  // id, title, status, priority (4 urgent → 0 none), owner, labels, points, project, days since update, description
+  const RAW = [
+    [142, 'Sync fails silently when offline for more than a day', 'In progress', 4, 'ben', ['Bug'], 3, 'Offline sync', 0, 'Notes edited offline for 24h+ never upload, and nothing tells the user. Seen in 6 support tickets this week.'],
+    [147, 'Show sync status in the toolbar', 'In progress', 3, 'chloe', ['Feature'], 2, 'Offline sync', 1],
+    [139, 'Import from Apple Notes during onboarding', 'In progress', 2, 'ana', ['Feature'], 5, 'Onboarding v2', 2, 'Most trial users come from Apple Notes. Import keeps folders and dates; images come in a second pass.'],
+    [151, 'Search ignores notes inside folders', 'In review', 3, 'dev', ['Bug'], 2, null, 0],
+    [150, 'Retry queue for failed uploads', 'In review', 3, 'ben', ['Feature'], 3, 'Offline sync', 1],
+    [155, 'Crash when pasting an image over 20 MB', 'Todo', 4, 'ben', ['Bug'], 2, null, 0, 'Reproducible on iOS 18 with any image over 20 MB. Crash log attached in Sentry.'],
+    [148, 'Conflict screen when two devices edit one note', 'Todo', 3, 'ana', ['Feature'], 5, 'Offline sync', 3],
+    [153, 'Empty state for a new workspace', 'Todo', 2, 'chloe', ['Polish'], 1, 'Onboarding v2', 2],
+    [154, 'Shortcut to jump between notes', 'Todo', 1, 'dev', ['Feature'], 1, null, 4],
+    [156, 'Rewrite the trial-ending email', 'Todo', 1, null, ['Polish'], 1, null, 1],
+    [131, 'Rename “Spaces” to “Folders” everywhere', 'Done', 2, 'chloe', ['Polish'], 1, null, 7],
+    [133, 'Notes list stutters when scrolling on Android', 'Done', 3, 'dev', ['Bug'], 3, null, 6],
+    [135, 'Welcome checklist', 'Done', 2, 'chloe', ['Feature'], 2, 'Onboarding v2', 6],
+    [136, 'Export a note as Markdown', 'Done', 2, 'dev', ['Feature'], 2, null, 5],
+    [138, 'Invite emails sent twice', 'Done', 3, 'ben', ['Bug'], 1, null, 5],
+    [140, 'Billing page shows the old plan after upgrading', 'Done', 4, 'ana', ['Bug'], 2, null, 4],
+    [141, 'Faster app start on older iPhones', 'Done', 3, 'dev', ['Feature'], 3, null, 3],
+    [143, 'Code blocks are hard to read in dark mode', 'Done', 1, 'chloe', ['Polish'], 1, null, 2],
+    [157, 'Shared folders with view-only access', 'Backlog', 2, null, ['Feature'], 8, null, 9],
+    [144, 'Autocomplete for tags', 'Backlog', 1, 'dev', ['Feature'], 2, null, 12],
+    [146, 'Audit log for workspace admins', 'Backlog', 0, null, ['Feature'], 5, null, 20],
+    [149, 'Web clipper for Firefox', 'Backlog', 1, null, ['Feature'], 3, null, 15],
+    [152, 'Print layout cuts off tables', 'Backlog', 2, null, ['Bug'], 1, null, 8],
+  ];
+  const IS = RAW.map(([n, t, s, p, o, l, e, pj, up, d]) => ({ n, id: 'TCK-' + n, t, s, p, o, l, e, pj, up: day(up), d, cyc: s !== 'Backlog', log: [] }));
+  const S = { page: 'cycle', view: 'list', q: '', who: null, pri: null, sel: null, shut: { Done: true, Backlog: false } };
+
+  const prIcon = p => p === 4 ? '<span class="pr u" title="Urgent">!</span>'
+    : `<span class="pr" title="${PRI.find(x => x[1] === p)[0]}"><svg viewBox="0 0 14 14">${p ? [0, 1, 2].map(i => `<rect x="${1 + i * 4.5}" y="${10 - i * 3.5}" width="3" height="${3 + i * 3.5}" rx="1" fill="${i < p ? 'var(--ink-3)' : '#D6D4CD'}"/>`).join('') : '<path d="M2 7h2M6 7h2M10 7h2" stroke="#A3A6AB" stroke-width="1.6" stroke-linecap="round"/>'}</svg></span>`;
+  const stIcon = s => `<svg class="st" viewBox="0 0 14 14" aria-hidden="true">${{
+    Backlog: '<circle cx="7" cy="7" r="5.5" fill="none" stroke="#A3A6AB" stroke-width="1.4" stroke-dasharray="2.2 1.8"/>',
+    Todo: '<circle cx="7" cy="7" r="5.5" fill="none" stroke="#8A8E95" stroke-width="1.4"/>',
+    'In progress': '<circle cx="7" cy="7" r="5.5" fill="none" stroke="#D97706" stroke-width="1.4"/><path d="M7 3.5a3.5 3.5 0 0 1 0 7z" fill="#D97706"/>',
+    'In review': '<circle cx="7" cy="7" r="5.5" fill="none" stroke="#0E7C6B" stroke-width="1.4"/><path d="M7 3.5a3.5 3.5 0 1 1-3.5 3.5H7z" fill="#0E7C6B"/>',
+    Done: '<circle cx="7" cy="7" r="6.2" fill="#5B5BD6"/><path d="m4.3 7.2 1.8 1.8 3.6-3.8" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  }[s]}</svg>`;
+  const av = o => o ? `<span class="who" style="background:${PPL[o][1]}" title="${PPL[o][0]}">${PPL[o][0].split(' ').map(w => w[0]).join('')}</span>` : '<span class="who none" title="No owner yet"></span>';
+  const lbls = l => `<span class="lbls">${l.map(x => `<span class="lb"><i style="background:${LBL[x]}"></i>${x}</span>`).join('')}</span>`;
+  const ago = d => { const n = Math.round((K.TODAY - d) / 864e5); return n <= 0 ? 'Today' : n === 1 ? 'Yesterday' : fdate(d); };
+
+  function visible() {
+    const q = S.q.trim().toLowerCase();
+    return IS.filter(i => (S.page === 'cycle' ? i.cyc : S.page === 'backlog' ? !i.cyc : i.o === ME && i.s !== 'Done')
+      && (!S.who || (S.who === 'none' ? !i.o : i.o === S.who)) && (S.pri == null || i.p === S.pri)
+      && (!q || (i.id + ' ' + i.t).toLowerCase().includes(q)))
+      .sort((a, b) => b.p - a.p || b.n - a.n);
+  }
+  const groups = () => S.page === 'backlog' ? ['Backlog'] : S.page === 'mine' ? ['In progress', 'In review', 'Todo', 'Backlog'] : ['In progress', 'In review', 'Todo', 'Done'];
+
+  function render() {
+    const vs = visible(), el = $('#view-el');
+    const cyc = IS.filter(i => i.cyc), done = cyc.filter(i => i.s === 'Done').length;
+    $('#cyc-m').style.width = Math.round(done / cyc.length * 100) + '%';
+    $('#cyc-t').textContent = `${done} of ${cyc.length} done · 5 days left`;
+    $('#n-cyc').textContent = cyc.filter(i => i.s !== 'Done').length;
+    $('#n-mine').textContent = IS.filter(i => i.o === ME && i.s !== 'Done').length;
+    $('#n-back').textContent = IS.filter(i => !i.cyc).length;
+    $('#projs').innerHTML = Object.entries(PROJ).map(([p, c]) => `<div class="proj"><i style="background:${c}"></i>${p}<em>${IS.filter(i => i.pj === p && i.s !== 'Done').length} open</em></div>`).join('');
+    $('#clr').hidden = !S.who && S.pri == null && !S.q;
+    if (!vs.length) { el.innerHTML = `<div class="empty nores"><b>No issues match</b>${S.q ? `Nothing has “${esc(S.q)}” in its title or ID.` : 'Try clearing the filters.'}</div>`; return; }
+    if (S.view === 'board' && S.page !== 'backlog') return board(vs, el);
+    el.innerHTML = groups().map(g => {
+      const rows = vs.filter(i => i.s === g); if (!rows.length) return '';
+      const shut = S.shut[g];
+      return `<div class="grp${shut ? ' shut' : ''}"><button class="tg" type="button" data-tg="${g}" aria-expanded="${!shut}">${ic('chev')}${stIcon(g)}${g}<em>${rows.length}</em></button><button class="btn ghost sm icon add" type="button" data-add="${g}" aria-label="New issue in ${g}">${ic('plus')}</button></div>` +
+        (shut ? '' : rows.map(i => `<div class="row${i.s === 'Done' ? ' done' : ''}${S.sel === i.id ? ' sel' : ''}" data-id="${i.id}" role="button" tabindex="-1"${i.n === 142 ? ' data-note="Four priority levels, so urgent still means something."' : ''}>${prIcon(i.p)}<span class="id"${i.n === 147 ? ' data-note="Every issue has an ID people can say in standup."' : ''}>${i.id}</span>${stIcon(i.s)}<span class="t">${esc(i.t)}</span>${lbls(i.l)}<span class="est" title="${i.e} points">${i.e}</span>${av(i.o)}<span class="dt">${ago(i.up)}</span></div>`).join(''));
+    }).join('');
+    const sel = $('.row.sel', el); sel?.scrollIntoView({ block: 'nearest' });
+  }
+  function board(vs, el) {
+    const cols = S.page === 'mine' ? ['Todo', 'In progress', 'In review', 'Backlog'] : ['Todo', 'In progress', 'In review', 'Done'];
+    el.innerHTML = `<div class="board">${cols.map(c => { const rows = vs.filter(i => i.s === c); return `<div class="col" data-col="${c}"><header>${stIcon(c)}${c}<em>${rows.length}</em></header><div class="cards">${rows.map(i =>
+      `<div class="card" draggable="true" data-id="${i.id}"><div class="hd">${prIcon(i.p)}${i.id}${av(i.o)}</div><p>${esc(i.t)}</p><div class="ft">${lbls(i.l)}<span class="mut" style="margin-left:auto;font-size:11.5px">${i.e} pt</span></div></div>`).join('')}</div></div>`; }).join('')}</div>`;
+  }
+
+  // ---------- Changes ----------
+  function set(i, k, v, quiet) {
+    const was = i[k]; if (was === v) return;
+    i[k] = v; i.up = K.TODAY;
+    const lbl = k === 's' ? v : k === 'p' ? PRI.find(x => x[1] === v)[0] : k === 'o' ? (v ? PPL[v][0] : 'no one') : v + ' points';
+    i.log.unshift(`${{ s: 'Moved to', p: 'Set priority to', o: 'Assigned to', e: 'Estimated at' }[k]} <b>${esc(lbl)}</b>`);
+    if (k === 's' && v === 'Backlog') i.cyc = false; else if (k === 's' && !i.cyc) i.cyc = true;
+    render();
+    if (!quiet && k === 's') K.toast(`${i.id} moved to ${v}`);
+  }
+  const byId = id => IS.find(i => i.id === id);
+
+  // ---------- Detail ----------
+  function open(id) {
+    const i = byId(id); S.sel = id; render();
+    const prName = PRI.find(x => x[1] === i.p)[0];
+    const d = K.drawer(`<div class="d-head"><span class="dt-id">${i.id}</span>${i.pj ? `<span class="lb"><i style="background:${PROJ[i.pj]};border-radius:2px"></i>${i.pj}</span>` : ''}<button class="btn ghost icon" type="button" data-close aria-label="Close" style="margin-left:auto">${ic('x')}</button></div>
+      <div class="d-body">
+        <textarea class="ttl" id="ttl" rows="2" aria-label="Title" maxlength="120">${esc(i.t)}</textarea>
+        <p class="desc">${i.d ? esc(i.d) : '<span class="mut">No description yet.</span>'}</p>
+        <dl class="pp">
+          <dt>Status</dt><dd><button class="btn" type="button" data-m="s">${stIcon(i.s)}${i.s}</button></dd>
+          <dt>Priority</dt><dd><button class="btn" type="button" data-m="p">${prIcon(i.p)}${prName}</button></dd>
+          <dt>Owner</dt><dd><button class="btn" type="button" data-m="o">${av(i.o)}${i.o ? PPL[i.o][0] : '<span class="mut">No owner</span>'}</button></dd>
+          <dt>Estimate</dt><dd><button class="btn" type="button" data-m="e">${i.e} points</button></dd>
+          <dt>Labels</dt><dd>${lbls(i.l)}</dd>
+          <dt>Cycle</dt><dd><span style="padding-left:8px">${i.cyc ? 'Cycle 14 · Nov 11 – 24' : '<span class="mut">Not planned</span>'}</span></dd>
+        </dl>
+        <ul class="act">${i.log.map(l => `<li><span>You · ${l}</span><time>Just now</time></li>`).join('')}<li><span><b>${i.o ? PPL[i.o][0] : 'Ana Ruiz'}</b> created this</span><time>${fdate(day(Math.min(14, Math.round((K.TODAY - i.up) / 864e5) + 3)))}</time></li></ul>
+      </div>`, () => { S.sel = id; });
+    $('#ttl', d).addEventListener('change', e => { const v = e.target.value.trim(); if (v) { i.t = v; i.log.unshift('Renamed it'); render(); K.toast('Title saved'); } });
+    $('#ttl', d).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+    d.onclick = e => {                                  // onclick, not addEventListener: K.drawer reuses one element
+      const b = e.target.closest('[data-m]'); if (!b) return;
+      const k = b.dataset.m, items = {
+        s: STATUS.map(s => ({ v: s, label: stIcon(s) + s, on: i.s === s })),
+        p: PRI.slice(1).concat([PRI[0]]).map(([l, v]) => ({ v, label: prIcon(v) + l, on: i.p === v })),
+        o: [...Object.keys(PPL).map(o => ({ v: o, label: av(o) + PPL[o][0] + (o === ME ? ' <span class="mut">(you)</span>' : ''), on: i.o === o })), { sep: 1 }, { v: null, label: 'No owner', on: !i.o }],
+        e: [1, 2, 3, 5, 8].map(v => ({ v, label: v + ' points', on: i.e === v })),
+      }[k];
+      K.menu(b, items, v => { set(i, k, k === 'p' || k === 'e' ? +v : k === 'o' && v === 'null' ? null : v, true); open(id); });   // menu values come back as strings
+    };
+  }
+
+  // ---------- Create ----------
+  function create(status = S.page === 'backlog' ? 'Backlog' : 'Todo') {
+    const n = Math.max(...IS.map(i => i.n)) + 1;
+    const m = K.modal(`<h2>New issue</h2><p>It gets the ID <b class="mono" style="font:500 13px var(--mono)">TCK-${n}</b>.</p>
+      <form class="stack" id="nf" style="margin-top:16px" novalidate>
+        <label><span class="lbl">Title</span><input class="field" name="t" placeholder="What needs doing?" maxlength="120" autofocus required></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <label><span class="lbl">Status</span><select class="field" name="s">${STATUS.map(s => `<option${s === status ? ' selected' : ''}>${s}</option>`).join('')}</select></label>
+          <label><span class="lbl">Priority</span><select class="field" name="p">${PRI.slice(1).concat([PRI[0]]).map(([l, v]) => `<option value="${v}"${v === 2 ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+          <label><span class="lbl">Owner</span><select class="field" name="o"><option value="">No owner</option>${Object.keys(PPL).map(o => `<option value="${o}"${o === ME ? ' selected' : ''}>${PPL[o][0]}</option>`).join('')}</select></label>
+          <label><span class="lbl">Label</span><select class="field" name="l">${Object.keys(LBL).map(l => `<option>${l}</option>`).join('')}</select></label>
+        </div>
+        <span class="err" id="nf-e" style="color:var(--dn);font-size:12px;min-height:16px"></span>
+        <div class="m-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn ink" type="submit">Create issue</button></div>
+      </form>`);
+    $('#nf', m).addEventListener('submit', e => {
+      e.preventDefault(); const f = new FormData(e.target), t = f.get('t').trim();
+      if (!t) { $('#nf-e', m).textContent = 'Give it a title first.'; return $('[name=t]', m).focus(); }
+      const s = f.get('s');
+      IS.push({ n, id: 'TCK-' + n, t, s, p: +f.get('p'), o: f.get('o') || null, l: [f.get('l')], e: 1, pj: null, up: K.TODAY, cyc: s !== 'Backlog', log: [] });
+      S.sel = 'TCK-' + n; S.shut[s] = false; K.shut(true);
+      if (!visible().some(i => i.id === S.sel)) { S.who = null; S.pri = null; S.q = ''; $('#q').value = ''; syncF(); }
+      render(); K.toast(`TCK-${n} created`);
+    });
+  }
+
+  // ---------- Events ----------
+  $('#view-el').addEventListener('click', e => {
+    const tg = e.target.closest('[data-tg]'), ad = e.target.closest('[data-add]'), r = e.target.closest('[data-id]');
+    if (tg) { S.shut[tg.dataset.tg] = !S.shut[tg.dataset.tg]; render(); }
+    else if (ad) create(ad.dataset.add);
+    else if (r) open(r.dataset.id);
+  });
+  let dragId = null;
+  $('#view-el').addEventListener('dragstart', e => { const c = e.target.closest('.card'); if (!c) return; dragId = c.dataset.id; c.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', dragId); });
+  $('#view-el').addEventListener('dragend', () => { dragId = null; $$('.card.drag, .col.over').forEach(x => x.classList.remove('drag', 'over')); });
+  $('#view-el').addEventListener('dragover', e => { const c = e.target.closest('.col'); if (!c || !dragId) return; e.preventDefault(); $$('.col.over').forEach(x => x !== c && x.classList.remove('over')); c.classList.add('over'); });
+  $('#view-el').addEventListener('drop', e => { const c = e.target.closest('.col'); if (!c || !dragId) return; e.preventDefault(); set(byId(dragId), 's', c.dataset.col); });
+  $('#view').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; S.view = b.dataset.v; $$('#view button').forEach(x => x.setAttribute('aria-pressed', x === b)); render(); });
+  $('#q').addEventListener('input', e => { S.q = e.target.value; render(); });
+  $('#new').addEventListener('click', () => create());
+  const syncF = () => { $('#who-l').textContent = !S.who ? 'Everyone' : S.who === 'none' ? 'No owner' : PPL[S.who][0]; $('#pri-l').textContent = S.pri == null ? 'Any priority' : PRI.find(x => x[1] === S.pri)[0]; };
+  $('#who-f').addEventListener('click', e => K.menu(e.currentTarget, [{ v: '', label: 'Everyone', on: !S.who }, { sep: 1 }, ...Object.keys(PPL).map(o => ({ v: o, label: av(o) + PPL[o][0], on: S.who === o })), { v: 'none', label: 'No owner', on: S.who === 'none' }], v => { S.who = v || null; syncF(); render(); }));
+  $('#pri-f').addEventListener('click', e => K.menu(e.currentTarget, [{ v: '', label: 'Any priority', on: S.pri == null }, { sep: 1 }, ...PRI.slice(1).concat([PRI[0]]).map(([l, v]) => ({ v: String(v), label: prIcon(v) + l, on: S.pri === v }))], v => { S.pri = v === '' ? null : +v; syncF(); render(); }));
+  $('#clr').addEventListener('click', () => { S.who = null; S.pri = null; S.q = ''; $('#q').value = ''; syncF(); render(); });
+  $('#ws').addEventListener('click', e => K.menu(e.currentTarget, [{ v: 1, label: 'Fieldnote', on: true }, { sep: 1 }, { v: 2, label: 'Invite people' }], v => v === 2 && K.toast('The real app opens invites here', 'info')));
+  const move = d => {
+    if (S.view === 'board') return;
+    const ids = $$('#view-el .row').map(r => r.dataset.id); if (!ids.length) return;
+    const i = ids.indexOf(S.sel); S.sel = ids[Math.max(0, Math.min(ids.length - 1, i < 0 ? 0 : i + d))]; render();
+  };
+  K.keys({ c: () => create(), '/': () => $('#q').focus(), j: () => move(1), k: () => move(-1) });
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target === document.body && S.sel && S.view === 'list' && !$('.drawer.on, .modal.on')) open(S.sel); });
+
+  K.route('cycle', pg => {
+    S.page = pg; S.sel = null;
+    $('#title').textContent = { cycle: 'Cycle 14', mine: 'My issues', backlog: 'Backlog' }[pg];
+    $('#cyc').hidden = pg !== 'cycle';
+    $('#view').hidden = pg === 'backlog';
+    render();
+  });
+})();
+</script>
+</body>
+</html>

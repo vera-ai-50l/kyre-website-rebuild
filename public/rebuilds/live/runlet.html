@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Runlet · Kyre rebuild</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="kit.css">
+<style>
+  :root { --acc: #0E7C6B; --acc-soft: rgba(14, 124, 107, .1); --side-w: 248px; }
+  body { background: #fff; }
+  .side { background: #F6F6F4; }
+  .newrun { display: flex; align-items: center; gap: 8px; width: 100%; height: 32px; margin: 0 0 8px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--ink); color: #fff; font-weight: 500; transition: background-color .15s var(--e), transform .15s var(--e); }
+  .newrun:hover { background: #26282D; } .newrun:active { transform: scale(.985); }
+  .newrun .kbd { margin-left: auto; background: rgba(255, 255, 255, .14); color: rgba(255, 255, 255, .8); }
+  .side .input { height: 32px; box-shadow: 0 0 0 1px rgba(11, 12, 15, .07); }
+  .side .input .kbd { background: var(--soft); }
+  .grp { margin: 16px 10px 4px; }
+  .run { display: flex; align-items: center; gap: 9px; width: 100%; height: 32px; padding: 0 10px; border: 0; border-radius: 7px; background: none; color: var(--ink-3); text-align: left; white-space: nowrap; transition: background-color .12s var(--e); }
+  .run:hover { background: var(--hover); }
+  .run[aria-current="true"] { background: #fff; color: var(--ink); font-weight: 500; box-shadow: 0 0 0 1px rgba(11, 12, 15, .07), 0 1px 2px rgba(11, 12, 15, .05); }
+  .run > span:not([class]) { overflow: hidden; text-overflow: ellipsis; }
+  .run em { margin-left: auto; padding-left: 8px; font-size: 11.5px; font-style: normal; font-weight: 400; color: var(--mut-2); }
+  .st { flex: none; width: 6px; height: 6px; border-radius: 50%; background: #0F9D74; }
+  .st.idle { background: #C9C7C0; } .st.stop { background: #C77A0A; }
+  .st.live { width: 10px; height: 10px; margin: 0 -2px; border: 1.6px solid #D7E9E4; border-top-color: var(--acc); background: none; animation: spin .8s linear infinite; }
+  .sq { display: grid; place-items: center; flex: none; width: 18px; height: 18px; border-radius: 5px; color: #fff; font-size: 10px; font-weight: 600; }
+  .run.agent[aria-pressed="true"] { background: var(--acc-soft); color: var(--ink); font-weight: 500; }
+  .keycard { margin-top: auto; padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .07); }
+  .keycard b { display: block; font-weight: 500; }
+  .keycard p { margin: 2px 0 10px; color: var(--mut); font-size: 12px; }
+  .runs-empty { padding: 10px; color: var(--mut-2); font-size: 12px; }
+
+  .top { height: 64px; gap: 12px; }
+  .top h1 { margin-right: 0; overflow: hidden; text-overflow: ellipsis; }
+  .usage { display: flex; align-items: center; gap: 10px; height: 34px; margin-left: auto; padding: 0 12px 0 4px; border: 0; border-radius: 9px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .08); font-size: 12px; white-space: nowrap; transition: box-shadow .15s; }
+  .usage:hover { box-shadow: 0 0 0 1px rgba(11, 12, 15, .16); }
+  .usage .meter { width: 60px; } .usage .meter span { background: #C77A0A; }
+  .usage.full .meter span { background: var(--dn); }
+  .chip.run-ch { font-variant-numeric: tabular-nums; }
+  .chip .spin { stroke-width: 1.8; }
+
+  .body { display: grid; grid-template-columns: 292px minmax(0, 1fr); gap: 24px; align-items: start; padding: 22px 24px 16px; }
+  .brief { padding: 14px 16px; }
+  .brief p { margin-top: 6px; font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; }
+  .brief small { display: block; margin-top: 8px; color: var(--mut-2); font-size: 12px; }
+  .steps { margin-top: 22px; padding-left: 2px; }
+  .steps > .cap { display: flex; justify-content: space-between; margin-bottom: 12px; }
+  .step { position: relative; display: grid; grid-template-columns: 22px 1fr; gap: 11px; padding-bottom: 16px; animation: stepin .35s var(--e-out); }
+  .step::before { content: ''; position: absolute; left: 10.5px; top: 24px; bottom: 2px; width: 1px; background: rgba(11, 12, 15, .1); }
+  .step:last-child { padding-bottom: 0; } .step:last-child::before { display: none; }
+  @keyframes stepin { from { opacity: 0; transform: translateY(4px); } }
+  .steps.still .step { animation: none; }
+  .ck { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #E7F4EE; color: #0B6B4E; }
+  .ck .ic { width: 12px; height: 12px; stroke-width: 2.2; }
+  .ck.now { background: #fff; box-shadow: inset 0 0 0 1.5px #D7E9E4; }
+  .ck.now::after { content: ''; width: 12px; height: 12px; border: 1.6px solid transparent; border-top-color: var(--acc); border-radius: 50%; animation: spin .8s linear infinite; }
+  .ck.wait { background: none; box-shadow: inset 0 0 0 1.5px #E3E2DD; }
+  .ck.halt { background: #FCF0DC; color: #87520A; }
+  .step b { display: block; font-weight: 500; line-height: 22px; }
+  .step.pending b { color: var(--mut-2); font-weight: 400; }
+  .step span { display: block; color: var(--mut-2); font-size: 12px; }
+
+  .out { padding: 22px 24px 20px; }
+  .out.fresh { animation: stepin .5s var(--e-out); }
+  .srcs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--mut-2); font-size: 12px; }
+  .srcs .chip { height: 21px; font: 500 11px/1 var(--mono); }
+  .out h3 { display: inline-block; margin: 14px 0 8px; font-size: 26px; font-weight: 600; line-height: 1.15; letter-spacing: -.03em; }
+  .out > p, .out .lead { max-width: 560px; color: var(--ink-3); font-size: 14px; line-height: 1.55; }
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 28px; align-items: end; margin-top: 18px; }
+  .split.one { grid-template-columns: minmax(0, 1fr); }
+  .otbl { width: 100%; border-collapse: collapse; }
+  .otbl th { padding: 0 0 8px; border-bottom: 1px solid rgba(11, 12, 15, .08); color: var(--mut-2); font-size: 11.5px; font-weight: 500; text-align: right; white-space: nowrap; }
+  .otbl td { padding: 8px 0 8px 12px; border-bottom: 1px solid rgba(11, 12, 15, .05); text-align: right; white-space: nowrap; }
+  .otbl :is(th, td):first-child { padding-left: 0; font-weight: 500; text-align: left; }
+  .otbl tr:last-child td { border-bottom: 0; }
+  .otbl tr.tot td { border-top: 1px solid rgba(11, 12, 15, .1); color: var(--mut); }
+  .obar { display: inline-block; height: 6px; margin-right: 8px; border-radius: 3px; background: var(--acc); vertical-align: middle; }
+  .wk { height: 92px; margin-top: 10px; }
+  .wk.bars > span { background: #E3E4E0; } .wk.bars > span.on, .wk.bars > span:hover { background: var(--acc); }
+  .tag-l { display: grid; gap: 7px; margin-top: 10px; }
+  .tag-l div { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 12px; }
+  .tag-l i { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--acc); opacity: .85; }
+  .how { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(11, 12, 15, .07); }
+  .how p { margin-top: 6px; color: var(--mut); font-size: 13px; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .mail { margin-top: 16px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+  .mail dl { display: grid; grid-template-columns: 64px 1fr; margin: 0; padding: 10px 14px; border-bottom: 1px solid var(--line-2); background: #FBFBFA; font-size: 12.5px; }
+  .mail dt { color: var(--mut-2); } .mail dd { margin: 0; }
+  .mail .mb { padding: 14px; white-space: pre-line; font-size: 13.5px; line-height: 1.55; }
+  .doc { margin-top: 14px; font-size: 14px; line-height: 1.6; color: var(--ink-3); }
+  .doc p + p, .doc p + table, .doc table + p { margin-top: 10px; }
+  .doc b { color: var(--ink); font-weight: 600; }
+  .doc .otbl { max-width: 460px; font-size: 13px; }
+  .approve { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 14px; border-radius: 10px; background: #FFF7E8; box-shadow: inset 0 0 0 1px #F0DDB4; color: #5A4515; }
+  .approve .btn { margin-left: auto; }
+  .approve.ok { background: #E7F4EE; box-shadow: inset 0 0 0 1px #BFE3D2; color: #0B5A41; }
+  .skel { display: grid; gap: 10px; margin-top: 16px; }
+  .skel i { height: 12px; border-radius: 6px; background: linear-gradient(90deg, #F1F0EC 30%, #F8F7F4 50%, #F1F0EC 70%) 0 0 / 300% 100%; animation: shim 1.4s linear infinite; }
+  .skel i:first-child { width: 60%; height: 24px; } .skel i:nth-child(2) { width: 92%; } .skel i:nth-child(3) { width: 78%; } .skel i:nth-child(4) { width: 45%; }
+  @keyframes shim { to { background-position: -150% 0; } }
+  .wait-note { margin-top: 18px; color: var(--mut); font-size: 13px; }
+
+  .comp { flex: none; padding: 0 24px 20px; }
+  .sugs { display: flex; flex-wrap: wrap; gap: 8px; min-height: 28px; margin-bottom: 10px; }
+  .sug { display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border: 0; border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .1); color: var(--ink-3); font-size: 12.5px; transition: box-shadow .15s var(--e), color .15s, transform .15s var(--e); }
+  .sug:hover { box-shadow: 0 0 0 1px var(--acc); color: var(--ink); }
+  .sug:active { transform: scale(.98); }
+  .ask { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 8px 0 14px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .12), 0 4px 12px -6px rgba(11, 12, 15, .12); transition: box-shadow .15s var(--e); }
+  .ask:focus-within { box-shadow: 0 0 0 1px var(--acc), 0 0 0 4px var(--acc-soft), 0 4px 12px -6px rgba(11, 12, 15, .12); }
+  .ask > .ic { color: var(--mut-2); }
+  .ask input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 14px; }
+  .ask input::placeholder { color: var(--mut-2); }
+  .ask .go { width: 36px; height: 36px; padding: 0; border-radius: 9px; }
+  .limit { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 12px; background: #FCEBE8; box-shadow: inset 0 0 0 1px #F3CFC8; color: #7A1D13; }
+  .limit p { flex: 1; } .limit b { font-weight: 600; }
+  .keybox { display: flex; gap: 8px; margin-top: 14px; }
+  .keybox code { flex: 1; overflow: hidden; padding: 9px 12px; border-radius: 8px; background: var(--soft); font: 500 12px/1.4 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+
+  @media (max-width: 1000px) { .body { grid-template-columns: minmax(0, 1fr); } .split { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 760px) {
+    .side > .run, .side > .grp { display: none; }
+    .top { height: auto; min-height: 56px; flex-wrap: wrap; padding-block: 8px; }
+    .usage { margin-left: 0; }
+    .body { padding: 16px 14px; } .comp { padding: 0 14px 14px; }
+    .out h3 { font-size: 22px; }
+  }
+</style>
+</head>
+<body data-app="Runlet" data-kind="AI agent workspace">
+<div class="app">
+  <aside class="side">
+    <button class="ws" type="button" id="ws"><span class="mono-av" style="background:#0E7C6B">N</span>Northwind<svg class="ic"><use href="#i-updown"/></svg></button>
+    <button class="newrun" type="button" id="new"><svg class="ic"><use href="#i-plus"/></svg>New run<span class="kbd">N</span></button>
+    <label class="input"><svg class="ic"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Search runs" autocomplete="off"><span class="kbd">/</span></label>
+    <div id="runs" data-note="Runs are named from the brief, so they can be found again."></div>
+    <div class="grp cap">Agents</div>
+    <button class="run agent" type="button" data-agent="analyst" aria-pressed="false"><span class="sq" style="background:#0E7C6B">A</span>Analyst</button>
+    <button class="run agent" type="button" data-agent="support" aria-pressed="false"><span class="sq" style="background:#6E56CF">S</span>Support triage</button>
+    <button class="run agent" type="button" data-agent="ops" aria-pressed="false"><span class="sq" style="background:#C2410C">O</span>Ops reports</button>
+    <div class="keycard" data-note="Keys live in settings. One quiet card for the people who want them."><b>Run Runlet from your code</b><p>API keys live in settings, never in a chat.</p><button class="btn sm" type="button" id="mkkey"><svg class="ic"><use href="#i-key"/></svg>Create key</button></div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <h1 id="title">Weekly churn report</h1>
+      <span id="status" data-note="Time and cost on every run, before anyone asks."></span>
+      <button class="usage" type="button" id="usage" data-note="The limit and its reset time, visible before anyone hits it."><span class="chip" id="model">Atlas-4 · Fast</span><span class="meter"><span id="meter" style="width:82%"></span></span><span class="mut" id="use-t">82% of hourly limit · resets 14:00</span></button>
+      <button class="btn hide-sm" type="button" id="share"><svg class="ic"><use href="#i-share"/></svg>Share</button>
+    </header>
+    <div class="scroll" style="padding:0" id="scroll">
+      <div class="body">
+        <div>
+          <div class="panel brief" id="brief"></div>
+          <div class="steps" id="steps" data-note="Each step says what it read and how long it took."></div>
+        </div>
+        <div class="panel out" id="out"></div>
+      </div>
+    </div>
+    <div class="comp" id="comp">
+      <div class="sugs" id="sugs" data-note="Follow-ups come from this run's data."></div>
+      <form class="ask" id="ask"><svg class="ic"><use href="#i-clip"/></svg><input id="in" autocomplete="off" placeholder="Ask a follow-up, or change the brief…" aria-label="Brief for a new run"><span class="chip" id="model2">Atlas-4 · Fast</span><button class="btn ink go" type="submit" aria-label="Start run"><svg class="ic"><use href="#i-up"/></svg></button></form>
+    </div>
+  </main>
+</div>
+
+<script src="kit.js"></script>
+<script>
+(() => {
+  const { $, $$, ic, esc, sum } = K;
+  const SPEED = 8;                                       // runs play back at 8× so a 41-second run takes about 5
+  const AG = { analyst: ['Analyst', '#0E7C6B'], support: ['Support triage', '#6E56CF'], ops: ['Ops reports', '#C2410C'] };
+  const SRC = { churn: ['billing_export.csv', 'crm_accounts'], email: ['crm_accounts', 'product_logins'], refund: ['refund-policy.md', 'helpdesk_tickets'], leads: ['webinar_leads.csv', 'crm_contacts'], board: ['metrics_nov.xlsx'] };
+  const how = t => `<div class="how" data-note="It states its assumptions, so the numbers can be checked."><div class="cap">How this was calculated</div><p>${t}</p></div>`;
+  const tbl = (head, rows, tot) => `<table class="otbl"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}${tot ? `<tr class="tot">${tot.map(c => `<td>${c}</td>`).join('')}</tr>` : ''}</tbody></table>`;
+  const bar = (v, mx, w = 64) => `<span class="obar" style="width:${Math.max(3, Math.round(v / mx * w))}px"></span>`;
+  const WEEKS = [['Sep 21', 2.2], ['Sep 28', 2.0], ['Oct 5', 2.5], ['Oct 12', 2.3], ['Oct 19', 2.1], ['Oct 26', 2.6], ['Nov 2', 2.4], ['Nov 9', 3.1]];
+
+  // Every template: title, agent, sources, steps [label, detail, seconds], cost, follow-ups, and the answer.
+  const T = {
+    churn: {
+      title: 'Weekly churn report', agent: 'analyst', src: SRC.churn, cost: .08, sugs: ['cohort', 'compare', 'email'],
+      steps: [['Read billing export', '2,184 rows', 6], ['Matched to CRM accounts', '2,031 matched, 153 skipped', 4], ['Computed churn by plan', '3 plans, 864 accounts', 9], ['Drafted the summary', '142 words', 22]],
+      body: () => `<h3 data-note="The answer first, as a sentence.">Churn rose to 3.1% last week.</h3><p>Up from 2.4% the week before. Most of the rise is on Starter: 19 of the 27 cancellations, mostly accounts in their first 30 days.</p>
+        <div class="split">${tbl(['Plan', 'Accounts', 'Cancelled', 'Churn'], [['Starter', 328, 19, bar(5.8, 5.8) + '5.8%'], ['Growth', 286, 6, bar(2.1, 5.8) + '2.1%'], ['Scale', 250, 2, bar(.8, 5.8) + '0.8%']], ['All plans', 864, 27, '3.1%'])}
+        <div><div class="cap">Weekly churn, last 8 weeks</div><div class="wk" data-wk="8"></div><div class="axis"><span>Sep 21</span><span>Nov 9</span></div></div></div>
+        ${how('Churn is cancellations divided by accounts active on Monday, Nov 9. The 153 billing rows with no CRM match are left out (step 2).')}`,
+    },
+    cohort: {
+      title: 'Churn by signup month', agent: 'analyst', src: SRC.churn, cost: .05, sugs: ['email', 'compare'], brief: 'Break down last week’s churn by signup month.',
+      steps: [['Reused the billing match', '864 accounts', 2], ['Grouped by signup month', '4 groups', 5], ['Drafted the summary', '61 words', 11]],
+      body: () => `<h3>New accounts churn fastest: 12.5% in their first month.</h3><p>Accounts that signed up in November are 11% of the base but 12 of last week’s 27 cancellations. After three months, churn drops below 1%.</p>
+        <div class="split one">${tbl(['Signed up', 'Accounts', 'Cancelled', 'Churn'], [['November', 96, 12, bar(12.5, 12.5, 120) + '12.5%'], ['October', 141, 7, bar(5, 12.5, 120) + '5.0%'], ['September', 155, 4, bar(2.6, 12.5, 120) + '2.6%'], ['Before September', 472, 4, bar(.8, 12.5, 120) + '0.8%']], ['All accounts', 864, 27, '3.1%'])}</div>
+        ${how('Signup month is the account’s created date in the CRM. Same 864 accounts as the weekly churn report.')}`,
+    },
+    compare: {
+      title: 'Churn vs the last 4 weeks', agent: 'analyst', src: SRC.churn, cost: .04, sugs: ['cohort', 'email'], brief: 'Compare last week’s churn with the four weeks before.',
+      steps: [['Read 5 weeks of cancellations', '131 rows', 3], ['Computed weekly churn', '5 weeks', 4], ['Drafted the summary', '58 words', 9]],
+      body: () => `<h3>Last week was the highest in five weeks.</h3><p>3.1% against a four-week average of 2.35%. The four weeks before it stayed within half a point of each other, so this looks like a real change, not noise.</p>
+        <div class="split">${tbl(['Week of', 'Churn', 'vs average'], WEEKS.slice(3).map(([w, v]) => [w, v.toFixed(1) + '%', (v - 2.35 >= 0 ? '+' : '−') + Math.abs(v - 2.35).toFixed(2) + ' pts']))}
+        <div><div class="cap">Weekly churn, last 5 weeks</div><div class="wk" data-wk="5"></div><div class="axis"><span>Oct 12</span><span>Nov 9</span></div></div></div>
+        ${how('The average covers the four weeks before Nov 9. Each week divides cancellations by the accounts active on its Monday.')}`,
+    },
+    email: {
+      title: 'Email to at-risk accounts', agent: 'analyst', src: SRC.email, cost: .06, sugs: ['cohort'], brief: 'Draft an email to the accounts most at risk of cancelling.',
+      steps: [['Found new Starter accounts', '96 accounts', 3], ['Checked logins since Nov 12', '41 inactive', 5], ['Drafted the email', '96 words', 14]],
+      body: () => `<h3>A draft for 41 at-risk Starter accounts.</h3><p>Starter accounts in their first 30 days with no login since Nov 12. The draft offers a 15-minute setup call, not a discount.</p>
+        <div class="mail"><dl><dt>To</dt><dd>41 accounts · Starter, new, inactive 7 days</dd><dt>Subject</dt><dd>Getting Northwind set up</dd></dl><div class="mb">Hi {first name},
+
+You signed up for Northwind a few weeks ago and haven't been back since last Thursday. If something got in the way, I'd like to help.
+
+I can do a 15-minute call this week to get your first report running. Pick any time here: {booking link}
+
+Thanks,
+Priya, customer success</div></div>
+        ${how('Inactive means no login since Thursday, Nov 12. Names and emails come from crm_accounts. Nothing has been sent.')}`,
+    },
+    refund: {
+      title: 'Refund policy check', agent: 'support', src: SRC.refund, cost: .14, sugs: ['note'],
+      steps: [['Read the refund policy', '2 pages', 4], ['Read the last 50 refund tickets', '50 tickets', 18], ['Checked each against the policy', '4 broke it', 27], ['Drafted the findings', '88 words', 23]],
+      body: () => `<h3>4 of 50 refunds broke the policy.</h3><p>All four were refunded after the 30-day window. Two were approved by the same agent. Together they come to $612.</p>
+        <div class="split">${tbl(['Ticket', 'Days after delivery', 'Amount', 'Approved by'], [['#4821', 41, '$189', 'Dana'], ['#4790', 37, '$149', 'Dana'], ['#4766', 52, '$129', 'Marco'], ['#4702', 33, '$145', 'Lee']], ['4 tickets', '', '$612', ''])}
+        <div><div class="cap">Reasons given, all 50</div><div class="tag-l">${[['Damaged in transit', 21], ['Changed mind', 14], ['Wrong size', 11], ['Arrived late', 4]].map(([k, v]) => `<div><span>${k}</span><b>${v}</b><i style="width:${v / 21 * 100}%"></i></div>`).join('')}</div></div></div>
+        ${how('The policy allows refunds within 30 days of delivery (refund-policy.md, section 2). Delivery dates come from Shopify.')}`,
+    },
+    note: {
+      title: 'Note to the support team', agent: 'support', src: SRC.refund, cost: .03, sugs: [], brief: 'Draft a short note to the support team about the four refunds.',
+      steps: [['Reused the refund check', '4 tickets', 2], ['Drafted the note', '71 words', 8]],
+      body: () => `<h3>A note for the support team.</h3><div class="mail"><dl><dt>To</dt><dd>#support in Slack</dd></dl><div class="mb">Quick reminder on refunds: the policy covers 30 days from delivery. Four refunds last month went past that (33, 37, 41 and 52 days).
+
+If a customer is outside the window, offer store credit, or ask a lead before approving. Thanks, all.</div></div>
+        ${how('Written from the four tickets in the refund check. Agent names are left out on purpose.')}`,
+    },
+    leads: {
+      title: 'Lead list cleanup', agent: 'ops', src: SRC.leads, cost: .11, sugs: ['crm'], meta: '214 rows',
+      steps: [['Read webinar_leads.csv', '214 rows', 3], ['Merged duplicates', '28 merged', 7], ['Checked emails', '9 invalid, 6 personal', 19], ['Filled in company names', '63 rows', 29]],
+      body: () => `<h3>214 rows in, 171 clean leads out.</h3><p>28 duplicates merged, 9 invalid and 6 personal emails removed. Company names were filled in for 63 rows from the email domain.</p>
+        <div class="split">${tbl(['Change', 'Rows'], [['Duplicates merged', 28], ['Invalid emails removed', 9], ['Personal emails removed', 6], ['Company names filled in', 63]], ['Clean leads', 171])}
+        <div><div class="cap">By company size</div><div class="tag-l">${[['1–10', 52], ['11–50', 71], ['51–200', 36], ['200+', 12]].map(([k, v]) => `<div><span>${k} people</span><b>${v}</b><i style="width:${v / 71 * 100}%"></i></div>`).join('')}</div></div></div>
+        ${how('Duplicates match on email, ignoring case. Personal means Gmail, Outlook, Yahoo or iCloud addresses.')}`,
+    },
+    crm: {
+      title: 'Add leads to the CRM', agent: 'ops', src: SRC.leads, cost: .04, sugs: [], approve: true, brief: 'Add the 171 clean leads to the CRM.',
+      steps: [['Matched leads to contacts', '12 already exist', 4], ['Prepared the changes', '159 new, 12 updates', 6]],
+      body: r => `<h3>${r.ok ? '171 leads are in the CRM.' : 'Ready to write 171 leads to the CRM.'}</h3><p>159 are new contacts. 12 already existed and ${r.ok ? 'were' : 'will be'} updated, not duplicated. All ${r.ok ? 'are' : 'will be'} tagged “Webinar, Nov 2026”.</p>
+        ${r.ok ? `<div class="approve ok">${ic('check')}<span>Written by you at ${r.okAt}. You can undo it from the CRM’s history for 30 days.</span></div>`
+          : `<div class="approve" data-note="Runs that write somewhere wait for a yes."><span>${ic('lock')}</span><span>Nothing has been written yet. This run changes another system, so it waits for you.</span><button class="btn ink sm" type="button" id="ok">Approve and write</button></div>`}
+        ${how('Matched on email. Existing contacts keep their owner and their history.')}`,
+    },
+    board: {
+      title: 'Board update draft', agent: 'analyst', src: SRC.board, cost: .21, sugs: ['short'], meta: '1 page', brief: 'Draft the November board update from the metrics sheet. Keep it to one page.',
+      steps: [['Read metrics_nov.xlsx', '4 tabs', 7], ['Pulled the headline numbers', '6 metrics', 12], ['Drafted the update', '1 page, 312 words', 77]],
+      body: () => `<h3>November board update, ready for review.</h3><div class="doc"><p><b>Headline.</b> Revenue grew 6.1% to $182.4k MRR. Churn ticked up on Starter; the onboarding fix ships next week.</p>
+        ${tbl(['Metric', 'November', 'Change'], [['Monthly recurring revenue', '$182.4k', '+6.1%'], ['New accounts', '214', '+9%'], ['Logo churn, monthly', '2.6%', '+0.3 pts'], ['Runway', '19 months', 'at Oct burn']])}
+        <p><b>Asks.</b> Intros to two heads of ops at 50 to 200 person retailers, and a view on our Series A timing.</p></div>
+        ${how('Numbers come from the “Nov” tab of the metrics sheet. Runway uses October’s burn of $96k.')}`,
+    },
+    short: {
+      title: 'Board update, short', agent: 'analyst', src: SRC.board, cost: .03, sugs: [], brief: 'Cut the board update to five sentences.',
+      steps: [['Reused the draft', '312 words', 2], ['Cut to five sentences', '74 words', 9]],
+      body: () => `<h3>The update in five sentences.</h3><div class="doc"><p>Revenue grew 6.1% to $182.4k MRR, and we added 214 accounts. Monthly churn rose to 2.6%, almost all of it new Starter accounts. The onboarding fix for that ships next week. Runway is 19 months at October’s burn. We’d value intros to heads of ops at mid-size retailers.</p></div>
+        ${how('Same numbers as the one-page draft, nothing new added.')}`,
+    },
+    generic: {
+      title: 'New run', agent: 'analyst', src: [], cost: .01, sugs: ['churn', 'refund', 'leads'],
+      steps: [['Read the brief', '1 request', 1], ['Checked what it can read', '4 sample sources', 2], ['Wrote a reply', '52 words', 3]],
+      body: () => `<h3>This demo only knows Northwind’s sample data.</h3><p>Here Runlet can read a billing export, the CRM, support tickets and a metrics sheet, all made up. Try a brief about churn, refunds, leads or the board update, or pick one below.</p>`,
+    },
+  };
+  const SUG = { cohort: 'Break down by signup month', compare: 'Compare with the last 4 weeks', email: 'Draft an email to at-risk accounts', note: 'Draft a note to the support team', crm: 'Add the 171 leads to the CRM', short: 'Cut it to five sentences', churn: 'Weekly churn report', refund: 'Check refunds against the policy', leads: 'Clean up the webinar leads' };
+  const match = s => /at.?risk|email/i.test(s) ? 'email' : /signup|cohort/i.test(s) ? 'cohort' : /compare|4 weeks|four weeks/i.test(s) ? 'compare' : /churn|cancel/i.test(s) ? 'churn'
+    : /refund/i.test(s) ? (/note|team|remind/i.test(s) ? 'note' : 'refund') : /crm/i.test(s) ? 'crm' : /lead|dedupe/i.test(s) ? 'leads'
+    : /board|investor/i.test(s) ? (/short|cut|five/i.test(s) ? 'short' : 'board') : 'generic';
+  const total = t => sum(T[t].steps.map(s => s[2]));
+  const dur = s => s < 60 ? Math.round(s) + 's' : Math.floor(s / 60) + 'm ' + Math.round(s % 60) + 's';
+
+  const RUNS = [
+    { id: 'churn', t: 'churn', brief: 'Pull last week’s churn numbers and write a summary for the team.', when: 'Today, 09:12', group: 'Today', status: 'done' },
+    { id: 'refund', t: 'refund', brief: 'Check the last 50 refund tickets against our refund policy and flag any that broke it.', when: 'Today, 08:40', group: 'Today', status: 'done' },
+    { id: 'leads', t: 'leads', brief: 'Dedupe the webinar lead list, drop personal emails and fill in company names.', when: 'Yesterday, 16:05', group: 'Yesterday', status: 'done' },
+    { id: 'board', t: 'board', brief: T.board.brief, when: 'Yesterday, 11:30', group: 'Yesterday', status: 'done' },
+  ];
+  RUNS.forEach(r => { r.title = T[r.t].title; r.el = total(r.t); r.step = T[r.t].steps.length; });
+  const MODELS = { fast: { name: 'Atlas-4 · Fast', use: 82 }, std: { name: 'Atlas-4 · Standard', use: 20 } };
+  const S = { sel: 'churn', q: '', agent: null, model: 'fast', n: 0 };
+  const cur = () => RUNS.find(r => r.id === S.sel);
+  const cost = r => T[r.t].cost * Math.min(1, r.el / total(r.t));
+  let clockMin = 9 * 60 + 41;                            // the demo's clock starts at 09:41
+  const clock = () => { clockMin += 2; return `${String(Math.floor(clockMin / 60)).padStart(2, '0')}:${String(clockMin % 60).padStart(2, '0')}`; };
+
+  // ---------- Rail ----------
+  function renderRail() {
+    const q = S.q.toLowerCase();
+    const list = RUNS.filter(r => (!S.agent || T[r.t].agent === S.agent) && (!q || (r.title + ' ' + r.brief).toLowerCase().includes(q)));
+    let html = '', g = '';
+    list.forEach(r => {
+      if (r.group !== g) { g = r.group; html += `<div class="grp cap">${g}</div>`; }
+      const meta = r.status === 'running' ? dur(r.el) : r.status === 'stopped' ? 'Stopped' : T[r.t].meta || dur(total(r.t));
+      html += `<button class="run" type="button" data-id="${r.id}" aria-current="${r.id === S.sel}"><span class="st ${r.status === 'running' ? 'live' : r.status === 'stopped' ? 'stop' : r.group === 'Today' ? '' : 'idle'}"></span><span>${esc(r.title)}</span><em data-meta="${r.id}">${meta}</em></button>`;
+    });
+    $('#runs').innerHTML = html || `<div class="grp cap">Runs</div><p class="runs-empty">No runs match “${esc(S.q)}”.</p>`;
+  }
+  $('#runs').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) { S.sel = b.dataset.id; renderRail(); renderMain(); } });
+  $('#q').addEventListener('input', e => { S.q = e.target.value; renderRail(); });
+  $$('.agent').forEach(b => b.addEventListener('click', () => {
+    S.agent = S.agent === b.dataset.agent ? null : b.dataset.agent;
+    $$('.agent').forEach(x => x.setAttribute('aria-pressed', x.dataset.agent === S.agent));
+    renderRail();
+  }));
+
+  // ---------- Main ----------
+  function statusChip(r) {
+    if (r.status === 'running') return `<span class="chip info run-ch"><svg class="ic spin" viewBox="0 0 16 16"><path d="M8 2a6 6 0 1 1-6 6" fill="none" stroke="currentColor" stroke-linecap="round"/></svg>Running · ${dur(r.el)} · $${cost(r).toFixed(2)}</span><button class="btn sm" type="button" id="stop">${ic('stop')}Stop</button>`;
+    if (r.status === 'stopped') return `<span class="chip warn">Stopped · ${dur(r.el)} · $${cost(r).toFixed(2)}</span>`;
+    return `<span class="chip ok">${ic('check')}Completed · ${dur(total(r.t))} · $${T[r.t].cost.toFixed(2)}</span>`;
+  }
+  function renderSteps() {
+    const r = cur(), t = T[r.t];
+    let acc = 0;
+    $('#steps').innerHTML = `<div class="cap"><span>Steps</span>${r.status === 'running' ? `<span>${SPEED}× speed in this demo</span>` : ''}</div>` + t.steps.map(([b, d, s], i) => {
+      const start = acc; acc += s;
+      if (i < r.step) return `<div class="step"><span class="ck">${ic('check')}</span><div><b>${b}</b><span>${d} · ${dur(s)}</span></div></div>`;
+      if (i === r.step && r.status === 'running') return `<div class="step"><span class="ck now"></span><div><b>${b}…</b><span data-tick>${dur(Math.max(0, r.el - start))}</span></div></div>`;
+      if (i === r.step && r.status === 'stopped') return `<div class="step"><span class="ck halt">${ic('stop')}</span><div><b>${b}</b><span>Stopped by you</span></div></div>`;
+      return r.status === 'running' ? `<div class="step pending"><span class="ck wait"></span><div><b>${b}</b><span>Waiting</span></div></div>` : '';
+    }).join('');
+  }
+  function renderOut(fresh) {
+    const r = cur(), t = T[r.t], out = $('#out');
+    out.classList.remove('fresh');
+    if (r.status === 'running') {
+      out.innerHTML = `<div class="srcs">${t.src.length ? 'Reading' : 'Working'} ${t.src.map(s => `<span class="chip">${s}</span>`).join('')}</div><div class="skel"><i></i><i></i><i></i><i></i></div><p class="wait-note">The answer appears here when the steps finish. Stop the run at any time and nothing is sent anywhere.</p>`;
+    } else if (r.status === 'stopped') {
+      out.innerHTML = `<div class="srcs">Stopped</div><h3>Stopped after ${r.step} of ${t.steps.length} steps.</h3><p>Nothing was written or sent. It used ${dur(r.el)} and $${cost(r).toFixed(2)}.</p><div class="acts"><button class="btn" type="button" data-again>${ic('refresh')}Run it again</button></div>`;
+    } else {
+      out.innerHTML = (t.src.length ? `<div class="srcs">From ${t.src.map(s => `<span class="chip">${s}</span>`).join('')}</div>` : '') + t.body(r) +
+        `<div class="acts"><button class="btn" type="button" data-copy>${ic('copy')}Copy</button>${r.t === 'crm' || r.t === 'generic' ? '' : `<button class="btn" type="button" data-send>${ic('send')}Send to #team</button>`}<button class="btn" type="button" data-edit>${ic('refresh')}Re-run with changes</button></div>`;
+      $$('[data-wk]', out).forEach(el => {
+        const w = WEEKS.slice(-el.dataset.wk);
+        K.bars(el, w.map(x => x[1]), { on: w.length - 1, max: 3.4, tip: i => `<b>${w[i][1].toFixed(1)}%</b> <small>Week of ${w[i][0]}</small>` });
+      });
+      $('#ok', out)?.addEventListener('click', () => { r.ok = true; r.okAt = clock(); renderOut(); K.toast('171 leads written to the CRM'); });
+      if (fresh) out.classList.add('fresh');
+    }
+  }
+  function renderMain(fresh) {
+    const r = cur(), t = T[r.t];
+    $('#title').textContent = r.title;
+    $('#status').innerHTML = statusChip(r);
+    $('#brief').innerHTML = `<div class="cap">Brief</div><p>${esc(r.brief)}</p><small>You · ${r.when} · ${AG[t.agent][0]}</small>`;
+    $('#steps').classList.remove('still'); renderSteps(); renderOut(fresh);
+    $('#sugs').innerHTML = r.status === 'done' ? t.sugs.map(k => `<button class="sug" type="button" data-sug="${k}">${SUG[k]}</button>`).join('') : '';
+  }
+
+  // Live ticking without re-rendering the page.
+  function tick(r) {
+    const m = $(`[data-meta="${r.id}"]`); if (m) m.textContent = dur(r.el);
+    if (r.id !== S.sel) return;
+    const c = $('#status .run-ch'); if (c) c.lastChild.textContent = `Running · ${dur(r.el)} · $${cost(r).toFixed(2)}`;
+    let acc = 0; T[r.t].steps.slice(0, r.step).forEach(s => acc += s[2]);
+    const k = $('#steps [data-tick]'); if (k) k.textContent = dur(Math.max(0, r.el - acc));
+  }
+
+  // ---------- Runs ----------
+  function start(key, brief) {
+    if (MODELS[S.model].use >= 100) return renderLimit();
+    const t = T[key], r = { id: 'r' + ++S.n, t: key, brief: brief || t.brief || SUG[key], when: 'Today, ' + clock(), group: 'Today', status: 'running', el: 0, step: 0 };
+    r.title = key === 'generic' ? brief.replace(/[.?!].*$/s, '').split(/\s+/).slice(0, 6).join(' ').replace(/^./, c => c.toUpperCase()) : t.title;
+    RUNS.unshift(r); S.sel = r.id; S.q = ''; $('#q').value = '';
+    renderRail(); renderMain();
+    const T0 = performance.now(), end = total(key);
+    r.timer = setInterval(() => {
+      r.el = Math.min(end, (performance.now() - T0) / 1000 * SPEED);
+      let acc = 0, k = 0;
+      while (k < t.steps.length && acc + t.steps[k][2] <= r.el) acc += t.steps[k++][2];
+      if (k !== r.step) { r.step = k; if (S.sel === r.id) { $('#steps').classList.add('still'); renderSteps(); } }
+      tick(r);
+      if (r.el >= end) finish(r);
+    }, 100);
+  }
+  function finish(r) {
+    clearInterval(r.timer); r.status = 'done'; r.step = T[r.t].steps.length;
+    const m = MODELS[S.model]; m.use = Math.min(100, m.use + 6); renderUsage();
+    renderRail(); if (S.sel === r.id) renderMain(true);
+    if (m.use >= 100) renderLimit();
+  }
+  function stop(r) { clearInterval(r.timer); r.status = 'stopped'; renderRail(); renderMain(); }
+
+  function renderUsage() {
+    const m = MODELS[S.model];
+    $('#model').textContent = $('#model2').textContent = m.name;
+    $('#meter').style.width = m.use + '%';
+    $('#usage').classList.toggle('full', m.use >= 95);
+    $('#use-t').textContent = m.use >= 100 ? 'Hourly limit reached · resets 14:00' : `${m.use}% of hourly limit · resets 14:00`;
+  }
+  function renderLimit() {
+    $('#ask').hidden = true; $('#sugs').innerHTML = '';
+    $('#lim')?.remove();
+    $('#comp').insertAdjacentHTML('beforeend', `<div class="limit" id="lim">${ic('clock')}<p><b>You’ve used this hour’s runs on ${MODELS[S.model].name}.</b> It resets at 14:00. Standard is slower but has its own limit, ${MODELS.std.use}% used.</p><button class="btn ink" type="button" id="to-std">Switch to Standard</button></div>`);
+    $('#to-std').addEventListener('click', () => setModel('std'));
+  }
+  function setModel(k) {
+    S.model = k; renderUsage();
+    if (MODELS[k].use < 100) { $('#lim')?.remove(); $('#ask').hidden = false; renderMain(); }
+    K.toast(`Runs now use ${MODELS[k].name}`);
+  }
+
+  $('#ask').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = $('#in').value.trim();
+    if (!v) return $('#in').focus();
+    $('#in').value = ''; $('#in').placeholder = 'Ask a follow-up, or change the brief…';
+    start(match(v), v);
+  });
+  document.addEventListener('click', e => {
+    const r = cur();
+    if (e.target.closest('[data-sug]')) start(e.target.closest('[data-sug]').dataset.sug);
+    else if (e.target.closest('#stop')) stop(r);
+    else if (e.target.closest('[data-again]')) start(r.t, r.brief);
+    else if (e.target.closest('[data-edit]')) { $('#in').value = r.brief; $('#in').focus(); $('#in').select(); }
+    else if (e.target.closest('[data-copy]')) { navigator.clipboard?.writeText($('#out').innerText).catch(() => {}); K.toast('Copied as plain text'); }
+    else if (e.target.closest('[data-send]')) {
+      const m = K.modal(`<h2>Send to #team?</h2><p>Posts the answer to #team in Slack, with a link back to this run.</p>
+        <div class="mail" style="margin-top:16px"><div class="mb" style="font-size:13px">${esc($('#out h3').textContent)} ${esc($('#out h3 + p')?.textContent || '')}</div></div>
+        <div class="m-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn ink" type="button" id="send-ok">${ic('send')}Send</button></div>`);
+      $('#send-ok', m).addEventListener('click', () => { K.shut(); K.toast('Sent to #team'); });
+    }
+  });
+  $('#new').addEventListener('click', () => { $('#in').value = ''; $('#in').placeholder = 'What should Runlet do? Try “check refunds against the policy”'; $('#in').focus(); });
+  $('#usage').addEventListener('click', e => K.menu(e.currentTarget, Object.entries(MODELS).map(([k, m]) => ({ v: k, label: `${m.name} <span class="mut">&nbsp;${m.use}% used</span>`, on: k === S.model })), setModel));
+  $('#share').addEventListener('click', () => { navigator.clipboard?.writeText(location.href).catch(() => {}); K.toast('Link to this run copied'); });
+  $('#ws').addEventListener('click', e => K.menu(e.currentTarget, [{ v: 'n', label: 'Northwind', on: true }, { sep: 1 }, { v: 's', label: 'Settings and API keys' }], v => v === 's' && openKey()));
+  $('#mkkey').addEventListener('click', openKey);
+  function openKey() {
+    const m = K.modal(`<h2>Create an API key</h2><p>For running Runlet from your own code. Runs started with a key show up here too.</p>
+      <form class="stack" style="margin-top:18px" id="key-f"><label><span class="lbl">Name</span><input class="field" name="n" value="Production server" autofocus></label>
+      <div class="m-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn ink" type="submit">Create key</button></div></form>`);
+    $('#key-f', m).addEventListener('submit', e => {
+      e.preventDefault();
+      const r = K.rng(Date.now() % 1e9), k = 'rl_demo_' + Array.from({ length: 24 }, () => 'abcdefghjkmnpqrstuvwxyz23456789'[Math.floor(r() * 31)]).join('');
+      m.innerHTML = `<h2>Copy your key now</h2><p>You won’t see it again. This one is a demo key and does nothing.</p><div class="keybox"><code>${k}</code><button class="btn ink" type="button" id="ck">${ic('copy')}Copy</button></div><div class="m-foot"><button class="btn" type="button" data-close>Done</button></div>`;
+      $('#ck', m).addEventListener('click', () => { navigator.clipboard?.writeText(k).catch(() => {}); K.toast('Key copied'); });
+    });
+  }
+  K.keys({ n: () => $('#new').click(), '/': () => $('#q').focus(), j: () => step(1), k: () => step(-1) });
+  const step = d => { const ids = $$('#runs [data-id]').map(b => b.dataset.id), i = ids.indexOf(S.sel); if (ids[i + d]) { S.sel = ids[i + d]; renderRail(); renderMain(); } };
+
+  renderRail(); renderMain(); renderUsage();
+})();
+</script>
+</body>
+</html>

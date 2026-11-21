@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rebuilds · Kyre</title>
+<meta name="description" content="Six made-up apps as AI builders tend to ship them, marked up in red, and rebuilt by Kyre as working apps. Sample work, not client work.">
+<meta name="theme-color" content="#F4F2EE">
+<script>document.documentElement.classList.add('js')</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="apps.css">
+<script src="main.js" defer></script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="wipe" aria-hidden="true"></div>
+
+<header class="nav-wrap">
+  <nav class="nav" aria-label="Primary">
+    <a class="brand" href="/" aria-label="Kyre, home">kyre<svg class="brand-tick" viewBox="0 0 46 8" aria-hidden="true"><path d="M1.5 5.6C11 2.2 25 2.4 44.5 4.4"/></svg></a>
+    <div class="nav-links">
+      <a href="#cases" data-ai="Features">Rebuilds</a>
+      <a href="#ships" data-ai="How It Works">How it ships</a>
+    </div>
+    <button class="ai-switch" id="ai-switch" type="button" role="switch" aria-checked="false" aria-label="View this page as AI built it"><span class="ai-track"><span class="ai-thumb"></span></span><span class="ai-label">View as AI built it</span></button>
+    <a class="btn" href="#send"><span data-ai="Get Started ✨">Send your URL</span><span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow reveal" data-ai="🚀 NEW · AI-Powered Design">Rebuilds · Vol. 01 · November 2026</p>
+      <h1 class="hero-h reveal" style="--d:.08s" data-ai="Supercharge Your App With AI-Powered Design">
+        <span class="ln">Six apps, as <span class="circled">AI built<svg viewBox="0 0 300 100" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M262 20C214 3 98 1 42 17 8 27 2 58 30 76c40 24 170 26 232 8 34-10 38-44 8-62-22-13-70-17-110-15"/></svg></span> them.</span>
+        <span class="ln">And as we'd <em>rebuild</em> them.</span>
+      </h1>
+      <div class="hero-grid">
+        <p class="hero-intro reveal" style="--d:.16s" data-ai="Transform your vision into reality with our cutting-edge, AI-driven design solutions. Unlock your app's full potential and take your business to the next level! 💡">Six made-up apps<sup><a href="#footnote" aria-label="About these apps">*</a></sup> of the kinds founders build with Lovable, Base44, Bolt and Cursor, each shown the way an AI builder tends to ship it, with <b>28 issues marked in red</b>. Drag the line on each one to see what we'd ship instead, then click around: every rebuild is a working app.</p>
+        <ol class="index reveal" style="--d:.24s" id="cases">
+          <li><a href="#pulseboard"><span class="ix-n">01</span><span class="ix-t">Pulseboard<em>analytics dashboard</em></span><span class="ix-c">5 marks</span></a></li>
+          <li><a href="#runlet"><span class="ix-n">02</span><span class="ix-t">Runlet<em>AI agent workspace</em></span><span class="ix-c">5 marks</span></a></li>
+          <li><a href="#slotwise"><span class="ix-n">03</span><span class="ix-t">Slotwise<em>booking onboarding</em></span><span class="ix-c">4 marks</span></a></li>
+          <li><a href="#mintlane"><span class="ix-n">04</span><span class="ix-t">Mintlane<em>payments dashboard</em></span><span class="ix-c">5 marks</span></a></li>
+          <li><a href="#tickwork"><span class="ix-n">05</span><span class="ix-t">Tickwork<em>issue tracker</em></span><span class="ix-c">5 marks</span></a></li>
+          <li><a href="#closebook"><span class="ix-n">06</span><span class="ix-t">Closebook<em>sales CRM</em></span><span class="ix-c">4 marks</span></a></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 01 PULSEBOARD ============================ -->
+  <section class="case" id="pulseboard" aria-labelledby="pb-h">
+    <div class="wrap">
+      <header class="case-head reveal">
+        <div>
+          <span class="case-n"><b>01</b> / 06</span>
+          <h2 class="case-h" id="pb-h" data-ai="Pulseboard: Next-Gen Analytics">Pulseboard<em>an analytics dashboard</em></h2>
+          <p class="case-sub" data-ai="Powerful insights at your fingertips. Track everything that matters in one beautiful dashboard.">The first screen after signup. It decides whether a new customer comes back on day two.</p>
+        </div>
+        <dl class="case-meta">
+          <div><dt>App type</dt><dd>Self-serve B2B analytics · Seed</dd></div>
+          <div><dt>Rebuild focus</dt><dd>First-session value, hierarchy</dd></div>
+          <div><dt>We'd measure</dt><dd>Day-2 return rate</dd></div>
+          <div><dt>Benchmark</dt><dd>Triple Whale, Northbeam</dd></div>
+        </dl>
+      </header>
+
+      <div class="frame reveal" data-frame>
+        <div class="frame-shell"><div class="frame-core">
+          <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="chrome-title">Pulseboard · Overview</span><span class="chrome-r">1200 × 760</span></div>
+          <div class="view" role="group" aria-label="Pulseboard: AI-built version on the left of the line, Kyre rebuild on the right">
+            <div class="layer after">
+              <iframe class="live" src="live/pulseboard.html?embed" loading="lazy" title="Pulseboard, rebuilt by Kyre: a working app with sample data"></iframe>
+              <span class="tag tag-after">Kyre rebuild · live</span>
+            </div>
+
+            <div class="layer before" aria-hidden="true">
+              <div class="canvas gen pb-b">
+                <div class="pbb-promo grad">🎉 Welcome to Pulseboard! Unlock all Pro features today <span class="pbb-pill">Upgrade now 🚀</span><span class="pbb-x">×</span>
+                  <i class="mark r bl" style="--i:0;inset:4px 340px"><b>1</b><em>An upgrade pitch before a single number.</em></i></div>
+                <div class="pbb-body">
+                  <aside class="pbb-side">
+                    <div class="pbb-logo gtext">⚡ Pulseboard</div>
+                    <div class="pbb-nav">
+                      <span class="on grad">🏠 Dashboard</span><span>📊 Analytics</span><span>📈 Reports</span><span>🎯 Campaigns</span><span>👥 Audience</span><span>⚙️ Settings</span><span>💎 Upgrade to Pro</span>
+                      <i class="mark narrow" style="--i:3;inset:-8px -6px"><b>4</b><em>Seven items at one weight. One is a sales pitch.</em></i>
+                    </div>
+                    <div class="pbb-pro grad"><strong>💎 Go Pro!</strong><small>Unlock unlimited everything ✨</small><span class="pbb-btn">Upgrade</span></div>
+                  </aside>
+                  <div class="pbb-main">
+                    <div class="pbb-head">
+                      <div><h4>Welcome back, User! 👋</h4><p>Here's what's happening with your business today.</p></div>
+                      <div class="pbb-tools"><span class="pbb-search">🔍&nbsp; Search anything...</span><span class="pbb-bell">🔔<span class="pbb-badge">3</span></span><span class="pbb-ava grad">U</span></div>
+                    </div>
+                    <div class="pbb-tiles">
+                      <div class="pbb-tile card"><div class="pbb-icn grad">💰</div><div class="pbb-lbl">Total Revenue</div><div class="pbb-val">$0.00</div><div class="pbb-dl">↑ 0% from last month</div></div>
+                      <div class="pbb-tile card"><div class="pbb-icn grad">👥</div><div class="pbb-lbl">Active Users</div><div class="pbb-val">0</div><div class="pbb-dl">↑ 0% from last month</div></div>
+                      <div class="pbb-tile card"><div class="pbb-icn grad">🎯</div><div class="pbb-lbl">Conversion Rate</div><div class="pbb-val">0%</div><div class="pbb-dl">↑ 0% from last month</div></div>
+                      <div class="pbb-tile card"><div class="pbb-icn grad">📈</div><div class="pbb-lbl">Growth Rate</div><div class="pbb-val">0%</div><div class="pbb-dl">↑ 0% from last month</div></div>
+                      <i class="mark br" style="--i:1;inset:-12px"><b>2</b><em>Four zeros at one weight, each “↑ 0%” in green.</em></i>
+                    </div>
+                    <div class="pbb-row">
+                      <div class="pbb-chart card"><div class="pbb-ct">Revenue Overview 📊<span class="pbb-sel">This Year ▾</span></div><div class="pbb-plot">No data available</div>
+                        <i class="mark in-bl" style="--i:2;inset:-10px"><b>3</b><em>No data, and nothing to click to get some.</em></i></div>
+                      <div class="pbb-act card"><div class="pbb-ct">Recent Activity<span class="pbb-link">View all</span></div><div class="pbb-empty"><span>😴</span><strong>No activity yet</strong>Your activity will appear here.</div></div>
+                    </div>
+                    <div class="pbb-ai grad"><div><strong>🚀 Supercharge your analytics with AI ✨</strong><small>Get AI-powered insights that transform your business.</small></div><span class="pbb-go">Get Started →</span>
+                      <i class="mark tr" style="--i:4;inset:-10px"><b>5</b><em>“Supercharge ✨” says nothing about their data.</em></i></div>
+                  </div>
+                </div>
+              </div>
+              <span class="tag tag-before">AI-built</span>
+            </div>
+
+            <div class="split"><button class="knob" type="button" role="slider" aria-label="Compare the AI-built version with the rebuild" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 6 3.5 10l4 4M12.5 6l4 4-4 4"/></svg></button></div>
+          </div>
+        </div></div>
+        <div class="frame-ctrl">
+          <div class="seg" role="group" aria-label="Show version"><button type="button" data-go="100" aria-pressed="true">AI-built</button><button type="button" data-go="0" aria-pressed="false">Kyre rebuild</button></div>
+          <p class="hint">Drag the line<span class="fine"> · ← → on the handle · The rebuild is live, click around</span></p>
+          <a class="btn open" href="live/pulseboard.html" target="_blank" rel="noopener">Open the live app<span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+        </div>
+      </div>
+
+      <ol class="notes">
+        <li class="reveal"><span class="nn">1</span><div><h3>An upgrade bar on first load</h3><p><b>As built</b>An upgrade pitch sits above the first screen a new customer ever sees.</p><p><b>Rebuild</b>Gone. Trial status sits at the foot of the sidebar, where it's easy to find and easy to ignore.</p></div></li>
+        <li class="reveal" style="--d:.06s"><span class="nn">2</span><div><h3>Four zeros, one weight</h3><p><b>As built</b>Four tiles, all $0.00 or 0%, each with a green “↑ 0%”.</p><p><b>Rebuild</b>Labelled sample data, one number at 48px, three supporting ones, each with a period and a comparison.</p></div></li>
+        <li class="reveal" style="--d:.12s"><span class="nn">3</span><div><h3>An empty chart with no way out</h3><p><b>As built</b>“No data available,” and nothing to click.</p><p><b>Rebuild</b>The chart shows the sample month against the one before, and the banner says how to swap in real data and how long it takes.</p></div></li>
+        <li class="reveal"><span class="nn">4</span><div><h3>A nav that sells</h3><p><b>As built</b>Seven items at the same weight, one of them an upgrade pitch.</p><p><b>Rebuild</b>Five items in the order people use them, then their data sources with connection status.</p></div></li>
+        <li class="reveal" style="--d:.06s"><span class="nn">5</span><div><h3>“Supercharge ✨”</h3><p><b>As built</b>A gradient banner promising AI insights, with no data behind it.</p><p><b>Rebuild</b>Cut. The campaign table, sorted by return on ad spend, answers the question the banner was waving at.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================ 02 RUNLET ============================ -->
+  <section class="case" id="runlet" aria-labelledby="rl-h">
+    <div class="wrap">
+      <header class="case-head reveal">
+        <div>
+          <span class="case-n"><b>02</b> / 06</span>
+          <h2 class="case-h" id="rl-h" data-ai="Runlet: Your AI Copilot">Runlet<em>an AI agent workspace</em></h2>
+          <p class="case-sub" data-ai="Harness the power of AI to automate your workflow and boost productivity like never before.">Where people hand work to an agent, then decide whether to trust what comes back.</p>
+        </div>
+        <dl class="case-meta">
+          <div><dt>App type</dt><dd>AI agent, copilot · Seed</dd></div>
+          <div><dt>Rebuild focus</dt><dd>Visible steps, cost and limits</dd></div>
+          <div><dt>We'd measure</dt><dd>Runs per user in week one</dd></div>
+          <div><dt>Benchmark</dt><dd>ChatGPT, Lindy</dd></div>
+        </dl>
+      </header>
+
+      <div class="frame reveal" data-frame>
+        <div class="frame-shell"><div class="frame-core">
+          <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="chrome-title">Runlet · Weekly churn report</span><span class="chrome-r">1200 × 760</span></div>
+          <div class="view" role="group" aria-label="Runlet: AI-built version on the left of the line, Kyre rebuild on the right">
+            <div class="layer after">
+              <iframe class="live" src="live/runlet.html?embed" loading="lazy" title="Runlet, rebuilt by Kyre: a working app with sample data"></iframe>
+              <span class="tag tag-after">Kyre rebuild · live</span>
+            </div>
+
+            <div class="layer before" aria-hidden="true">
+              <div class="canvas gen rl-b">
+                <aside class="rlb-side">
+                  <div class="rlb-logo gtext">🤖 Runlet AI</div>
+                  <div class="rlb-new grad">+ New Chat</div>
+                  <div class="rlb-lbl">Recent</div>
+                  <div class="rlb-list">
+                    <span class="on">💬 New Chat</span><span>💬 New Chat</span><span>💬 Untitled</span><span>💬 New Chat</span><span>💬 New Chat (2)</span><span>💬 New Chat</span>
+                    <i class="mark narrow" style="--i:0;inset:-8px -4px"><b>1</b><em>Five of six are called “New Chat”.</em></i>
+                  </div>
+                  <div class="rlb-pro grad">⚡ Upgrade to Pro</div>
+                  <div class="rlb-user"><span class="rlb-uav grad">👤</span>user@email.com</div>
+                </aside>
+                <div class="rlb-main">
+                  <div class="rlb-top">
+                    <span class="rlb-model">🧠 Model: Pro-X Ultra ▾<i class="mark r" style="--i:4;inset:-8px"><b>5</b><em>A model name, as the headline.</em></i></span>
+                    <span class="rlb-icons"><span>⚙️</span><span>🌙</span></span>
+                  </div>
+                  <div class="rlb-warn">⚠️ Please add your API key in Settings to unlock all features!<span class="rlb-inp">sk-xxxxxxxxxxxxxxxxxxxx</span><span class="rlb-sv">Save</span>
+                    <i class="mark" style="--i:1;inset:-8px"><b>2</b><em>Asks for a key before it has done anything.</em></i></div>
+                  <div class="rlb-chat">
+                    <div class="rlb-u grad">Pull last week's churn numbers and write a summary for the team</div>
+                    <div class="rlb-a"><span class="rlb-av grad">🤖</span><div class="rlb-bub">Thinking... 🤔<span class="rlb-dots"><span></span><span></span><span></span></span><small>This may take a while ⏳</small></div>
+                      <i class="mark r" style="--i:2;inset:-12px"><b>3</b><em>40 seconds of “Thinking”, with no sign of what it's doing or what it costs.</em></i></div>
+                  </div>
+                  <div class="rlb-toast">❌ Error 429: Something went wrong. Please try again.
+                    <i class="mark t" style="--i:3;inset:-10px"><b>4</b><em>A rate limit, reported as “something went wrong”.</em></i></div>
+                  <div class="rlb-comp"><span>📎</span>Ask me anything... ✨<span class="rlb-send grad">➤</span></div>
+                  <div class="rlb-foot">Runlet AI can make mistakes. Check important info.</div>
+                </div>
+              </div>
+              <span class="tag tag-before">AI-built</span>
+            </div>
+
+            <div class="split"><button class="knob" type="button" role="slider" aria-label="Compare the AI-built version with the rebuild" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 6 3.5 10l4 4M12.5 6l4 4-4 4"/></svg></button></div>
+          </div>
+        </div></div>
+        <div class="frame-ctrl">
+          <div class="seg" role="group" aria-label="Show version"><button type="button" data-go="100" aria-pressed="true">AI-built</button><button type="button" data-go="0" aria-pressed="false">Kyre rebuild</button></div>
+          <p class="hint">Drag the line<span class="fine"> · ← → on the handle · The rebuild is live, click around</span></p>
+          <a class="btn open" href="live/runlet.html" target="_blank" rel="noopener">Open the live app<span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+        </div>
+      </div>
+
+      <ol class="notes">
+        <li class="reveal"><span class="nn">1</span><div><h3>Every chat is “New Chat”</h3><p><b>As built</b>Six conversations, five of them called “New Chat”. Finding last week's run means opening each one.</p><p><b>Rebuild</b>Runs are titled from the brief and grouped by day, with duration or row counts where they help.</p></div></li>
+        <li class="reveal" style="--d:.06s"><span class="nn">2</span><div><h3>An API key on screen one</h3><p><b>As built</b>A yellow banner asks for a key before the product has done anything.</p><p><b>Rebuild</b>The first runs use a shared key. Keys live in settings, with one quiet card in the rail for the people who want them.</p></div></li>
+        <li class="reveal" style="--d:.12s"><span class="nn">3</span><div><h3>A spinner for 40 seconds</h3><p><b>As built</b>“Thinking… 🤔”, with no clue what it's doing or what it's costing.</p><p><b>Rebuild</b>Each step appears as it runs, with what it read and how long it took. The finished run shows total time and cost.</p></div></li>
+        <li class="reveal"><span class="nn">4</span><div><h3>“Something went wrong”</h3><p><b>As built</b>A 429 shown as a generic error, after the work is already lost.</p><p><b>Rebuild</b>Usage sits in the header with the reset time, so people see the limit coming.</p></div></li>
+        <li class="reveal" style="--d:.06s"><span class="nn">5</span><div><h3>A model picker as the headline</h3><p><b>As built</b>“Pro-X Ultra” leads the header. People paying for the product rarely choose by model name.</p><p><b>Rebuild</b>The header shows speed and how much of the limit is left. The model name is a detail inside that chip.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================ 03 SLOTWISE ============================ -->
+  <section class="case" id="slotwise" aria-labelledby="sw-h">
+    <div class="wrap">
+      <header class="case-head reveal">
+        <div>
+          <span class="case-n"><b>03</b> / 06</span>
+          <h2 class="case-h" id="sw-h" data-ai="Slotwise: Seamless Scheduling">Slotwise<em>a booking app's onboarding</em></h2>
+          <p class="case-sub" data-ai="Effortless booking for modern businesses. Get started in minutes, not hours!">Everything between “Sign up” and a booking page someone can share.</p>
+        </div>
+        <dl class="case-meta">
+          <div><dt>App type</dt><dd>Scheduling for small businesses · Seed</dd></div>
+          <div><dt>Rebuild focus</dt><dd>Time to a live page</dd></div>
+          <div><dt>We'd measure</dt><dd>Signups that publish a page</dd></div>
+          <div><dt>Benchmark</dt><dd>Calendly, Cal.com</dd></div>
+        </dl>
+      </header>
+
+      <div class="frame reveal" data-frame>
+        <div class="frame-shell"><div class="frame-core">
+          <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="chrome-title">Slotwise · Set up your page</span><span class="chrome-r">1200 × 760</span></div>
+          <div class="view" role="group" aria-label="Slotwise: AI-built version on the left of the line, Kyre rebuild on the right">
+            <div class="layer after">
+              <iframe class="live" src="live/slotwise.html?embed" loading="lazy" title="Slotwise, rebuilt by Kyre: a working app with sample data"></iframe>
+              <span class="tag tag-after">Kyre rebuild · live</span>
+            </div>
+
+            <div class="layer before" aria-hidden="true">
+              <div class="canvas gen sw-b">
+                <div class="swb-l">
+                  <div class="swb-logo gtext">📅 Slotwise</div>
+                  <div class="swb-prog"><div><span>Step 1 of 7</span><span>14% complete</span></div><div class="swb-track"><span class="grad"></span></div>
+                    <i class="mark r" style="--i:0;inset:-8px"><b>1</b><em>Seven steps before they see a booking page.</em></i></div>
+                  <h4>Welcome to Slotwise! 🎉</h4>
+                  <p>Let's get you set up! It only takes a few minutes.</p>
+                  <div class="swb-form">
+                    <div class="swb-f"><label>Full Name <span>*</span></label><div class="swb-i">John Doe</div></div>
+                    <div class="swb-f"><label>Email Address <span>*</span></label><div class="swb-i">john@example.com</div></div>
+                    <div class="swb-f"><label>Phone Number <span>*</span></label><div class="swb-i">+1 (555) 000-0000</div></div>
+                    <div class="swb-f"><label>Company Name <span>*</span></label><div class="swb-i">Acme Inc.</div></div>
+                    <div class="swb-f"><label>Company Size <span>*</span></label><div class="swb-i">Select... <span>▾</span></div></div>
+                    <div class="swb-f"><label>Industry <span>*</span></label><div class="swb-i">Select... <span>▾</span></div></div>
+                    <div class="swb-f"><label>How did you hear about us? <span>*</span></label><div class="swb-i">Select... <span>▾</span></div></div>
+                    <div class="swb-f"><label>Website</label><div class="swb-i">https://</div></div>
+                    <div class="swb-f"><label>Password <span>*</span></label><div class="swb-i">••••••••</div></div>
+                    <div class="swb-f"><label>Confirm Password <span>*</span></label><div class="swb-i">••••••••</div></div>
+                    <i class="mark r" style="--i:1;inset:-12px"><b>2</b><em>Ten fields on step one. A booking page needs two of them.</em></i>
+                  </div>
+                  <div class="swb-pay"><strong>💳 Payment details</strong> <small>(required to start your free trial)</small><div><span class="swb-i">1234 5678 9012 3456</span><span class="swb-i">MM / YY</span><span class="swb-i">CVC</span></div>
+                    <i class="mark r" style="--i:2;inset:-8px"><b>3</b><em>A card, before they've seen anything.</em></i></div>
+                  <div class="swb-cta grad">Continue →</div>
+                  <div class="swb-skip">Skip for now</div>
+                </div>
+                <div class="swb-r grad">
+                  <span class="swb-blob" style="width:320px;height:320px;right:-90px;top:-80px"></span>
+                  <span class="swb-blob" style="width:180px;height:180px;left:-60px;top:260px"></span>
+                  <span class="swb-blob" style="width:120px;height:120px;right:60px;bottom:-30px"></span>
+                  <h5>Join 10,000+ businesses already using Slotwise</h5>
+                  <div class="swb-stars">⭐⭐⭐⭐⭐</div>
+                  <div class="swb-quote">“Slotwise completely changed my life! 🙌 I can't imagine running my business without it.”<small><span class="swb-qav"></span>Sarah K., CEO</small></div>
+                  <div class="swb-avs"><span style="background:#fbbf24"></span><span style="background:#34d399"></span><span style="background:#60a5fa"></span><span style="background:#1f2937">+9k</span></div>
+                  <div class="swb-trust">🔒 Secure &amp; trusted by thousands</div>
+                  <i class="mark in-bl" style="--i:3;inset:36px 28px"><b>4</b><em>Half the screen on a stock quote.</em></i>
+                </div>
+              </div>
+              <span class="tag tag-before">AI-built</span>
+            </div>
+
+            <div class="split"><button class="knob" type="button" role="slider" aria-label="Compare the AI-built version with the rebuild" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 6 3.5 10l4 4M12.5 6l4 4-4 4"/></svg></button></div>
+          </div>
+        </div></div>
+        <div class="frame-ctrl">
+          <div class="seg" role="group" aria-label="Show version"><button type="button" data-go="100" aria-pressed="true">AI-built</button><button type="button" data-go="0" aria-pressed="false">Kyre rebuild</button></div>
+          <p class="hint">Drag the line<span class="fine"> · ← → on the handle · The rebuild is live, click around</span></p>
+          <a class="btn open" href="live/slotwise.html" target="_blank" rel="noopener">Open the live app<span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+        </div>
+      </div>
+
+      <ol class="notes">
+        <li class="reveal"><span class="nn">1</span><div><h3>Seven steps</h3><p><b>As built</b>“Step 1 of 7”, before they've seen what they're signing up for.</p><p><b>Rebuild</b>Three steps, and the label says what this one is for.</p></div></li>
+        <li class="reveal" style="--d:.06s"><span class="nn">2</span><div><h3>Ten fields on step one</h3><p><b>As built</b>Name, phone, company size, industry, referral source, and the password twice.</p><p><b>Rebuild</b>Business name, one service, opening hours. The account comes after the page exists.</p></div></li>
+        <li class="reveal" style="--d:.12s"><span class="nn">3</span><div><h3>A card up front</h3><p><b>As built</b>A card form on the first screen, for a free trial.</p><p><b>Rebuild</b>“No card needed to publish your page,” right under the button. Billing waits for the first booking.</p></div></li>
+        <li class="reveal"><span class="nn">4</span><div><h3>Half the screen on a quote</h3><p><b>As built</b>A gradient panel with a five-star claim and a stock testimonial.</p><p><b>Rebuild</b>That half shows their own booking page, updating as they type.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================ 04 MINTLANE ============================ -->
+  <section class="case" id="mintlane" aria-labelledby="ml-h">
+    <div class="wrap">
+      <header class="case-head reveal">
+        <div>
+          <span class="case-n"><b>04</b> / 06</span>
+          <h2 class="case-h" id="ml-h" data-ai="Mintlane: Smarter Payments">Mintlane<em>a payments dashboard</em></h2>
+          <p class="case-sub" data-ai="Next-generation payments infrastructure for the modern internet economy.">Where a gym owner checks they got paid, and what to do when a card fails.</p>
+        </div>
+        <dl class="case-meta">
+          <div><dt>App type</dt><dd>Payments for studios and gyms · Series A</dd></div>
+          <div><dt>Rebuild focus</dt><dd>Readable money, safe refunds</dd></div>
+          <div><dt>We'd measure</dt><dd>Failed payments recovered</dd></div>
+          <div><dt>Benchmark</dt><dd>Stripe Dashboard</dd></div>
+        </dl>
+      </header>
+
+      <div class="frame reveal" data-frame>
+        <div class="frame-shell"><div class="frame-core">
+          <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="chrome-title">Mintlane · Home</span><span class="chrome-r">1200 × 760</span></div>
+          <div class="view" role="group" aria-label="Mintlane: AI-built version on the left of the line, Kyre rebuild on the right">
+            <div class="layer after">
+              <iframe class="live" src="live/mintlane.html?embed" loading="lazy" title="Mintlane, rebuilt by Kyre: a working app with sample data"></iframe>
+              <span class="tag tag-after">Kyre rebuild · live</span>
+            </div>
+
+            <div class="layer before" aria-hidden="true">
+              <div class="canvas gen ml-b">
+                <aside class="mlb-side">
+                  <div class="mlb-logo gtext">💸 Mintlane</div>
+                  <div class="mlb-nav"><span class="on grad">🏠 Dashboard</span><span>💳 Transactions</span><span>👥 Customers</span><span>📊 Analytics</span><span>🔗 Integrations</span><span>⚙️ Settings</span></div>
+                  <div class="mlb-help">💬 Need help? Chat with our AI assistant ✨</div>
+                </aside>
+                <div class="mlb-main">
+                  <div class="mlb-head">
+                    <div><h4>Dashboard 💰</h4><p>Welcome back, Admin! Here's your financial overview.</p></div>
+                    <span class="mlb-new grad">+ Create Payment</span>
+                  </div>
+                  <div class="mlb-top">
+                    <div class="mlb-bal grad"><small>Total Balance</small><b>$10,603.00</b><span>↑ 12.5% this month</span>
+                      <i class="mark r" style="--i:0;inset:-10px"><b>1</b><em>One balance. Part of it hasn't arrived yet.</em></i></div>
+                    <div class="mlb-stat card"><small>Total Volume</small><b>$41,380.00</b><em>↑ 12.1%</em></div>
+                    <div class="mlb-stat card"><small>Success Rate</small><b>94%</b><em>↑ 2.3%</em></div>
+                  </div>
+                  <div class="mlb-tbl card">
+                    <div class="mlb-tt">Recent Transactions<span class="mlb-link">View all →</span></div>
+                    <table>
+                      <thead><tr><th>ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Created</th><th></th></tr></thead>
+                      <tbody>
+                        <tr><td><code>py_3PqL9xK2</code></td><td>Maya Chen</td><td><span class="mk"><code>amount: 8900</code><i class="mark t" style="--i:1;inset:-8px -10px"><b>2</b><em>$89, in cents. Times in UTC.</em></i></span></td><td><span class="mlb-st ok">succeeded</span></td><td><code>2026-11-19T11:40:22.000Z</code></td><td><span class="mk"><span class="mlb-rf">Refund</span><i class="mark br" style="--i:2;inset:-8px"><b>3</b><em>On every row. One click, no confirm.</em></i></span></td></tr>
+                        <tr><td><code>py_3PqK1mW8</code></td><td>Leo Grant</td><td><code>amount: 14900</code></td><td><span class="mlb-st ok">succeeded</span></td><td><code>2026-11-19T10:12:05.000Z</code></td><td><span class="mlb-rf">Refund</span></td></tr>
+                        <tr><td><code>py_3PqJ7tR4</code></td><td>Hannah Brooks</td><td><code>amount: 8900</code></td><td><span class="mk"><span class="mlb-st no">failed</span><span class="mlb-err">card_declined: insufficient_funds</span><i class="mark r" style="--i:3;inset:-8px"><b>4</b><em>A decline code, and no next step.</em></i></span></td><td><code>2026-11-19T09:03:47.000Z</code></td><td><span class="mlb-rf">Refund</span></td></tr>
+                        <tr><td><code>py_test_4eC39H</code></td><td><span class="mk">Test Customer<i class="mark" style="--i:4;inset:-8px -12px"><b>5</b><em>Test payments, mixed in with real ones.</em></i></span></td><td><code>amount: 100</code></td><td><span class="mlb-st ok">succeeded</span></td><td><code>2026-11-19T08:55:10.000Z</code></td><td><span class="mlb-rf">Refund</span></td></tr>
+                        <tr><td><code>py_3PqH2nB6</code></td><td>Jordan Ellis</td><td><code>amount: 89000</code></td><td><span class="mlb-st wn">needs_response</span></td><td><code>2026-11-18T16:21:33.000Z</code></td><td><span class="mlb-rf">Refund</span></td></tr>
+                        <tr><td><code>py_test_9xZ11Q</code></td><td>test@test.com</td><td><code>amount: 2200</code></td><td><span class="mlb-st ok">succeeded</span></td><td><code>2026-11-18T14:02:19.000Z</code></td><td><span class="mlb-rf">Refund</span></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <span class="tag tag-before">AI-built</span>
+            </div>
+
+            <div class="split"><button class="knob" type="button" role="slider" aria-label="Compare the AI-built version with the rebuild" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 6 3.5 10l4 4M12.5 6l4 4-4 4"/></svg></button></div>
+          </div>
+        </div></div>
+        <div class="frame-ctrl">
+          <div class="seg" role="group" aria-label="Show version"><button type="button" data-go="100" aria-pressed="true">AI-built</button><button type="button" data-go="0" aria-pressed="false">Kyre rebuild</button></div>
+          <p class="hint">Drag the line<span class="fine"> · ← → on the handle · The rebuild is live, click around</span></p>
+          <a class="btn open" href="live/mintlane.html" target="_blank" rel="noopener">Open the live app<span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+        </div>
+      </div>
+
+      <ol class="notes">
+        <li class="reveal"><span class="nn">1</span><div><h3>One balance for everything</h3><p><b>As built</b>“Total balance $10,603” mixes money they can spend with money still on its way, and doesn't say when any of it arrives.</p><p><b>Rebuild</b>Available and pending side by side, then the next payout with its date and the account it goes to.</p></div></li>
+        <li class="reveal" style="--d:.06s"><span class="nn">2</span><div><h3>Cents and UTC timestamps</h3><p><b>As built</b>8900 for an $89 membership, and times like 2026-11-19T11:40:22.000Z, straight from the API.</p><p><b>Rebuild</b>$89.00, “Today, 11:40”, and what the customer bought.</p></div></li>
+        <li class="reveal" style="--d:.12s"><span class="nn">3</span><div><h3>Refund on every row</h3><p><b>As built</b>A red Refund button on every payment, including the failed one. One click, no amount, no confirmation.</p><p><b>Rebuild</b>Refunds live inside the payment, with an amount you can change, a reason, and the effect on the balance before you confirm.</p></div></li>
+        <li class="reveal"><span class="nn">4</span><div><h3>A decline code, and nothing to do</h3><p><b>As built</b>“card_declined: insufficient_funds” in red, and no way to act on it.</p><p><b>Rebuild</b>“Not enough money on the card”, when it retries next, a Retry button, and a card-update link to send the customer.</p></div></li>
+        <li class="reveal" style="--d:.06s"><span class="nn">5</span><div><h3>Test payments in the live list</h3><p><b>As built</b>py_test_ rows sit between real payments and count toward the totals.</p><p><b>Rebuild</b>Test mode is a switch with an orange banner. Live numbers never include test payments.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================ 05 TICKWORK ============================ -->
+  <section class="case" id="tickwork" aria-labelledby="tk-h">
+    <div class="wrap">
+      <header class="case-head reveal">
+        <div>
+          <span class="case-n"><b>05</b> / 06</span>
+          <h2 class="case-h" id="tk-h" data-ai="Tickwork: AI-Powered Productivity">Tickwork<em>an issue tracker</em></h2>
+          <p class="case-sub" data-ai="Supercharge your team's productivity with intelligent task management!">Where a team decides what to work on this cycle, and checks it's getting done.</p>
+        </div>
+        <dl class="case-meta">
+          <div><dt>App type</dt><dd>Issue tracker for product teams · Seed</dd></div>
+          <div><dt>Rebuild focus</dt><dd>Priority that means something, speed</dd></div>
+          <div><dt>We'd measure</dt><dd>Issues closed per cycle</dd></div>
+          <div><dt>Benchmark</dt><dd>Linear, Jira</dd></div>
+        </dl>
+      </header>
+
+      <div class="frame reveal" data-frame>
+        <div class="frame-shell"><div class="frame-core">
+          <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="chrome-title">Tickwork · Cycle 14</span><span class="chrome-r">1200 × 760</span></div>
+          <div class="view" role="group" aria-label="Tickwork: AI-built version on the left of the line, Kyre rebuild on the right">
+            <div class="layer after">
+              <iframe class="live" src="live/tickwork.html?embed" loading="lazy" title="Tickwork, rebuilt by Kyre: a working app with sample data"></iframe>
+              <span class="tag tag-after">Kyre rebuild · live</span>
+            </div>
+
+            <div class="layer before" aria-hidden="true">
+              <div class="canvas gen tk-b">
+                <div class="tkb-head">
+                  <span class="tkb-logo gtext">✅ Tickwork</span>
+                  <span class="tkb-sprint">Sprint 🚀<i class="mark" style="--i:4;inset:-9px -10px"><b>5</b><em>No dates, no finish line.</em></i></span>
+                  <span class="tkb-ai grad">✨ AI Generate Tasks<i class="mark br" style="--i:2;inset:-10px"><b>3</b><em>The biggest button makes more tasks.</em></i></span>
+                  <span class="tkb-plus">+ Add Task</span>
+                </div>
+                <div class="tkb-filters"><span>All Tasks</span><span>My Tasks</span><span>🔥 High Priority</span><span>📅 This Week</span></div>
+                <div class="tkb-cols">
+                  <div class="tkb-col"><h5>📝 To Do <span>3</span></h5>
+                    <div class="tkb-card card"><b>Fix bug</b><p>Something is broken in sync, look into it</p><div class="tkb-row"><span class="mk"><span class="tkb-hi">🔥 High</span><i class="mark" style="--i:0;inset:-8px -9px"><b>1</b><em>Every card is High. So none of them are.</em></i></span><span class="tkb-un">👤</span></div></div>
+                    <div class="tkb-card card"><b>Update onboarding</b><p>Make it better</p><div class="tkb-row"><span class="tkb-hi">🔥 High</span><span class="tkb-un">👤</span></div></div>
+                    <div class="tkb-card card"><b>Performance</b><p>App feels slow 🐢</p><div class="tkb-row"><span class="tkb-hi">🔥 High</span><span class="tkb-un">👤</span></div></div>
+                  </div>
+                  <div class="tkb-col"><h5>⚡ In Progress <span>3</span></h5>
+                    <div class="tkb-card card"><b>Login issue</b><p>Some users can't log in</p><div class="tkb-row"><span class="tkb-hi">🔥 High</span><span class="tkb-un">👤</span></div></div>
+                    <div class="tkb-card card"><b>New dashboard ✨</b><p>Implement the new design</p><div class="tkb-row"><span class="tkb-hi">🔥 High</span><span class="mk tkb-unm"><span class="tkb-un">👤</span><i class="mark r" style="--i:3;inset:-8px"><b>4</b><em>Nobody owns anything.</em></i></span></div></div>
+                    <div class="tkb-card card"><b>API stuff</b><p>Refactor</p><div class="tkb-row"><span class="tkb-hi">🔥 High</span><span class="tkb-un">👤</span></div></div>
+                  </div>
+                  <div class="tkb-col"><h5>👀 Review <span>2</span></h5>
+                    <div class="tkb-card card"><span class="mk"><b>Fix bug</b><i class="mark r" style="--i:1;inset:-8px -10px"><b>2</b><em>A second “Fix bug”, and no IDs to tell them apart.</em></i></span><p>Fixed the thing from Slack</p><div class="tkb-row"><span class="tkb-hi">🔥 High</span><span class="tkb-un">👤</span></div></div>
+                    <div class="tkb-card card"><b>Dark mode 🌙</b><p>Users want dark mode</p><div class="tkb-row"><span class="tkb-hi">🔥 High</span><span class="tkb-un">👤</span></div></div>
+                  </div>
+                  <div class="tkb-col"><h5>✅ Done <span>2</span></h5>
+                    <div class="tkb-card card"><b>Setup project 🎉</b><p>Initial setup</p><div class="tkb-row"><span class="tkb-hi">🔥 High</span><span class="tkb-un">👤</span></div></div>
+                    <div class="tkb-card card"><b>Add AI features ✨</b><p>AI everywhere</p><div class="tkb-row"><span class="tkb-hi">🔥 High</span><span class="tkb-un">👤</span></div></div>
+                  </div>
+                </div>
+              </div>
+              <span class="tag tag-before">AI-built</span>
+            </div>
+
+            <div class="split"><button class="knob" type="button" role="slider" aria-label="Compare the AI-built version with the rebuild" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 6 3.5 10l4 4M12.5 6l4 4-4 4"/></svg></button></div>
+          </div>
+        </div></div>
+        <div class="frame-ctrl">
+          <div class="seg" role="group" aria-label="Show version"><button type="button" data-go="100" aria-pressed="true">AI-built</button><button type="button" data-go="0" aria-pressed="false">Kyre rebuild</button></div>
+          <p class="hint">Drag the line<span class="fine"> · ← → on the handle · The rebuild is live, click around</span></p>
+          <a class="btn open" href="live/tickwork.html" target="_blank" rel="noopener">Open the live app<span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+        </div>
+      </div>
+
+      <ol class="notes">
+        <li class="reveal"><span class="nn">1</span><div><h3>Everything is High</h3><p><b>As built</b>Ten cards, ten “🔥 High” tags. The tag stops meaning anything.</p><p><b>Rebuild</b>Four levels with their own marks. This cycle has one Urgent issue, and it sits at the top of its group.</p></div></li>
+        <li class="reveal" style="--d:.06s"><span class="nn">2</span><div><h3>Two cards called “Fix bug”</h3><p><b>As built</b>Vague titles and no IDs, so nobody can say which one they mean in standup.</p><p><b>Rebuild</b>Every issue has an ID like TCK-142 and a title that says what's broken.</p></div></li>
+        <li class="reveal" style="--d:.12s"><span class="nn">3</span><div><h3>A button that writes tasks</h3><p><b>As built</b>“✨ AI Generate Tasks” is the biggest thing on the board.</p><p><b>Rebuild</b>“New issue”, with C as the shortcut. The board is for the work the team already has.</p></div></li>
+        <li class="reveal"><span class="nn">4</span><div><h3>Nobody owns anything</h3><p><b>As built</b>A grey placeholder avatar on every card.</p><p><b>Rebuild</b>Every issue shows its owner. Unassigned ones get a dashed circle, so the gaps are easy to spot.</p></div></li>
+        <li class="reveal" style="--d:.06s"><span class="nn">5</span><div><h3>A sprint with no end</h3><p><b>As built</b>“Sprint 🚀”, with no dates and no sense of progress.</p><p><b>Rebuild</b>“Cycle 14 · Nov 11 – 24”, a progress bar, and the number of days left.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================ 06 CLOSEBOOK ============================ -->
+  <section class="case" id="closebook" aria-labelledby="cb-h">
+    <div class="wrap">
+      <header class="case-head reveal">
+        <div>
+          <span class="case-n"><b>06</b> / 06</span>
+          <h2 class="case-h" id="cb-h" data-ai="Closebook: Close More Deals">Closebook<em>a sales CRM</em></h2>
+          <p class="case-sub" data-ai="The all-in-one CRM that helps you close deals faster than ever.">Where a sales team sees what the quarter is worth, and which deals need a push today.</p>
+        </div>
+        <dl class="case-meta">
+          <div><dt>App type</dt><dd>Sales CRM · Series A</dd></div>
+          <div><dt>Rebuild focus</dt><dd>A next step on every deal</dd></div>
+          <div><dt>We'd measure</dt><dd>Open deals with a dated next step</dd></div>
+          <div><dt>Benchmark</dt><dd>HubSpot, Attio</dd></div>
+        </dl>
+      </header>
+
+      <div class="frame reveal" data-frame>
+        <div class="frame-shell"><div class="frame-core">
+          <div class="chrome"><span class="dots"><i></i><i></i><i></i></span><span class="chrome-title">Closebook · Pipeline</span><span class="chrome-r">1200 × 760</span></div>
+          <div class="view" role="group" aria-label="Closebook: AI-built version on the left of the line, Kyre rebuild on the right">
+            <div class="layer after">
+              <iframe class="live" src="live/closebook.html?embed" loading="lazy" title="Closebook, rebuilt by Kyre: a working app with sample data"></iframe>
+              <span class="tag tag-after">Kyre rebuild · live</span>
+            </div>
+
+            <div class="layer before" aria-hidden="true">
+              <div class="canvas gen cb-b">
+                <div class="cbb-head"><h4>Sales Pipeline 🎯</h4><span class="cbb-tip">Drag deals to update their stage!</span><span class="cbb-add grad">+ Add Deal ✨</span></div>
+                <div class="cbb-stats">
+                  <div class="cbb-stat card"><small>Total Deals 📊</small><b>13</b></div>
+                  <div class="cbb-stat card"><small>Total Value 💰</small><b>$866,000</b></div>
+                  <div class="cbb-stat card"><small>Win Rate 🏆</small><b>68%</b></div>
+                  <div class="cbb-stat card"><small>Avg Deal Size 📈</small><b>$66,615</b></div>
+                </div>
+                <div class="cbb-cols">
+                  <div class="cbb-col" style="--c:#a78bfa"><h5><span class="mk">Lead<i class="mark r" style="--i:0;inset:-8px -10px"><b>1</b><em>No totals. What is the quarter worth?</em></i></span></h5>
+                    <div class="cbb-card card"><b>Northpeak Logistics</b><strong>$48,000</strong><div class="cbb-bar"><i class="grad" style="width:10%"></i></div><div class="cbb-meta"><span>👤 Ritu</span><span>10%</span></div></div>
+                    <div class="cbb-card card"><span class="cbb-hot">🔥 Hot deal</span><b>Ferro &amp; Lane</b><strong>$22,000</strong><div class="cbb-bar"><i class="grad" style="width:10%"></i></div><div class="cbb-meta"><span>👤 Tom</span><span>10%</span></div><i class="mark narrow" style="--i:1;inset:-10px"><b>2</b><em>“Hot”, by a rule nobody can name.</em></i></div>
+                    <div class="cbb-card card"><b>Calder Freight</b><strong>$65,000</strong><div class="cbb-bar"><i class="grad" style="width:10%"></i></div><div class="cbb-meta"><span>👤 James</span><span>10%</span></div></div>
+                  </div>
+                  <div class="cbb-col" style="--c:#60a5fa"><h5>Contacted</h5>
+                    <div class="cbb-card card"><b>Hollis Supply Co</b><strong>$84,000</strong><div class="cbb-bar"><i class="grad" style="width:25%"></i></div><div class="cbb-meta"><span>👤 Sofia</span><span>25%</span></div></div>
+                    <div class="cbb-card card"><b>Juniper Health</b><strong>$36,000</strong><div class="cbb-bar"><i class="grad" style="width:25%"></i></div><div class="cbb-meta"><span>👤 Ritu</span><span>25%</span></div><i class="mark r" style="--i:2;inset:-10px"><b>3</b><em>Quiet for 18 days. Looks like the rest.</em></i></div>
+                    <div class="cbb-card card"><b>Orbit Retail</b><strong>$52,000</strong><div class="cbb-bar"><i class="grad" style="width:25%"></i></div><div class="cbb-meta"><span>👤 Tom</span><span>25%</span></div></div>
+                  </div>
+                  <div class="cbb-col" style="--c:#f472b6"><h5>Proposal</h5>
+                    <div class="cbb-card card"><b>Meridian Ports</b><strong>$120,000</strong><div class="cbb-bar"><i class="grad" style="width:50%"></i></div><div class="cbb-meta"><span>👤 James</span><span>50%</span></div></div>
+                    <div class="cbb-card card"><b>Kestrel Foods</b><strong>$45,000</strong><div class="cbb-bar"><i class="grad" style="width:50%"></i></div><div class="cbb-meta"><span>👤 Sofia</span><span>50%</span></div></div>
+                    <div class="cbb-card card"><b>Blue Fen Outdoor</b><strong>$28,000</strong><div class="cbb-bar"><i class="grad" style="width:50%"></i></div><div class="cbb-meta"><span>👤 Ritu</span><span>50%</span></div></div>
+                  </div>
+                  <div class="cbb-col" style="--c:#fb923c"><h5>Negotiation</h5>
+                    <div class="cbb-card card"><b>Atlas Cold Chain</b><strong>$150,000</strong><div class="cbb-bar"><i class="grad" style="width:70%"></i></div><div class="cbb-meta"><span>👤 Sofia</span><span>70%</span></div><i class="mark tr" style="--i:3;inset:-10px"><b>4</b><em>Nothing says what happens next.</em></i></div>
+                    <div class="cbb-card card"><b>Pinecrest Grocers</b><strong>$62,000</strong><div class="cbb-bar"><i class="grad" style="width:70%"></i></div><div class="cbb-meta"><span>👤 James</span><span>70%</span></div></div>
+                  </div>
+                  <div class="cbb-col" style="--c:#34d399"><h5>Closed Won 🎉</h5>
+                    <div class="cbb-card card"><b>Vantage Logistics</b><strong>$96,000</strong><div class="cbb-bar"><i class="grad" style="width:100%"></i></div><div class="cbb-meta"><span>👤 Tom</span><span>100%</span></div></div>
+                    <div class="cbb-card card"><b>Solstice Pharma</b><strong>$58,000</strong><div class="cbb-bar"><i class="grad" style="width:100%"></i></div><div class="cbb-meta"><span>👤 Ritu</span><span>100%</span></div></div>
+                  </div>
+                </div>
+              </div>
+              <span class="tag tag-before">AI-built</span>
+            </div>
+
+            <div class="split"><button class="knob" type="button" role="slider" aria-label="Compare the AI-built version with the rebuild" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 6 3.5 10l4 4M12.5 6l4 4-4 4"/></svg></button></div>
+          </div>
+        </div></div>
+        <div class="frame-ctrl">
+          <div class="seg" role="group" aria-label="Show version"><button type="button" data-go="100" aria-pressed="true">AI-built</button><button type="button" data-go="0" aria-pressed="false">Kyre rebuild</button></div>
+          <p class="hint">Drag the line<span class="fine"> · ← → on the handle · The rebuild is live, click around</span></p>
+          <a class="btn open" href="live/closebook.html" target="_blank" rel="noopener">Open the live app<span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 11 11 5M6 5h5v5"/></svg></span></a>
+        </div>
+      </div>
+
+      <ol class="notes">
+        <li class="reveal"><span class="nn">1</span><div><h3>Columns with no totals</h3><p><b>As built</b>Five stages of deals, and the only total is a stat card that adds up everything, won or not.</p><p><b>Rebuild</b>Every stage shows its total and its weighted value. The header tracks the Q4 forecast against target, and moves when a deal does.</p></div></li>
+        <li class="reveal" style="--d:.06s"><span class="nn">2</span><div><h3>A “Hot deal” badge</h3><p><b>As built</b>One card says “🔥 Hot deal”. It's the smallest deal on the board, and its next step is four days overdue.</p><p><b>Rebuild</b>No badges. Cards flag what's true: an overdue next step in red, a quiet deal in amber.</p></div></li>
+        <li class="reveal" style="--d:.12s"><span class="nn">3</span><div><h3>Stale deals blend in</h3><p><b>As built</b>Nobody has touched Juniper Health in 18 days. Its card looks like every other card.</p><p><b>Rebuild</b>An amber edge and “Quiet 18d”. Logging a call or email clears it.</p></div></li>
+        <li class="reveal"><span class="nn">4</span><div><h3>No next steps</h3><p><b>As built</b>Each card shows a name, a value and a probability bar.</p><p><b>Rebuild</b>Every card says what happens next and when. A deal with no next step says so, and shows up under Needs attention.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================ HOW IT SHIPS ============================ -->
+  <section class="ships" id="ships" aria-labelledby="ships-h">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <h2 id="ships-h" data-ai="How It Works">How a rebuild ships</h2>
+        <p data-ai="Our proven 4-step process delivers results that speak for themselves.">About a week for an app, about two for a dashboard, from your URL to a merged pull request.</p>
+      </div>
+      <ol class="ship-list reveal">
+        <li><span class="ship-d">Day 0</span><h3 data-ai="🔍 Discovery">You send a URL</h3><p data-ai="We dive deep into your vision to understand your unique needs.">We sign up the way your customers do and record the first session, start to finish.</p></li>
+        <li><span class="ship-d">Day 1</span><h3 data-ai="🧠 AI Analysis">Teardown</h3><p data-ai="Our AI analyzes your app to unlock hidden opportunities.">Every issue marked like the ones above, ranked by what it's likely costing you in signups or retention.</p></li>
+        <li><span class="ship-d">Days 2–6</span><h3 data-ai="⚡ Build">Rebuild</h3><p data-ai="We craft stunning, pixel-perfect experiences that convert.">In your repo, on your stack. The screens that matter most go first.</p></li>
+        <li><span class="ship-d">Day 7</span><h3 data-ai="🚀 Launch">Ship</h3><p data-ai="Launch with confidence and watch your business soar!">Merged and deployed, with the one number the redesign is judged on.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================ SEND ============================ -->
+  <section class="send" id="send" aria-labelledby="send-h">
+    <div class="wrap">
+      <div class="send-shell reveal"><div class="send-core">
+        <h2 id="send-h" data-ai="Ready to Transform Your App? 🚀">Send us your <span class="under">URL<svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M4 13C52 6 124 5 196 9"/></svg></span>.</h2>
+        <p data-ai="Join thousands of happy customers who have supercharged their apps with our revolutionary AI-powered solutions.">We'll sign up like a customer, mark up what we find the way we did above, and send you the report. It's free, and it's yours to keep either way.</p>
+        <form class="url-form" action="mailto:aditya@trykyre.com" method="get" novalidate>
+          <div class="url-shell">
+            <label class="url-core"><span class="url-pre" aria-hidden="true">https://</span><span class="sr">Your app's URL</span><input name="url" type="text" inputmode="url" autocomplete="url" autocapitalize="off" spellcheck="false" placeholder="yourapp.com"><button class="btn" type="submit"><span data-ai="Get Started Free">Send</span><span class="btn-ic" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 11 11 5M6 5h5v5"/></svg></span></button></label>
+          </div>
+          <p class="form-msg" role="status"></p>
+        </form>
+      </div></div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot-note" id="footnote"><b>*</b>Pulseboard, Runlet, Slotwise, Mintlane, Tickwork and Closebook are made-up apps running on sample data. They are sample rebuilds, not client work, and their AI-built versions are illustrations. Benchmarks name the products we hold each rebuild up against. Kyre isn't affiliated with them.</p>
+    <div class="foot-row">
+      <a class="brand" href="#top">kyre</a>
+      <a href="mailto:aditya@trykyre.com">aditya@trykyre.com</a>
+      <span>© 2026 Kyre</span>
+    </div>
+  </div>
+</footer>
+
+<div class="ai-toast" role="status" inert>
+  <span>This is the page an AI builder would make.</span>
+  <button type="button">Turn it off</button>
+</div>
+</body>
+</html>

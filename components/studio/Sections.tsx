@@ -782,6 +782,83 @@ function LinkedIn() {
   );
 }
 
+/* ---- rebuilds: six made-up apps, each rebuilt as a working app ---------------
+   The full showcase is a static page of its own (public/rebuilds/), with a
+   drag-to-compare frame per app; these cards lead into it. The apps, their
+   data and their AI-built versions are made up, and every card says so. */
+
+const REBUILDS = [
+  ["pulseboard", "Pulseboard", "Analytics dashboard", "Seed", "The first screen after signup. It decides whether a new customer comes back on day two.", "Day-2 return rate", 5],
+  ["runlet", "Runlet", "AI agent workspace", "Seed", "Where people hand work to an agent, then decide whether to trust what comes back.", "Runs per user in week one", 5],
+  ["slotwise", "Slotwise", "Booking app onboarding", "Seed", "Everything between \u201cSign up\u201d and a booking page someone can share.", "Signups that publish a page", 4],
+  ["mintlane", "Mintlane", "Payments dashboard", "Series A", "Where a gym owner checks they got paid, and what to do when a card fails.", "Failed payments recovered", 5],
+  ["tickwork", "Tickwork", "Issue tracker", "Seed", "Where a team decides what to work on this cycle, and checks it\u2019s getting done.", "Issues closed per cycle", 5],
+  ["closebook", "Closebook", "Sales CRM", "Series A", "Where a sales team sees what the quarter is worth, and which deals need a push today.", "Open deals with a dated next step", 4],
+] as const;
+
+export function Rebuilds() {
+  return (
+    <section className={ui.section} id="rebuilds">
+      <div className={ui.wrap}>
+        <Head
+          tag="Sample rebuilds"
+          lede="Six made-up apps of the kinds founders build with AI tools, each marked up the way an AI builder tends to ship it and rebuilt by us as a working app you can click around. Sample work on sample data, not client work."
+        >
+          Six rebuilds. <span>Every one of them works.</span>
+        </Head>
+        <div className={ui.rbGrid}>
+          {REBUILDS.map(([id, name, kind, stage, line, measure, marks], i) => (
+            <Reveal key={id} className={ui.shell} delay={(i % 3) * 90}>
+              <article className={`${ui.core} ${ui.rbCard}`}>
+                <a className={ui.rbShot} href={`/rebuilds/live/${id}.html`} aria-label={`Try the ${name} rebuild`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- static export, sized webp */}
+                  <img src={`/rebuilds/shots/${id}.webp`} alt={`Kyre's rebuild of ${name}, a made-up ${kind.toLowerCase()}`} width={1200} height={760} loading="lazy" decoding="async" />
+                </a>
+                <div className={ui.rbBody}>
+                  <p className={ui.rbKind}>
+                    {kind} · {stage}
+                  </p>
+                  <h3 className={ui.rbName}>{name}</h3>
+                  <p className={ui.rbLine}>{line}</p>
+                  <dl className={ui.rbMeta}>
+                    <div>
+                      <dt>We&apos;d measure</dt>
+                      <dd>{measure}</dd>
+                    </div>
+                    <div>
+                      <dt>Marked up</dt>
+                      <dd>{marks} issues</dd>
+                    </div>
+                  </dl>
+                  <div className={ui.rbLinks}>
+                    <a href={`/rebuilds/live/${id}.html`} className={`${ui.btn} ${ui.btnSm}`}>
+                      Try the live app
+                      <Arrow />
+                    </a>
+                    <a href={`/rebuilds/index.html#${id}`} className={ui.rbText}>
+                      See the teardown
+                    </a>
+                  </div>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+        <p className={ui.rbFoot}>
+          <a href="/rebuilds/index.html" className={`${ui.btn} ${ui.btnGhost}`}>
+            Open all six, with the before and after
+            <Arrow />
+          </a>
+          <span>
+            Pulseboard, Runlet, Slotwise, Mintlane, Tickwork and Closebook are made-up apps. Each is held up against a
+            real product in its category; Kyre is not affiliated with any of them.
+          </span>
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export function Team() {
   return (
     <section className={ui.section} id="team">

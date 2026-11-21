@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Closebook · Kyre rebuild</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="kit.css">
+<style>
+  :root { --acc: #B4461E; --acc-soft: rgba(180, 70, 30, .1); --side-w: 208px; }
+  .top { gap: 14px; }
+  .top h1 { margin-right: 0; }
+  .fc { display: flex; align-items: center; gap: 12px; margin-left: auto; padding: 6px 12px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .08); }
+  .fc .cap { color: var(--mut); font-size: 11.5px; }
+  .fc b { font-size: 15px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .fc .meter { width: 110px; } .fc .meter span { background: var(--acc); transition: width .6s var(--e-out); }
+  .fc.hit .meter span { background: var(--up); }
+  .fc small { color: var(--mut); font-size: 12px; white-space: nowrap; }
+  .bar2 { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 20px; border-bottom: 1px solid rgba(11, 12, 15, .06); }
+  .owners { display: flex; gap: 4px; }
+  .owners button { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 4px; border: 0; border-radius: 999px; background: none; color: var(--mut); font-weight: 500; transition: background-color .15s var(--e), color .15s; }
+  .owners button:first-child { padding-left: 10px; }
+  .owners button:hover { color: var(--ink); background: var(--hover); }
+  .owners button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .owners .av { width: 20px; height: 20px; font-size: 9px; }
+  .bar2 .legend2 { display: flex; gap: 14px; margin-left: auto; color: var(--mut); font-size: 12px; }
+  .legend2 span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend2 i { width: 8px; height: 8px; border-radius: 2px; }
+  .scroll { padding: 0; }
+
+  .board { display: grid; grid-template-columns: repeat(5, minmax(176px, 1fr)); gap: 10px; height: 100%; padding: 14px 20px; overflow-x: auto; }
+  .col { display: flex; flex-direction: column; min-height: 0; border-radius: 12px; background: #F4F3F0; transition: background-color .15s, box-shadow .15s; }
+  .col.over { background: var(--acc-soft); box-shadow: inset 0 0 0 1.5px var(--acc); }
+  .col.won { background: #EEF5F0; } .col.won.over { background: #DDEEE3; box-shadow: inset 0 0 0 1.5px var(--up); }
+  .col header { padding: 11px 12px 9px; }
+  .col h2 { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+  .col h2 em { color: var(--mut-2); font-style: normal; font-weight: 400; }
+  .col h2 .pct { margin-left: auto; color: var(--mut-2); font: 500 11px var(--mono); }
+  .col .tot { margin-top: 2px; font-size: 12px; color: var(--mut); font-variant-numeric: tabular-nums; }
+  .col .tot b { color: var(--ink); font-weight: 600; }
+  .cards { flex: 1; display: grid; align-content: start; gap: 8px; padding: 0 8px 10px; overflow: hidden auto; scrollbar-width: thin; }
+  .deal { position: relative; padding: 10px 11px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .07), 0 1px 2px rgba(11, 12, 15, .04); cursor: grab; transition: box-shadow .15s, opacity .15s; }
+  .deal:hover { box-shadow: 0 0 0 1px rgba(11, 12, 15, .16), 0 4px 10px -4px rgba(11, 12, 15, .14); }
+  .deal.drag { opacity: .35; }
+  .deal.stale { box-shadow: inset 3px 0 0 #D97706, 0 0 0 1px rgba(11, 12, 15, .07); }
+  .deal.flash { animation: flash 1s var(--e-out); }
+  @keyframes flash { from { box-shadow: 0 0 0 2px var(--acc), 0 6px 16px -6px rgba(180, 70, 30, .4); } }
+  .deal .co { display: flex; align-items: center; gap: 6px; }
+  .deal .co b { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+  .deal .co .av { margin-left: auto; flex: none; width: 20px; height: 20px; font-size: 9px; }
+  .deal .val { margin-top: 2px; font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .deal .val small { color: var(--mut-2); font-size: 11.5px; font-weight: 400; }
+  .nx { display: grid; grid-template-columns: 14px 1fr; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line-2); font-size: 12px; line-height: 1.35; }
+  .nx .ic { width: 13px; height: 13px; margin-top: 1px; color: var(--mut-2); }
+  .nx span { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--ink-3); }
+  .nx time { display: block; grid-column: 2; color: var(--mut); font-size: 11.5px; }
+  .nx time.od { color: var(--dn); font-weight: 500; } .nx time.td { color: #A15C07; font-weight: 500; }
+  .nx.none span { color: var(--dn); font-weight: 500; } .nx.none .ic { color: var(--dn); }
+  .meta { display: flex; align-items: center; gap: 6px; margin-top: 7px; color: var(--mut-2); font-size: 11.5px; }
+  .meta .chip { height: 19px; padding: 0 7px; font-size: 11px; }
+  .wonl { margin-top: 4px; color: var(--up); font-size: 12px; font-weight: 500; }
+  .tbl td { height: 46px; }
+  .tpanel { margin: 16px 20px; overflow: hidden; }
+  .tpanel .tbl :is(td, th):first-child { padding-left: 18px; } .tpanel .tbl :is(td, th):last-child { padding-right: 18px; }
+  .tbl .od { color: var(--dn); font-weight: 500; } .tbl .td { color: #A15C07; font-weight: 500; }
+  .tools { display: flex; align-items: center; gap: 10px; margin: 16px 20px 0; }
+  .tools .input { width: 240px; margin-left: auto; }
+  .tbl .av { width: 22px; height: 22px; font-size: 9.5px; margin-right: 8px; vertical-align: middle; }
+
+  .d-head .co-av { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--soft); font-weight: 600; font-size: 12px; }
+  .dv { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+  .dv b { font-size: 26px; font-weight: 600; letter-spacing: -.03em; }
+  .warn-box { display: flex; gap: 10px; margin-bottom: 14px; padding: 10px 12px; border-radius: 10px; background: #FFF4E0; color: #5A4515; font-size: 12.5px; }
+  .warn-box .ic { flex: none; margin-top: 1px; color: #A15C07; }
+  .props { display: grid; margin: 0; }
+  .props div { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 40px; border-top: 1px solid var(--line-2); }
+  .props dt { color: var(--mut); } .props dd { margin: 0; font-weight: 500; text-align: right; }
+  .props .btn { height: 28px; }
+  .nxf { display: grid; grid-template-columns: 1fr 136px; gap: 8px; margin-top: 6px; }
+  .h3 { margin: 20px 0 8px; font-size: 13px; font-weight: 600; }
+  .logf { padding: 10px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); }
+  .logf textarea { width: 100%; min-height: 56px; margin-top: 8px; padding: 6px 4px; border: 0; outline: 0; background: none; resize: none; font-size: 13px; line-height: 1.5; }
+  .logf .row { display: flex; align-items: center; gap: 8px; } .logf .row .btn { margin-left: auto; }
+  .tl { margin: 14px 0 0; padding: 0; list-style: none; }
+  .tl li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; padding: 8px 0; }
+  .tl .ib { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--soft); color: var(--mut); }
+  .tl .ib .ic { width: 13px; height: 13px; }
+  .tl li.new { animation: rise .4s var(--e-out); } .tl li.new .ib { background: var(--acc-soft); color: var(--acc); }
+  @keyframes rise { from { opacity: 0; transform: translateY(4px); } }
+  .tl b { font-weight: 500; } .tl p { margin-top: 2px; color: var(--ink-3); font-size: 12.5px; line-height: 1.45; }
+  .tl small { color: var(--mut-2); font-size: 11.5px; }
+
+  @media (max-width: 1000px) { .bar2 .legend2 { display: none; } .fc small { display: none; } }
+  @media (max-width: 760px) {
+    .fc { margin-left: 0; } .fc .meter { width: 60px; }
+    .top { height: auto; min-height: 56px; flex-wrap: wrap; padding-block: 8px; }
+    .bar2 { overflow-x: auto; padding: 0 14px; }
+    .board { grid-template-columns: repeat(5, 230px); padding: 12px 14px; }
+    .tools .input { width: 100%; margin: 0; } .tools { flex-wrap: wrap; margin-inline: 14px; } .tpanel { margin-inline: 14px; }
+  }
+</style>
+</head>
+<body data-app="Closebook" data-kind="sales CRM">
+<div class="app">
+  <aside class="side">
+    <button class="ws" id="ws" type="button"><span class="mono-av" style="background:#B4461E">B</span>Brightwave<svg class="ic"><use href="#i-updown"/></svg></button>
+    <a class="nav" href="#pipeline"><svg class="ic"><use href="#i-board"/></svg>Pipeline</a>
+    <a class="nav" href="#deals"><svg class="ic"><use href="#i-list"/></svg>All deals<em id="n-all"></em></a>
+    <a class="nav" href="#attention" data-note="The deals that need a person today, counted."><svg class="ic"><use href="#i-bell"/></svg>Needs attention<em id="n-att" style="color:var(--dn);font-weight:600"></em></a>
+    <div class="sec">This quarter</div>
+    <div style="padding:2px 8px;color:var(--mut);font-size:12px;line-height:1.7" id="side-q"></div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <h1 id="title">Pipeline</h1>
+      <div class="fc" id="fc" data-note="The forecast is weighted by stage, against the target, and it moves when a deal does."><div><span class="cap">Q4 forecast</span><br><b id="fc-v"></b> <span class="mut" style="font-size:12px">of $500k</span></div><span class="meter"><span id="fc-m"></span></span><small id="fc-s"></small></div>
+      <button class="btn ink" type="button" id="new"><svg class="ic"><use href="#i-plus"/></svg>New deal</button>
+    </header>
+    <div class="scroll">
+      <section data-page="pipeline" style="height:100%;display:flex;flex-direction:column">
+        <div class="bar2"><div class="owners" id="owners"></div><div class="legend2"><span><i style="background:#D97706"></i>No activity in 14 days</span><span><i style="background:var(--dn)"></i>Next step overdue</span></div></div>
+        <div class="board" id="board" style="flex:1;min-height:0"></div>
+      </section>
+      <section data-page="deals" hidden><div class="tools"><span class="mut" id="dl-n"></span><label class="input"><svg class="ic"><use href="#i-search"/></svg><input id="dq" type="search" placeholder="Company or contact" autocomplete="off"></label></div><div class="panel tpanel" id="dl"></div></section>
+      <section data-page="attention" hidden><div class="tools"><span class="mut" id="at-n"></span></div><div class="panel tpanel" id="at"></div></section>
+    </div>
+  </main>
+</div>
+
+<script src="kit.js"></script>
+<script>
+(() => {
+  const { $, $$, ic, esc, fdate, day, sum, by } = K;
+  const ME = 'sofia';
+  const OWN = { sofia: ['Sofia Marin', '#B4461E'], james: ['James Cole', '#2554D9'], ritu: ['Ritu Shah', '#0E7C6B'], tom: ['Tom Becker', '#6E56CF'] };
+  const STAGES = [['Qualified', .1], ['Demo', .25], ['Proposal', .5], ['Negotiation', .7], ['Won', 1]];
+  const P = Object.fromEntries(STAGES);
+  const TARGET = 500000, STALE = 14;
+  const k$ = n => '$' + (n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : Math.round(n / 1e3) + 'k');
+  // company, value, stage, owner, days in stage, days since activity, next step, next step due (days from today, negative = overdue), contact, title
+  const RAW = [
+    ['Northpeak Logistics', 48000, 'Qualified', 'ritu', 3, 1, 'Discovery call with their ops lead', 1, 'Dana Whitfield', 'Head of Operations'],
+    ['Ferro & Lane', 22000, 'Qualified', 'tom', 12, 9, 'Send the cold-chain case study', -4, 'Marco Ferro', 'Co-founder'],
+    ['Calder Freight', 65000, 'Qualified', 'james', 6, 2, 'Book a demo for next week', 2, 'Elise Calder', 'COO'],
+    ['Hollis Supply Co', 84000, 'Demo', 'sofia', 5, 0, 'Demo with their CFO at 15:00', 0, 'Grant Hollis', 'CFO'],
+    ['Juniper Health', 36000, 'Demo', 'ritu', 21, 18, 'Follow up after the demo', -9, 'Amara Osei', 'Procurement Lead'],
+    ['Orbit Retail', 52000, 'Demo', 'tom', 2, 1, 'Share sandbox login', 3, 'Kenji Mori', 'VP Supply Chain'],
+    ['Meridian Ports', 120000, 'Proposal', 'james', 9, 3, 'Pricing review call', 2, 'Hélène Dubois', 'Director of Logistics'],
+    ['Kestrel Foods', 45000, 'Proposal', 'sofia', 17, 16, '', null, 'Raj Patel', 'Ops Manager'],
+    ['Blue Fen Outdoor', 28000, 'Proposal', 'ritu', 4, 1, 'Send the revised proposal', 1, 'Tess Morgan', 'Founder'],
+    ['Atlas Cold Chain', 150000, 'Negotiation', 'sofia', 6, 2, 'Legal review of the MSA', 4, 'Victor Lindgren', 'General Counsel'],
+    ['Pinecrest Grocers', 62000, 'Negotiation', 'james', 11, 5, 'Final terms call', -1, 'Laura Kim', 'VP Finance'],
+    ['Vantage Logistics', 96000, 'Won', 'tom', 22, 22, '', null, 'Owen Price', 'CEO'],
+    ['Solstice Pharma', 58000, 'Won', 'ritu', 7, 7, '', null, 'Nadia Haddad', 'Head of Distribution'],
+  ];
+  const ACTS = { Call: 'phone', Email: 'mail', Meeting: 'users', Note: 'note' };
+  const DS = RAW.map(([co, v, s, o, ins, act, nx, due, ct, tt], i) => ({
+    id: 'd' + i, co, v, s, o, ins, act, nx, due: due == null ? null : day(-due), ct, tt,
+    log: s === 'Won' ? [['Note', `Signed. ${k$(v)} a year.`, ins]] : [[act > 10 ? 'Email' : 'Call', act > 10 ? `Sent pricing to ${ct.split(' ')[0]}. No reply yet.` : `Spoke with ${ct.split(' ')[0]} about timelines.`, act], ['Meeting', 'Intro meeting', act + 9]],
+  }));
+  const S = { owner: null, q: '', dl: { key: 'v', dir: -1 } };
+
+  const stale = d => d.s !== 'Won' && d.act >= STALE;
+  const dueIn = d => d.due ? Math.round((d.due - K.TODAY) / 864e5) : null;
+  const dueTxt = d => { const n = dueIn(d); return n == null ? '' : n < 0 ? `Overdue ${-n}d · ${fdate(d.due)}` : n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : fdate(d.due, { weekday: 'short', month: 'short', day: 'numeric' }); };
+  const dueCls = d => { const n = dueIn(d); return n == null ? '' : n < 0 ? 'od' : n === 0 ? 'td' : ''; };
+  const needs = d => d.s !== 'Won' && (stale(d) || !d.nx || dueIn(d) < 0);
+  const av = o => `<span class="av" style="background:${OWN[o][1]};color:#fff" title="${OWN[o][0]}">${OWN[o][0].split(' ').map(w => w[0]).join('')}</span>`;
+  const shown = () => DS.filter(d => !S.owner || d.o === S.owner);
+  const forecast = () => { const won = sum(DS.filter(d => d.s === 'Won').map(d => d.v)), open = sum(DS.filter(d => d.s !== 'Won').map(d => d.v * P[d.s])); return { won, open, f: won + open }; };
+
+  // ---------- Board ----------
+  function renderBoard(flash) {
+    const ds = shown();
+    $('#board').innerHTML = STAGES.map(([s, p]) => {
+      const rows = ds.filter(d => d.s === s).sort((a, b) => needs(b) - needs(a) || b.v - a.v), t = sum(rows.map(d => d.v));
+      return `<div class="col${s === 'Won' ? ' won' : ''}" data-col="${s}"><header${s === 'Proposal' ? ' data-note="Every stage shows its total and what it is likely worth."' : ''}><h2>${s}<em>${rows.length}</em><span class="pct">${s === 'Won' ? 'Q4' : Math.round(p * 100) + '%'}</span></h2>
+        <div class="tot"><b>${k$(t)}</b>${s === 'Won' ? ' closed this quarter' : ` · ${k$(t * p)} weighted`}</div></header>
+        <div class="cards">${rows.map(card).join('')}</div></div>`;
+    }).join('');
+    if (flash) $(`.deal[data-id="${flash}"]`)?.classList.add('flash');
+  }
+  function card(d) {
+    const n = d.s === 'Won' ? `<div class="wonl">${ic('check')} Won ${fdate(day(d.ins))}</div>`
+      : d.nx ? `<div class="nx">${ic('right')}<span>${esc(d.nx)}</span><time class="${dueCls(d)}">${dueTxt(d)}</time></div>`
+      : `<div class="nx none">${ic('warn')}<span>No next step</span></div>`;
+    return `<div class="deal${stale(d) ? ' stale' : ''}" draggable="true" data-id="${d.id}"${d.co === 'Juniper Health' ? ' data-note="Stale deals look different: amber edge, and how long it has been quiet."' : d.co === 'Kestrel Foods' ? ' data-note="A deal with no next step says so, in red."' : d.co === 'Hollis Supply Co' ? ' data-note="Every card says what happens next and when."' : ''}>
+      <div class="co"><b>${esc(d.co)}</b>${av(d.o)}</div><div class="val">$${d.v.toLocaleString('en-US')}${d.s !== 'Won' ? ` <small>· ${k$(d.v * P[d.s])} weighted</small>` : ''}</div>${n}
+      ${d.s !== 'Won' ? `<div class="meta"><span>${d.ins}d in ${d.s.toLowerCase()}</span>${stale(d) ? `<span class="chip warn">Quiet ${d.act}d</span>` : ''}</div>` : ''}</div>`;
+  }
+  function renderHead() {
+    const { won, open, f } = forecast(), hit = f >= TARGET;
+    $('#fc-v').textContent = k$(f);
+    $('#fc-m').style.width = Math.min(100, f / TARGET * 100) + '%';
+    $('#fc').classList.toggle('hit', hit);
+    $('#fc-s').textContent = hit ? 'Target reached' : `${k$(won)} won · ${k$(open)} weighted`;
+    $('#owners').innerHTML = `<button type="button" data-o="" aria-pressed="${!S.owner}">Everyone</button>` + Object.keys(OWN).map(o => `<button type="button" data-o="${o}" aria-pressed="${S.owner === o}">${av(o)}${OWN[o][0].split(' ')[0]}${o === ME ? ' <span style="opacity:.6">(you)</span>' : ''}</button>`).join('');
+    $('#n-all').textContent = DS.filter(d => d.s !== 'Won').length;
+    $('#n-att').textContent = DS.filter(needs).length || '';
+    $('#side-q').innerHTML = `Won <b style="color:var(--ink)">${k$(won)}</b><br>Open ${k$(sum(DS.filter(d => d.s !== 'Won').map(d => d.v)))}<br>Target ${k$(TARGET)}`;
+  }
+
+  // ---------- Tables ----------
+  const head = `<thead><tr><th data-sort="co" data-dir="asc">Company</th><th class="r" data-sort="v">Value</th><th data-sort="si" data-dir="asc">Stage</th><th>Owner</th><th>Next step</th><th class="r" data-sort="dueN" data-dir="asc">Due</th><th class="r" data-sort="act">Last activity</th></tr></thead>`;
+  const trow = d => `<tr data-id="${d.id}"><td><b>${esc(d.co)}</b><br><small class="mut">${esc(d.ct)}</small></td><td class="r">$${d.v.toLocaleString('en-US')}</td><td>${d.s === 'Won' ? `<span class="chip ok">${ic('check')}Won</span>` : `${d.s} <span class="mut">· ${Math.round(P[d.s] * 100)}%</span>`}</td><td>${av(d.o)}${OWN[d.o][0].split(' ')[0]}</td>
+    <td style="white-space:normal;min-width:180px">${d.s === 'Won' ? '<span class="mut">Closed</span>' : d.nx ? esc(d.nx) : '<span class="od">No next step</span>'}</td><td class="r ${dueCls(d)}">${d.s === 'Won' ? '' : dueTxt(d)}</td><td class="r${stale(d) ? ' td' : ' mut'}">${d.act === 0 ? 'Today' : d.act + 'd ago'}</td></tr>`;
+  $('#dl').innerHTML = `<div class="tscroll" style="overflow-x:auto"><table class="tbl" id="dl-t">${head}<tbody></tbody></table></div>`;
+  $('#at').innerHTML = `<div class="tscroll" style="overflow-x:auto"><table class="tbl">${head.replace(/ data-sort="[^"]+"( data-dir="asc")?/g, '')}<tbody></tbody></table></div>`;
+  const sortDl = K.sortable($('#dl-t'), S.dl, () => renderTables());
+  function renderTables() {
+    const q = S.q.trim().toLowerCase(), key = d => ({ ...d, si: STAGES.findIndex(s => s[0] === d.s), dueN: d.due ? +d.due : 9e15 });
+    const rows = shown().filter(d => !q || (d.co + ' ' + d.ct).toLowerCase().includes(q)).map(key).sort(by(S.dl.key, S.dl.dir));
+    $('#dl-t tbody').innerHTML = rows.map(trow).join('') || `<tr><td colspan="7"><div class="empty"><b>No deals match</b>Try a company or a contact name.</div></td></tr>`;
+    $('#dl-n').textContent = `${rows.length} deal${rows.length === 1 ? '' : 's'} ·${k$(sum(rows.map(d => d.v)))}`;
+    sortDl();
+    const at = DS.filter(needs).sort((a, b) => (dueIn(a) ?? -99) - (dueIn(b) ?? -99));
+    $('#at tbody').innerHTML = at.map(trow).join('') || `<tr><td colspan="7"><div class="empty"><b>Nothing needs you</b>Every open deal has a next step on time.</div></td></tr>`;
+    $('#at-n').textContent = at.length ? `${at.length} open deals are overdue, quiet for ${STALE}+ days, or have no next step.` : '';
+  }
+  $('#dq').addEventListener('input', e => { S.q = e.target.value; renderTables(); });
+
+  function renderAll(flash) { renderHead(); renderBoard(flash); renderTables(); }
+
+  // ---------- Moving deals ----------
+  function move(d, s) {
+    if (d.s === s) return;
+    const before = forecast().f;
+    d.s = s; d.ins = 0; d.act = 0; d.log.unshift(['Note', `Moved to ${s}`, 0, true]);
+    if (s === 'Won') { d.nx = ''; d.due = null; }
+    renderAll(d.id);
+    const after = forecast().f;
+    K.toast(s === 'Won' ? `${d.co} won · $${d.v.toLocaleString('en-US')}${after >= TARGET && before < TARGET ? '. That puts Q4 over target' : ''}` : `${d.co} moved to ${s} · forecast ${after >= before ? '+' : '−'}${k$(Math.abs(after - before))}`);
+  }
+  let dragId = null;
+  const board = $('#board');
+  board.addEventListener('dragstart', e => { const c = e.target.closest('.deal'); if (!c) return; dragId = c.dataset.id; c.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', dragId); });
+  board.addEventListener('dragend', () => { dragId = null; $$('.deal.drag, .col.over').forEach(x => x.classList.remove('drag', 'over')); });
+  board.addEventListener('dragover', e => { const c = e.target.closest('.col'); if (!c || !dragId) return; e.preventDefault(); $$('.col.over').forEach(x => x !== c && x.classList.remove('over')); c.classList.add('over'); });
+  board.addEventListener('drop', e => { const c = e.target.closest('.col'); if (!c || !dragId) return; e.preventDefault(); move(DS.find(d => d.id === dragId), c.dataset.col); });
+  board.addEventListener('click', e => { const c = e.target.closest('.deal'); if (c) openDeal(c.dataset.id); });
+  document.addEventListener('click', e => { const tr = e.target.closest('tr[data-id]'); if (tr) openDeal(tr.dataset.id); });
+  $('#owners').addEventListener('click', e => { const b = e.target.closest('[data-o]'); if (!b) return; S.owner = b.dataset.o || null; renderAll(); });
+
+  // ---------- Deal drawer ----------
+  function openDeal(id, fresh) {
+    const d = DS.find(x => x.id === id), dueVal = d.due ? `${d.due.getFullYear()}-${String(d.due.getMonth() + 1).padStart(2, '0')}-${String(d.due.getDate()).padStart(2, '0')}` : '';
+    const dr = K.drawer(`<div class="d-head"><span class="co-av">${esc(d.co[0])}</span><h2>${esc(d.co)}</h2><button class="btn ghost icon" type="button" data-close aria-label="Close" style="margin-left:auto">${ic('x')}</button></div>
+      <div class="d-body">
+        <div class="dv"><b>$${d.v.toLocaleString('en-US')}</b>${d.s !== 'Won' ? `<span class="mut">· ${k$(d.v * P[d.s])} weighted at ${Math.round(P[d.s] * 100)}%</span>` : ''}</div>
+        ${stale(d) ? `<div class="warn-box">${ic('clock')}<span>No activity in ${d.act} days. Log a call or email to clear this.</span></div>` : ''}
+        <dl class="props">
+          <div><dt>Stage</dt><dd><button class="btn sm" type="button" id="stg">${d.s}${ic('chev')}</button></dd></div>
+          <div><dt>Owner</dt><dd>${av(d.o)} ${OWN[d.o][0]}</dd></div>
+          <div><dt>Contact</dt><dd>${esc(d.ct)}<br><span class="mut" style="font-weight:400">${esc(d.tt)} · ${esc(d.ct.split(' ')[0].toLowerCase())}@${esc(d.co.toLowerCase().replace(/[^a-z]+/g, ''))}.example</span></dd></div>
+          <div><dt>In this stage</dt><dd>${d.ins === 0 ? 'Since today' : d.ins + ' days'}</dd></div>
+        </dl>
+        ${d.s !== 'Won' ? `<div class="h3">Next step</div><form class="nxf" id="nxf"><input class="field" name="nx" value="${esc(d.nx)}" placeholder="What happens next?" maxlength="80"><input class="field" name="due" type="date" value="${dueVal}" aria-label="Due date"></form>
+          <button class="btn sm" type="button" id="nx-save" style="margin-top:8px">Save next step</button>` : ''}
+        <div class="h3">Activity</div>
+        <form class="logf" id="logf"><div class="row"><div class="seg" id="lt">${Object.keys(ACTS).map((a, i) => `<button type="button" data-t="${a}" aria-pressed="${i === 0}">${a}</button>`).join('')}</div><button class="btn ink sm" type="submit">Log it</button></div><textarea name="t" placeholder="What happened? e.g. Called Victor, legal wants a redline by Friday" aria-label="Activity details"></textarea></form>
+        <ul class="tl">${d.log.map(([t, txt, ago, me], i) => `<li class="${fresh && i === 0 ? 'new' : ''}"><span class="ib">${ic(ACTS[t])}</span><div><b>${t}</b> <small>· ${me ? 'You' : OWN[d.o][0].split(' ')[0]} · ${ago === 0 ? 'Today' : fdate(day(ago))}</small><p>${esc(txt)}</p></div></li>`).join('')}</ul>
+      </div>`);
+    $('#stg', dr).addEventListener('click', e => K.menu(e.currentTarget, STAGES.map(([s]) => ({ v: s, label: s, on: d.s === s })), s => { move(d, s); openDeal(id); }));
+    $('#nx-save', dr)?.addEventListener('click', () => {
+      const f = new FormData($('#nxf', dr)), nx = f.get('nx').trim(), due = f.get('due');
+      d.nx = nx; d.due = nx && due ? new Date(due + 'T00:00') : nx ? day(-1) : null;
+      d.log.unshift(['Note', nx ? `Next step: ${nx}` : 'Cleared the next step', 0, true]);
+      renderAll(d.id); openDeal(id, true); K.toast(nx ? 'Next step saved' : 'Next step cleared');
+    });
+    let type = 'Call';
+    $('#lt', dr).addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; type = b.dataset.t; $$('#lt button', dr).forEach(x => x.setAttribute('aria-pressed', x === b)); });
+    $('#logf', dr).addEventListener('submit', e => {
+      e.preventDefault(); const t = e.target.t.value.trim();
+      if (!t) return e.target.t.focus();
+      const was = stale(d); d.log.unshift([type, t, 0, true]); d.act = 0;
+      renderAll(d.id); openDeal(id, true); K.toast(was ? `Logged. ${d.co} is no longer flagged as quiet.` : `${type} logged`);
+    });
+  }
+
+  // ---------- New deal ----------
+  function create() {
+    const m = K.modal(`<h2>New deal</h2><p>It starts in Qualified unless you pick another stage.</p>
+      <form class="stack" id="nd" style="margin-top:16px" novalidate>
+        <label><span class="lbl">Company</span><input class="field" name="co" maxlength="40" placeholder="e.g. Harbor & Pine" autofocus></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <label><span class="lbl">Value per year</span><span class="input" style="height:40px"><span class="mut">$</span><input name="v" inputmode="numeric" placeholder="40,000"></span></label>
+          <label><span class="lbl">Stage</span><select class="field" name="s">${STAGES.slice(0, 4).map(([s, p]) => `<option>${s}</option>`).join('')}</select></label>
+          <label><span class="lbl">Contact</span><input class="field" name="ct" maxlength="40" placeholder="Name"></label>
+          <label><span class="lbl">Owner</span><select class="field" name="o">${Object.keys(OWN).map(o => `<option value="${o}"${o === ME ? ' selected' : ''}>${OWN[o][0]}</option>`).join('')}</select></label>
+        </div>
+        <label><span class="lbl">Next step</span><input class="field" name="nx" maxlength="80" placeholder="e.g. Intro call on Thursday"></label>
+        <span id="nd-e" style="min-height:16px;color:var(--dn);font-size:12px"></span>
+        <div class="m-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn ink" type="submit">Add deal</button></div>
+      </form>`);
+    $('#nd', m).addEventListener('submit', e => {
+      e.preventDefault(); const f = new FormData(e.target), co = f.get('co').trim(), v = Math.round(+String(f.get('v')).replace(/[$,\s]/g, ''));
+      const bad = !co ? 'Add the company name.' : !(v > 0) ? 'Add a value, like 40000.' : '';
+      if (bad) { $('#nd-e', m).textContent = bad; return; }
+      const nx = f.get('nx').trim(), d = { id: 'd' + DS.length, co, v, s: f.get('s'), o: f.get('o'), ins: 0, act: 0, nx, due: nx ? day(-2) : null, ct: f.get('ct').trim() || 'No contact yet', tt: '', log: [['Note', 'Created the deal', 0, true]] };
+      DS.push(d); K.shut(true);
+      if (S.owner && S.owner !== d.o) S.owner = null;
+      renderAll(d.id); K.go('pipeline'); K.toast(`${co} added · forecast +${k$(v * P[d.s])}`);
+    });
+  }
+  $('#new').addEventListener('click', create);
+  $('#ws').addEventListener('click', e => K.menu(e.currentTarget, [{ v: 1, label: 'Brightwave', on: true }, { sep: 1 }, { v: 2, label: 'Import from a spreadsheet' }], v => v === '2' && K.toast('The real app imports a CSV here', 'info')));
+  K.keys({ n: create });
+
+  console.assert(Math.round(forecast().f) === 455400, 'Q4 forecast should start at $455.4k');
+  renderAll();
+  K.route('pipeline', pg => { $('#title').textContent = { pipeline: 'Pipeline', deals: 'All deals', attention: 'Needs attention' }[pg]; });
+})();
+</script>
+</body>
+</html>

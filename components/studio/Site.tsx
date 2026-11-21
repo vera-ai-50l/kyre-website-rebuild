@@ -5,12 +5,13 @@ import { useEffect, useState, useSyncExternalStore, type CSSProperties } from "r
 import { Arrow, Logo } from "./bits";
 import { Hero } from "./Hero";
 import { Concept } from "./Concept";
-import { Approach, Faq, How, Offers, Paths, Sample, Team, Teardown, Trust, Why } from "./Sections";
+import { Approach, Faq, How, Offers, Paths, Rebuilds, Sample, Team, Teardown, Trust, Why } from "./Sections";
 import { MotionRoot } from "./motion";
 import { THEME_EVENT, useLite } from "./useLite";
 import ui from "./site.module.css";
 
 const LINKS = [
+  ["#rebuilds", "Rebuilds"],
   ["#team", "Team"],
   ["#how", "How it works"],
   ["#offers", "Offers"],
@@ -176,8 +177,9 @@ export function Site() {
       <Nav />
       <Hero />
       <main>
-        <Team />
+        <Rebuilds />
         <Paths />
+        <Team />
         <Why />
         <How />
         <Offers />

@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Archived old site (not part of this app).
     "archive/**",
+    // The rebuilds showcase: a self-contained static page with its own plain JS.
+    "public/rebuilds/**",
   ]),
 ]);
 

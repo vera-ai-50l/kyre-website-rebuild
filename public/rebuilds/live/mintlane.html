@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mintlane · Kyre rebuild</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="kit.css">
+<style>
+  :root { --acc: #0F6E8C; --acc-soft: rgba(15, 110, 140, .1); }
+  .mode { display: flex; align-items: center; gap: 10px; margin-top: auto; padding: 12px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .07); }
+  .mode span { flex: 1; font-weight: 500; } .mode small { display: block; color: var(--mut); font-size: 11.5px; font-weight: 400; }
+  .mode .switch[aria-checked="true"] { background: #D97706; }
+  .testbar { display: none; align-items: center; gap: 10px; height: 36px; padding: 0 12px 0 24px; background: #FFF4E0; border-bottom: 1px solid #F3D9A8; color: #6B4A0E; font-size: 12.5px; }
+  .testbar b { font-weight: 600; } .testbar .btn { margin-left: auto; }
+  body.test .testbar { display: flex; }
+  body.test .top { box-shadow: inset 0 3px 0 #D97706; }
+  .scroll { padding-bottom: 16px; }
+
+  .bal { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 12px; }
+  .bal .panel { padding: 16px 18px; }
+  .bal .cap { display: flex; align-items: center; gap: 6px; color: var(--mut); font-size: 13px; }
+  .bal .v { display: block; margin: 8px 0 4px; font-size: 26px; font-weight: 600; letter-spacing: -.03em; line-height: 1.1; }
+  .bal .main-v .v { font-size: 34px; }
+  .bal small { color: var(--mut); font-size: 12.5px; }
+  .bal .btn { margin-top: 10px; }
+  .home { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; margin-top: 12px; }
+  .gv { display: flex; flex-direction: column; padding: 16px 18px 10px; }
+  .gv header { display: flex; align-items: center; gap: 8px; }
+  .gv header .seg { margin-left: auto; }
+  .gv .v { display: inline-block; margin: 8px 0 4px; font-size: 26px; font-weight: 600; letter-spacing: -.03em; }
+  .gv .cmp { display: flex; gap: 8px; font-size: 12.5px; } .gv .cmp .up { font-weight: 500; }
+  .gchart { height: 120px; margin-top: 12px; }
+  .att { padding: 14px 6px 6px; }
+  .att h2 { margin: 0 12px 8px; font-size: 14px; font-weight: 600; }
+  .att button { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 10px 12px; border: 0; border-radius: 9px; background: none; text-align: left; transition: background-color .15s var(--e); }
+  .att button:hover { background: var(--hover); }
+  .att .ib { display: grid; place-items: center; flex: none; width: 26px; height: 26px; border-radius: 8px; }
+  .att .ib.bad { background: #FCEBE8; color: var(--dn); } .att .ib.warn { background: #FCF0DC; color: #87520A; } .att .ib.info { background: var(--acc-soft); color: var(--acc); }
+  .att b { display: block; font-weight: 500; } .att small { color: var(--mut); font-size: 12px; }
+  .att .chevr { margin-left: auto; align-self: center; color: var(--mut-2); }
+  .att .none { padding: 10px 12px; color: var(--mut); font-size: 12.5px; }
+  .tpanel { margin-top: 12px; overflow: hidden; }
+  .th { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px 0 18px; }
+  .th h2 { font-size: 14px; font-weight: 600; } .th a { margin-left: auto; color: var(--acc); font-weight: 500; text-decoration: none; }
+  .tpanel .tbl :is(td, th):first-child { padding-left: 18px; } .tpanel .tbl :is(td, th):last-child { padding-right: 18px; }
+  .tbl .amt { font-weight: 600; font-variant-numeric: tabular-nums; } .tbl .amt small { margin-left: 4px; color: var(--mut-2); font-size: 11px; font-weight: 500; }
+  .tbl .amt.strike { color: var(--mut); text-decoration: line-through; text-decoration-color: rgba(11, 12, 15, .3); }
+  .who b { display: block; font-weight: 500; } .who small { color: var(--mut); font-size: 12px; }
+  .card-l { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-3); } .card-l i { font-style: normal; font: 500 10px/16px var(--mono); padding: 0 4px; border-radius: 4px; background: var(--soft); color: var(--mut); }
+  .tools { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .tools .input { width: 260px; margin-left: auto; }
+  .seg em { font-style: normal; color: var(--mut-2); font-size: 11.5px; }
+  .tscroll { overflow-x: auto; }
+  .tbl td { height: 46px; }
+  .fine { margin-top: 10px; color: var(--mut-2); font-size: 12px; }
+  .sched { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+  .sched .ib { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 10px; background: var(--acc-soft); color: var(--acc); }
+  .sched b { display: block; font-weight: 600; } .sched .btn { margin-left: auto; }
+
+  .d-head .amt { font-size: 24px; font-weight: 600; letter-spacing: -.025em; } .d-head .amt small { margin-left: 4px; color: var(--mut-2); font-size: 13px; font-weight: 500; }
+  .d-sub { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .call { padding: 14px; border-radius: 10px; font-size: 13px; line-height: 1.5; }
+  .call b { display: block; margin-bottom: 2px; font-size: 13.5px; font-weight: 600; }
+  .call.bad { background: #FCEBE8; color: #6E1C14; } .call.warn { background: #FFF4E0; color: #5A4515; } .call.info { background: var(--acc-soft); color: #0B4558; }
+  .call .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .call code { font: 500 11px var(--mono); opacity: .7; }
+  .tl { margin: 20px 0 0; padding: 0; list-style: none; }
+  .tl li { position: relative; display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; padding-bottom: 14px; }
+  .tl li::before { content: ''; position: absolute; left: 6.5px; top: 14px; bottom: 0; width: 1px; background: var(--line); }
+  .tl li:last-child::before { display: none; }
+  .tl i { width: 9px; height: 9px; margin: 4px 0 0 2.5px; border-radius: 50%; background: var(--up); }
+  .tl i.bad { background: var(--dn); } .tl i.warn { background: #D97706; } .tl i.soft { background: none; box-shadow: inset 0 0 0 1.5px #C9C7C0; }
+  .tl span { font-weight: 500; } .tl small { display: block; color: var(--mut); font-size: 12px; font-weight: 400; }
+  .tl time { color: var(--mut-2); font-size: 12px; white-space: nowrap; }
+  .props { display: grid; margin: 8px 0 0; }
+  .props div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line-2); }
+  .props dt { color: var(--mut); } .props dd { margin: 0; font-weight: 500; text-align: right; }
+  .props dd .btn { height: 22px; margin: -2px -6px 0 4px; }
+  .mono { font: 500 12px var(--mono); }
+  .sum { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--soft); font-size: 13px; line-height: 1.5; }
+  .sum b { font-weight: 600; }
+  .btn.red { background: #B42318; color: #fff; box-shadow: none; } .btn.red:hover { background: #9A1D13; } .btn.red .ic { color: #fff; }
+  .err { min-height: 18px; margin-top: 6px; color: var(--dn); font-size: 12px; }
+  .ev { display: grid; gap: 8px; margin-top: 14px; }
+  .ev label { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; }
+  .ev input { margin-top: 3px; accent-color: var(--acc); } .ev small { display: block; color: var(--mut); font-size: 12px; }
+
+  @media (max-width: 1000px) { .home { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 760px) {
+    .bal { grid-template-columns: minmax(0, 1fr); }
+    .tools { flex-wrap: wrap; } .tools .input { width: 100%; margin: 0; } .tools .seg { overflow-x: auto; max-width: 100%; }
+    .testbar { padding-left: 14px; } .testbar span { display: none; }
+  }
+</style>
+</head>
+<body data-app="Mintlane" data-kind="payments dashboard">
+<div class="app">
+  <aside class="side">
+    <button class="ws" id="ws" type="button"><span class="mono-av" style="background:#1F2937">LF</span>Lumen Fitness<svg class="ic"><use href="#i-updown"/></svg></button>
+    <a class="nav" href="#home"><svg class="ic"><use href="#i-grid"/></svg>Home</a>
+    <a class="nav" href="#payments"><svg class="ic"><use href="#i-card"/></svg>Payments<em id="n-pay"></em></a>
+    <a class="nav" href="#payouts"><svg class="ic"><use href="#i-bank"/></svg>Payouts</a>
+    <a class="nav" href="#customers"><svg class="ic"><use href="#i-users"/></svg>Customers</a>
+    <div class="mode" data-note="Test data is labelled, and switched in one place."><span>Test mode<small id="mode-s">Off · real payments</small></span><button class="switch" type="button" role="switch" aria-checked="false" id="mode" aria-label="Test mode"></button></div>
+  </aside>
+
+  <main class="main">
+    <div class="testbar" role="status"><b>Test mode</b><span>You’re looking at test payments. Nothing here moves real money.</span><button class="btn sm" type="button" id="to-live">Back to live data</button></div>
+    <header class="top">
+      <h1 id="title">Home</h1>
+      <label class="input hide-sm" style="width:240px;margin-left:auto"><svg class="ic"><use href="#i-search"/></svg><input id="gq" type="search" placeholder="Find a payment or customer" autocomplete="off"><span class="kbd">/</span></label>
+      <span class="av hide-sm" style="width:28px;height:28px;font-size:11px;margin-left:4px">RK</span>
+    </header>
+
+    <div class="scroll">
+      <section data-page="home">
+        <div class="bal" data-note="Available and pending, apart. The money they can move leads.">
+          <div class="panel main-v"><span class="cap">Available to pay out</span><span class="v" id="b-av"></span><small id="b-av-s"></small></div>
+          <div class="panel"><span class="cap">Pending<button class="qi" type="button" aria-label="What pending means" data-tip="Payments from the last 2 days. They become available as they clear."><svg class="ic"><use href="#i-info"/></svg></button></span><span class="v" id="b-pe"></span><small>Clears over the next 2 days</small></div>
+          <div class="panel" data-note="When the money lands, and where."><span class="cap">Next payout</span><span class="v" id="b-po"></span><small id="b-po-s"></small></div>
+        </div>
+        <div class="home">
+          <div class="panel gv">
+            <header><span class="cap" style="font-size:13px;color:var(--mut)">Gross volume</span><div class="legend"><span>This period</span><span class="prev">Previous</span></div><div class="seg" id="gv-r"><button type="button" data-r="7" aria-pressed="false">7D</button><button type="button" data-r="30" aria-pressed="true">30D</button><button type="button" data-r="90" aria-pressed="false">90D</button></div></header>
+            <span class="v" id="gv-v" data-note="One number for the period, with what it's compared to."></span>
+            <div class="cmp" id="gv-c"></div>
+            <div class="gchart" id="gv-ch"></div>
+            <div class="axis" id="gv-ax"></div>
+          </div>
+          <div class="panel att" id="att" data-note="What needs a person, and by when. Problems before charts."></div>
+        </div>
+        <div class="panel tpanel">
+          <div class="th"><h2>Recent payments</h2><a href="#payments">View all</a></div>
+          <div class="tscroll"><table class="tbl" id="rec-t"><thead><tr><th class="r">Amount</th><th>Status</th><th>Description</th><th>Customer</th><th class="r">Date</th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </section>
+
+      <section data-page="payments" hidden>
+        <div class="tools"><div class="seg" id="pf" data-note="Filters by what happened, with counts."></div><label class="input"><svg class="ic"><use href="#i-search"/></svg><input id="pq" type="search" placeholder="Name, email, amount or ID" autocomplete="off"></label></div>
+        <div class="panel tpanel" style="margin-top:0"><div class="tscroll"><table class="tbl" id="pay-t">
+          <thead><tr><th class="r" data-sort="amt" data-note="Dollars, not cents. Right-aligned so they line up.">Amount</th><th>Status</th><th>Description</th><th>Customer</th><th>Card</th><th class="r" data-sort="t" data-note="Dates people read, in the account's time zone (Eastern).">Date</th></tr></thead><tbody></tbody>
+        </table></div></div>
+        <p class="fine" id="pay-n"></p>
+      </section>
+
+      <section data-page="payouts" hidden>
+        <div class="panel sched"><span class="ib"><svg class="ic"><use href="#i-repeat"/></svg></span><div><b id="sch-t">Every weekday</b><span class="mut">Payments become available 2 days after they’re made, then go to the account ending 6021.</span></div><button class="btn" type="button" id="sch">Change schedule</button></div>
+        <div class="panel tpanel"><div class="tscroll"><table class="tbl" id="po-t"><thead><tr><th class="r">Amount</th><th>Status</th><th>Arrives</th><th>Payments</th><th>To</th></tr></thead><tbody></tbody></table></div></div>
+      </section>
+
+      <section data-page="customers" hidden>
+        <div class="tools"><span class="mut" id="cu-n"></span><label class="input"><svg class="ic"><use href="#i-search"/></svg><input id="cq" type="search" placeholder="Name or email" autocomplete="off"></label></div>
+        <div class="panel tpanel" style="margin-top:0"><div class="tscroll"><table class="tbl" id="cu-t"><thead><tr><th data-sort="name" data-dir="asc">Customer</th><th class="r" data-sort="n">Payments</th><th class="r" data-sort="spent">Total spent</th><th>Card on file</th><th class="r" data-sort="first">Customer since</th></tr></thead><tbody></tbody></table></div></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="kit.js"></script>
+<script>
+(() => {
+  const { $, $$, ic, esc, money, num, fdate, day, sum, by } = K;
+  const m2 = n => money(n, 2), NOW = new Date(2026, 10, 19, 11, 40);
+  const when = d => { const t = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), o = Math.round((new Date(NOW).setHours(0, 0, 0, 0) - new Date(d).setHours(0, 0, 0, 0)) / 864e5); return (o === 0 ? 'Today' : o === 1 ? 'Yesterday' : fdate(d)) + ', ' + t; };
+  const long = d => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const fee = a => Math.round((a * .029 + .3) * 100) / 100;
+  const PRODUCTS = [['Monthly membership', 89], ['Monthly membership', 89], ['Monthly membership', 89], ['10-class pack', 149], ['10-class pack', 149], ['Drop-in class', 22], ['Personal training, 4 sessions', 240], ['Annual membership', 890]];
+  const PEOPLE = ['Maya Chen', 'Jordan Ellis', 'Priya Natarajan', 'Sam Okafor', 'Lena Fischer', 'Diego Ramos', 'Hannah Brooks', 'Theo Laurent', 'Aisha Bello', 'Marcus Hill', 'Nora Lindqvist', 'Ben Carter', 'Yuki Tanaka', 'Olivia Grant'];
+  const FAIL = {
+    funds: { t: 'The card didn’t have enough funds.', code: 'insufficient_funds', next: d => `Mintlane tries again on ${d}. We’ve emailed the customer a link to use another card in the meantime.`, retry: true },
+    bank: { t: 'The customer’s bank declined it and gave no reason.', code: 'do_not_honor', next: () => 'Retrying rarely helps here. Ask the customer to call their bank or use another card. They’ve been emailed a link.', retry: false },
+    exp: { t: 'The card expired at the end of October.', code: 'expired_card', next: () => 'We’ve emailed a link to update the card. Retrying won’t work until they do.', retry: false },
+  };
+  const CHIP = { Succeeded: 'ok', Refunded: '', 'Partially refunded': '', Failed: 'bad', Disputed: 'warn', 'Under review': 'info', Incomplete: '' };
+
+  // ---------- Sample data: 48 live payments over 10 days, 8 test ones ----------
+  function build(test) {
+    const r = K.rng(test ? 77 : 2026), people = test ? ['Test customer', 'Jane Test'] : PEOPLE;
+    const cs = people.map((n, i) => ({ id: 'c' + i, name: n, email: n.toLowerCase().replace(/\s+/g, '.') + (test ? '@test.example' : '@mail.example'), brand: test ? 'Visa' : ['Visa', 'Mastercard', 'Amex', 'Visa'][i % 4], last4: test ? '4242' : String(1000 + Math.floor(r() * 9000)), exp: `${1 + Math.floor(r() * 12)}/${27 + Math.floor(r() * 3)}`, since: day(40 + Math.floor(r() * 500)) }));
+    const ps = [];
+    let t = +NOW;
+    for (let i = 0; i < (test ? 8 : 48); i++) {
+      const c = cs[Math.floor(r() * cs.length)], [desc, amt] = PRODUCTS[Math.floor(r() * PRODUCTS.length)];
+      ps.push({ id: (test ? 'py_test_' : 'py_') + Math.floor(r() * 36 ** 6).toString(36).padStart(6, '0'), c, desc, amt, t: new Date(t), status: 'Succeeded', refunded: 0 });
+      t -= (1 + r() * (test ? 30 : 4.2)) * 36e5;
+    }
+    const set = (i, o) => Object.assign(ps[i], o);
+    if (test) { set(2, { status: 'Failed', why: 'funds' }); set(5, { status: 'Refunded', refunded: ps[5].amt, rwhy: 'Requested by customer' }); }
+    else {
+      set(2, { status: 'Failed', why: 'funds', c: cs[6], desc: 'Monthly membership', amt: 89 });
+      set(9, { status: 'Failed', why: 'exp' });
+      set(17, { status: 'Failed', why: 'bank' });
+      set(5, { status: 'Refunded', refunded: ps[5].amt, rwhy: 'Requested by customer' });
+      set(22, { status: 'Refunded', refunded: ps[22].amt, rwhy: 'Duplicate' });
+      set(13, { status: 'Disputed', c: cs[1], desc: 'Annual membership', amt: 890, due: new Date(2026, 10, 26) });
+    }
+    return { cs, ps, av: test ? 1240 : 8412.60, pe: test ? 310 : 2190.40 };
+  }
+  const D = { live: build(false), test: build(true) };
+  const S = { mode: 'live', r: 30, f: 'all', q: '', pay: { key: 't', dir: -1 }, cu: { key: 'spent', dir: -1 } };
+  const data = () => D[S.mode];
+  const left = p => p.amt - p.refunded;
+
+  // Gross volume: 180 days of history, the last two 30-day windows fitted to the totals on the page.
+  const N = 180, gv = { live: K.series(N, 11, { growth: 1.12, noise: .14, weekly: .1 }), test: K.series(N, 5, { noise: .5, weekly: 0 }) };
+  K.fit(gv.live, N - 30, N, 41380); K.fit(gv.live, N - 60, N - 30, 36914); K.fit(gv.test, N - 30, N, 1550); K.fit(gv.test, N - 60, N - 30, 1550);
+
+  const chip = p => `<span class="chip ${CHIP[p.status]}">${p.status === 'Succeeded' ? ic('check') : ''}${p.status}</span>`;
+  const amt = p => `<span class="amt${p.status === 'Refunded' ? ' strike' : ''}">${m2(p.amt)}<small>USD</small></span>`;
+  const row = p => `<tr data-id="${p.id}"><td class="r">${amt(p)}</td><td>${chip(p)}</td><td>${esc(p.desc)}</td><td class="who"><b>${esc(p.c.name)}</b></td>${S.wide ? `<td><span class="card-l"><i>${p.c.brand === 'Mastercard' ? 'MC' : p.c.brand.toUpperCase()}</i>•• ${p.c.last4}</span></td>` : ''}<td class="r mut">${when(p.t)}</td></tr>`;
+
+  // ---------- Home ----------
+  function renderHome() {
+    const d = data();
+    $('#b-av').textContent = m2(d.av);
+    $('#b-av-s').textContent = d.av > 0 ? 'Goes out with the next payout' : 'Nothing to pay out yet';
+    $('#b-pe').textContent = m2(d.pe);
+    $('#b-po').textContent = m2(d.av);
+    $('#b-po-s').textContent = 'Fri, Nov 20 · to the account ending 6021';
+    renderGv();
+    const fails = d.ps.filter(p => p.status === 'Failed'), disp = d.ps.filter(p => p.status === 'Disputed');
+    const retry = fails.filter(p => FAIL[p.why].retry).length;
+    $('#att').innerHTML = `<h2>Needs your attention</h2>` +
+      disp.map(p => `<button type="button" data-open="${p.id}"><span class="ib bad">${ic('flag')}</span><span><b>Dispute · ${m2(p.amt)}</b><small>${esc(p.c.name)} · respond by ${long(p.due)}</small></span>${ic('chevr', 'chevr')}</button>`).join('') +
+      (fails.length ? `<button type="button" data-go="payments/failed"><span class="ib warn">${ic('warn')}</span><span><b>${fails.length} failed payment${fails.length > 1 ? 's' : ''} · ${m2(sum(fails.map(p => p.amt)))}</b><small>${retry ? `${retry} will retry on its own. ` : ''}${fails.length - retry} need${fails.length - retry === 1 ? 's' : ''} the customer.</small></span>${ic('chevr', 'chevr')}</button>` : '') +
+      `<button type="button" data-go="payouts"><span class="ib info">${ic('bank')}</span><span><b>Payout of ${m2(d.av)} on Friday</b><small>To the account ending 6021</small></span>${ic('chevr', 'chevr')}</button>` +
+      (!disp.length && !fails.length ? '<p class="none">No disputes or failed payments. Nice.</p>' : '');
+    S.wide = false;
+    $('#rec-t tbody').innerHTML = d.ps.slice(0, 6).map(row).join('');
+  }
+  function renderGv() {
+    const a = gv[S.mode], cur = a.slice(N - S.r), prev = a.slice(N - 2 * S.r, N - S.r), t = sum(cur), pt = sum(prev), ch = K.delta(t, pt);
+    $('#gv-v').textContent = m2(t);
+    $('#gv-c').innerHTML = `<span class="${ch >= 0 ? 'up' : 'dn'}">${ch >= 0 ? '+' : '−'}${Math.abs(ch).toFixed(1)}%</span><span class="mut">vs ${m2(pt)} in the previous ${S.r} days</span>`;
+    K.line($('#gv-ch'), { cur, prev, tip: i => `<b>${m2(cur[i])}</b> <small>${fdate(day(S.r - i), { weekday: 'short', month: 'short', day: 'numeric' })}</small><small>Previous ${m2(prev[i])}</small>` });
+    $('#gv-ax').innerHTML = [0, .5, 1].map(p => `<span>${fdate(day(S.r - Math.round(p * (S.r - 1))))}</span>`).join('');
+  }
+  $('#gv-r').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; S.r = +b.dataset.r; $$('#gv-r button').forEach(x => x.setAttribute('aria-pressed', x === b)); renderGv(); });
+  $('#att').addEventListener('click', e => { const o = e.target.closest('[data-open]'), g = e.target.closest('[data-go]'); if (o) openPay(o.dataset.open); if (g) K.go(g.dataset.go); });
+
+  // ---------- Payments ----------
+  const F = { all: 'All', succeeded: 'Succeeded', refunded: 'Refunded', failed: 'Failed', disputed: 'Disputed' };
+  const inF = (p, f) => f === 'all' || (f === 'refunded' ? /refunded/i.test(p.status) : f === 'disputed' ? /Disputed|Under review/.test(p.status) : p.status.toLowerCase() === f);
+  const sortPay = K.sortable($('#pay-t'), S.pay, () => renderPay());
+  function renderPay() {
+    const d = data(), q = S.q.trim().toLowerCase().replace(/[$,]/g, '');
+    $('#pf').innerHTML = Object.entries(F).map(([k, l]) => `<button type="button" data-f="${k}" aria-pressed="${S.f === k}">${l} <em>${d.ps.filter(p => inF(p, k)).length}</em></button>`).join('');
+    const rows = d.ps.filter(p => inF(p, S.f) && (!q || [p.c.name, p.c.email, p.id, p.desc, p.amt.toFixed(2)].some(x => x.toLowerCase().includes(q)))).sort(by(S.pay.key === 't' ? p => +p.t : S.pay.key, S.pay.dir));
+    S.wide = true;
+    $('#pay-t tbody').innerHTML = rows.map(row).join('') || `<tr><td colspan="6"><div class="empty"><b>No payments match</b>Try a name, an email, or an amount like 89.00.</div></td></tr>`;
+    $('#pay-n').textContent = `${rows.length} of ${d.ps.length} payments from the last 10 days · times in Eastern time`;
+    sortPay();
+  }
+  $('#pf').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) K.go('payments' + (b.dataset.f === 'all' ? '' : '/' + b.dataset.f)); });
+  $('#pq').addEventListener('input', e => { S.q = e.target.value; renderPay(); });
+  $('#gq').addEventListener('keydown', e => { if (e.key === 'Enter') { S.q = e.target.value; $('#pq').value = S.q; S.f = 'all'; e.target.value = ''; K.go('payments'); renderPay(); } });
+
+  // ---------- Payment drawer ----------
+  function openPay(id) {
+    const p = data().ps.find(x => x.id === id); if (!p) return;
+    const f = p.status === 'Failed' && FAIL[p.why], retryDay = long(new Date(+p.t + 2 * 864e5)), net = p.status === 'Failed' ? 0 : p.amt - fee(p.amt) - p.refunded;
+    const tl = [[`Payment started`, '', '', p.t]];
+    if (p.status === 'Failed') tl.push(['Declined', f.t, 'bad', new Date(+p.t + 4e3)], ...(f.retry ? [[`Retry on ${retryDay}`, 'Automatic, with an email to the customer', 'soft', null]] : []));
+    else {
+      if (p.retried) tl.push(['Declined', FAIL[p.why].t, 'bad', new Date(+p.t + 4e3)]);
+      tl.push([p.retried ? 'Retried and succeeded' : 'Succeeded', `${p.c.brand} •• ${p.c.last4}`, '', p.retried || new Date(+p.t + 3e3)]);
+      if (p.refunded) tl.push([`Refunded ${m2(p.refunded)}`, p.rwhy, 'warn', p.rt || new Date(+p.t + 26 * 36e5)]);
+      if (/Disputed|Under review/.test(p.status)) tl.push(['Dispute opened', 'Customer says they didn’t authorise it', 'bad', new Date(+p.t + 50 * 36e5)]);
+      if (p.status === 'Under review') tl.push(['Evidence sent', 'The bank decides within 60 days', 'soft', p.et]);
+    }
+    const dr = K.drawer(`<div class="d-head"><span class="amt">${m2(p.amt)}<small>USD</small></span><button class="btn ghost icon" type="button" data-close aria-label="Close" style="margin-left:auto">${ic('x')}</button></div>
+      <div class="d-body">
+        <div class="d-sub">${chip(p)}<span class="mut">${esc(p.desc)} · ${esc(p.c.name)}</span></div>
+        ${f ? `<div class="call bad"><b>${f.t}</b>${f.next(retryDay)} <code>${f.code}</code><div class="acts">${f.retry ? `<button class="btn sm" type="button" id="retry">${ic('refresh')}Retry now</button>` : ''}<button class="btn sm" type="button" id="link">${ic('link')}Copy card-update link</button></div></div>` : ''}
+        ${p.status === 'Disputed' ? `<div class="call warn"><b>Respond by ${long(p.due)}. That’s 7 days.</b>${esc(p.c.name)} told their bank they didn’t authorise this. If you don’t respond, you lose ${m2(p.amt)} and a $15.00 dispute fee.<div class="acts"><button class="btn ink sm" type="button" id="ev">Send evidence</button></div></div>` : ''}
+        ${p.status === 'Under review' ? `<div class="call info"><b>The bank is reviewing your evidence.</b>Most disputes are decided within 60 days. We’ll email you the outcome.</div>` : ''}
+        <ul class="tl">${tl.map(([a, b, c, t]) => `<li><i class="${c}"></i><span>${a}${b ? `<small>${esc(b)}</small>` : ''}</span><time>${t ? when(t) : 'Scheduled'}</time></li>`).join('')}</ul>
+        <dl class="props">
+          <div><dt>Customer</dt><dd>${esc(p.c.name)}<br><span class="mut" style="font-weight:400">${esc(p.c.email)}</span></dd></div>
+          <div><dt>Card</dt><dd>${p.c.brand} •• ${p.c.last4} <span class="mut" style="font-weight:400">· exp ${p.c.exp}</span></dd></div>
+          ${p.status !== 'Failed' ? `<div><dt>Fee</dt><dd>${m2(fee(p.amt))}</dd></div><div><dt>Net to you</dt><dd>${m2(net)}</dd></div>` : ''}
+          <div><dt>Payment ID</dt><dd><span class="mono">${p.id}</span><button class="btn ghost sm icon" type="button" id="cp" aria-label="Copy payment ID">${ic('copy')}</button></dd></div>
+        </dl>
+      </div>
+      <div class="d-foot">${left(p) > 0 && /Succeeded|Partially/.test(p.status) ? `<button class="btn" type="button" id="rf">${ic('refund')}Refund…</button>` : `<span class="mut" style="font-size:12.5px">${p.status === 'Refunded' ? 'Fully refunded. Nothing left to refund.' : p.status === 'Failed' ? 'No money moved, so there’s nothing to refund.' : 'Refunds are paused while a dispute is open.'}</span>`}</div>`);
+    $('#cp', dr).addEventListener('click', () => { navigator.clipboard?.writeText(p.id).catch(() => {}); K.toast('Payment ID copied'); });
+    $('#rf', dr)?.addEventListener('click', () => refund(p));
+    $('#link', dr)?.addEventListener('click', () => { navigator.clipboard?.writeText('https://pay.mintlane.example/update/' + p.id).catch(() => {}); K.toast('Card-update link copied'); });
+    $('#retry', dr)?.addEventListener('click', e => {
+      const b = e.currentTarget; b.disabled = true; b.innerHTML = `<i class="spin" style="width:12px;height:12px;border:1.5px solid #D7D5CE;border-top-color:var(--acc);border-radius:50%"></i>Retrying`;
+      setTimeout(() => { Object.assign(p, { status: 'Succeeded', retried: new Date(NOW) }); data().pe += p.amt - fee(p.amt); renderAll(); openPay(p.id); K.toast(`${m2(p.amt)} from ${p.c.name} went through`); }, 1200);
+    });
+    $('#ev', dr)?.addEventListener('click', () => evidence(p));
+  }
+  document.addEventListener('click', e => { const tr = e.target.closest('tr[data-id]'); if (tr && !tr.closest('#cu-t')) openPay(tr.dataset.id); });
+
+  function refund(p) {
+    const max = left(p), d = data();
+    const m = K.modal(`<h2>Refund ${esc(p.c.name)}</h2><p>It reaches their ${p.c.brand} •• ${p.c.last4} in 5 to 10 business days. A refund can’t be undone.</p>
+      <form class="stack" id="rf-f" style="margin-top:18px" novalidate>
+        <label><span class="lbl">Amount</span><span class="input" style="height:40px"><span class="mut">$</span><input id="rf-a" inputmode="decimal" value="${max.toFixed(2)}" autofocus aria-describedby="rf-e"><span class="mut">of ${m2(max)}</span></span><span class="err" id="rf-e"></span></label>
+        <label><span class="lbl">Reason</span><select class="field" id="rf-r"><option>Requested by customer</option><option>Duplicate</option><option>Fraudulent</option></select></label>
+        <div class="sum" id="rf-s"></div>
+        <div class="m-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn red" type="submit" id="rf-go"></button></div>
+      </form>`);
+    const a = $('#rf-a', m), val = () => Math.round(parseFloat(a.value.replace(/[$,]/g, '')) * 100) / 100;
+    const upd = () => {
+      const v = val(), bad = !(v > 0) ? 'Enter an amount.' : v > max ? `The most you can refund is ${m2(max)}.` : '';
+      $('#rf-e', m).textContent = bad; $('#rf-go', m).disabled = !!bad;
+      $('#rf-go', m).textContent = bad ? 'Refund' : `Refund ${m2(v)}`;
+      $('#rf-s', m).innerHTML = bad ? 'Your balance won’t change.' : `<b>${m2(v)}</b> comes out of your available balance, ${m2(d.av)} → ${m2(d.av - v)}. The ${m2(fee(p.amt))} fee isn’t returned.`;
+    };
+    a.addEventListener('input', upd); upd();
+    $('#rf-f', m).addEventListener('submit', e => {
+      e.preventDefault(); const v = val(); if (!(v > 0 && v <= max)) return;
+      p.refunded = Math.round((p.refunded + v) * 100) / 100; p.rwhy = $('#rf-r', m).value; p.rt = new Date(NOW);
+      p.status = left(p) <= 0 ? 'Refunded' : 'Partially refunded';
+      d.av = Math.round((d.av - v) * 100) / 100;
+      console.assert(p.refunded <= p.amt && left(p) >= 0, 'refund exceeded the payment');
+      K.shut(true); renderAll(); openPay(p.id);
+      K.toast(`Refunded ${m2(v)} to ${p.c.brand} •• ${p.c.last4}`);
+    });
+  }
+  function evidence(p) {
+    const m = K.modal(`<h2>Send evidence to the bank</h2><p>Pick what to include. We’ve found these in your records for ${esc(p.c.name)}.</p>
+      <div class="ev"><label><input type="checkbox" checked><span>Signed membership agreement<small>Accepted online on ${fdate(p.c.since)} with their email</small></span></label>
+      <label><input type="checkbox" checked><span>Check-in history<small>14 visits since the payment</small></span></label>
+      <label><input type="checkbox" checked><span>Receipt emails<small>Sent to ${esc(p.c.email)}, opened twice</small></span></label></div>
+      <div class="m-foot"><button class="btn" type="button" data-close>Cancel</button><button class="btn ink" type="button" id="ev-go">Send evidence</button></div>`);
+    $('#ev-go', m).addEventListener('click', () => { p.status = 'Under review'; p.et = new Date(NOW); K.shut(true); renderAll(); openPay(p.id); K.toast('Evidence sent to the bank'); });
+  }
+
+  // ---------- Payouts ----------
+  function renderPo() {
+    const r = K.rng(S.mode === 'test' ? 3 : 9), rows = [];
+    for (let i = 0, d = new Date(2026, 10, 20); rows.length < 10; d = new Date(+d - 864e5)) {
+      if (d.getDay() % 6 === 0) continue;
+      const a = i === 0 ? data().av : S.mode === 'test' ? 120 + r() * 300 : 1200 + r() * 1700;
+      rows.push(`<tr><td class="r"><span class="amt">${m2(a)}<small>USD</small></span></td><td>${i === 0 ? '<span class="chip info">Scheduled</span>' : i === 1 ? '<span class="chip warn">In transit</span>' : `<span class="chip ok">${ic('check')}Paid</span>`}</td><td>${long(d)}${i === 1 ? ' <span class="mut">· expected today</span>' : ''}</td><td class="mut">${Math.round(a / 96)} payments</td><td class="mut">Account •• 6021</td></tr>`);
+      i++;
+    }
+    $('#po-t tbody').innerHTML = rows.join('');
+  }
+  $('#sch').addEventListener('click', e => K.menu(e.currentTarget, ['Every weekday', 'Weekly, on Fridays', 'Monthly, on the 1st'].map(v => ({ v, label: v, on: $('#sch-t').textContent === v })), v => { $('#sch-t').textContent = v; K.toast(`Payouts: ${v.toLowerCase()}`); }));
+
+  // ---------- Customers ----------
+  const sortCu = K.sortable($('#cu-t'), S.cu, () => renderCu());
+  function renderCu() {
+    const d = data(), q = $('#cq').value.trim().toLowerCase();
+    const rows = d.cs.map(c => { const ps = d.ps.filter(p => p.c === c && p.status !== 'Failed'); return { c, name: c.name, n: ps.length, spent: sum(ps.map(left)), first: +c.since }; })
+      .filter(r => !q || (r.name + ' ' + r.c.email).toLowerCase().includes(q)).sort(by(S.cu.key, S.cu.dir));
+    $('#cu-n').textContent = `${rows.length} customers`;
+    $('#cu-t tbody').innerHTML = rows.map(r => `<tr data-id="${r.c.id}"><td class="who"><b>${esc(r.name)}</b><small>${esc(r.c.email)}</small></td><td class="r">${r.n}</td><td class="r amt">${m2(r.spent)}</td><td><span class="card-l"><i>${r.c.brand === 'Mastercard' ? 'MC' : r.c.brand.toUpperCase()}</i>•• ${r.c.last4}</span></td><td class="r mut">${fdate(r.c.since, { month: 'short', year: 'numeric' })}</td></tr>`).join('') || `<tr><td colspan="5"><div class="empty"><b>No customers match</b>Try part of a name or an email.</div></td></tr>`;
+    sortCu();
+  }
+  $('#cq').addEventListener('input', renderCu);
+  $('#cu-t').addEventListener('click', e => {
+    const tr = e.target.closest('tr[data-id]'); if (!tr) return;
+    const c = data().cs.find(x => x.id === tr.dataset.id), ps = data().ps.filter(p => p.c === c);
+    const dr = K.drawer(`<div class="d-head"><h2>${esc(c.name)}</h2><button class="btn ghost icon" type="button" data-close aria-label="Close">${ic('x')}</button></div>
+      <div class="d-body"><p class="mut">${esc(c.email)} · customer since ${fdate(c.since, { month: 'long', year: 'numeric' })}</p>
+      <dl class="props" style="margin-top:14px"><div><dt>Card on file</dt><dd>${c.brand} •• ${c.last4} · exp ${c.exp}</dd></div><div><dt>Spent, last 10 days</dt><dd>${m2(sum(ps.filter(p => p.status !== 'Failed').map(left)))}</dd></div></dl>
+      <div class="cap" style="margin:20px 0 6px">Payments</div><table class="tbl"><tbody>${ps.map(p => `<tr data-id="${p.id}"><td>${amt(p)}</td><td>${chip(p)}</td><td class="r mut">${when(p.t)}</td></tr>`).join('') || '<tr><td class="mut">No payments in the last 10 days.</td></tr>'}</tbody></table></div>`);
+    dr.onclick = ev => { const r = ev.target.closest('tr[data-id]'); if (r) { ev.stopPropagation(); openPay(r.dataset.id); } };   // K.drawer reuses one element
+  });
+
+  // ---------- Test mode ----------
+  function setMode(m) {
+    S.mode = m; document.body.classList.toggle('test', m === 'test');
+    $('#mode').setAttribute('aria-checked', m === 'test');
+    $('#mode-s').textContent = m === 'test' ? 'On · test payments only' : 'Off · real payments';
+    renderAll();
+    K.toast(m === 'test' ? 'Showing test data' : 'Showing live data', 'info');
+  }
+  $('#mode').addEventListener('click', () => setMode(S.mode === 'live' ? 'test' : 'live'));
+  $('#to-live').addEventListener('click', () => setMode('live'));
+  $('#ws').addEventListener('click', e => K.menu(e.currentTarget, [{ v: 1, label: 'Lumen Fitness', on: true }, { sep: 1 }, { v: 2, label: 'Add a business' }], v => v === 2 && K.toast('The real app adds a second business here', 'info')));
+
+  function renderAll() {
+    $('#n-pay').textContent = data().ps.filter(p => p.status === 'Failed' || p.status === 'Disputed').length || '';
+    $('#n-pay').title = 'Failed or disputed';
+    renderHome(); renderPay(); renderPo(); renderCu();
+  }
+  K.keys({ '/': () => { K.go('payments'); $('#pq').focus(); } });
+  renderAll();
+  K.route('home', (pg, rest) => {
+    $('#title').textContent = { home: 'Home', payments: 'Payments', payouts: 'Payouts', customers: 'Customers' }[pg];
+    if (pg === 'payments') { const f = F[rest] ? rest : 'all'; if (f !== S.f) { S.f = f; renderPay(); } }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1224,3 +1224,25 @@
   --ok: #17804a;
   color: var(--dim);
 }
+
+/* ---- sample rebuilds ------------------------------------------------------------------------ */
+.rbGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+.rbCard { display: flex; flex-direction: column; }
+.rbShot { display: block; aspect-ratio: 1200 / 760; overflow: hidden; background: var(--sheet); box-shadow: inset 0 -1px 0 0 var(--line); }
+.rbShot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left; transition: transform 500ms var(--spring); }
+.rbShot:hover img { transform: scale(1.03); }
+.rbShot:focus-visible { outline: 2px solid var(--hot); outline-offset: -2px; }
+.rbBody { display: flex; flex: 1; flex-direction: column; align-items: flex-start; padding: 1.5rem 1.6rem 1.6rem; }
+.rbKind { font-family: var(--font-gmono), monospace; font-size: 0.75rem; letter-spacing: 0.02em; color: var(--faint); }
+.rbName { margin-top: 0.5rem !important; font-size: 1.5rem; font-weight: 620; font-stretch: 108%; letter-spacing: -0.035em; line-height: 1.1; }
+.rbLine { margin-top: 0.6rem; font-size: 0.9375rem; line-height: 1.5; }
+.rbMeta { display: grid; grid-template-columns: 1fr auto; gap: 1rem; width: 100%; margin: 1.2rem 0 1.4rem; padding-top: 1rem; box-shadow: inset 0 1px 0 0 var(--line); }
+.rbMeta dt { font-family: var(--font-gmono), monospace; font-size: 0.75rem; color: var(--faint); }
+.rbMeta dd { margin: 0.25rem 0 0; font-size: 0.875rem; font-weight: 550; color: var(--ink); }
+.rbLinks { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.1rem; margin-top: auto; }
+.rbText { font-size: 0.875rem; font-weight: 550; color: var(--ink) !important; text-decoration: underline !important; text-decoration-color: var(--line2) !important; text-underline-offset: 0.25em; transition: text-decoration-color 160ms ease-out; }
+.rbText:hover { text-decoration-color: currentColor !important; }
+.rbFoot { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.6rem; margin-top: 2rem; }
+.rbFoot span { max-width: 36rem; font-size: 0.8125rem; line-height: 1.55; color: var(--faint); }
+@media (max-width: 1100px) { .rbGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .rbGrid { grid-template-columns: minmax(0, 1fr); } }

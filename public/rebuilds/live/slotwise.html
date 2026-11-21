@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slotwise · Kyre rebuild</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="kit.css">
+<style>
+  :root { --acc: #2F5D46; --acc-soft: rgba(47, 93, 70, .14); }
+  body { background: #F7F6F2; }
+  .wiz { display: flex; flex-direction: column; height: calc(100vh - var(--kb)); }
+  .wtop { flex: none; display: flex; align-items: center; height: 60px; padding: 0 32px; border-bottom: 1px solid rgba(11, 12, 15, .07); background: #FBFAF7; }
+  .brand { display: flex; align-items: center; gap: 8px; width: 200px; font-size: 15px; font-weight: 600; letter-spacing: -.02em; }
+  .logo { position: relative; width: 20px; height: 20px; border-radius: 6px; background: var(--acc); }
+  .logo::after { content: ''; position: absolute; left: 5px; right: 5px; top: 9px; height: 2px; border-radius: 1px; background: #fff; }
+  .wstep { display: flex; align-items: center; gap: 10px; margin: 0 auto; }
+  .wstep b { font-weight: 500; }
+  .segs { display: flex; gap: 4px; margin-left: 6px; }
+  .segs span { width: 34px; height: 4px; border-radius: 2px; background: #E3E1DA; transition: background-color .4s var(--e); }
+  .segs span.on { background: var(--acc); }
+  .exit { width: 200px; text-align: right; }
+  .exit .btn { margin-left: auto; }
+
+  .wbody { flex: 1; overflow: auto; display: grid; grid-template-columns: 500px 1fr; gap: 64px; padding: 40px 72px 24px 84px; }
+  .form > section { animation: rise .45s var(--e-out); }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+  .form h2 { font-size: 34px; font-weight: 600; line-height: 1.08; letter-spacing: -.035em; overflow-wrap: anywhere; }
+  .form h2 + p { margin: 10px 0 28px; color: var(--mut); font-size: 15px; }
+  .f { margin-bottom: 22px; }
+  .f > .lbl { margin-bottom: 7px; font-size: 13px; }
+  .f .field { height: 42px; }
+  .help { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 22px; margin-top: 8px; color: var(--mut); font-size: 12.5px; }
+  .help .ic { width: 14px; height: 14px; stroke-width: 2; }
+  .help b { color: var(--ink); font-weight: 500; }
+  .help.ok .ic { color: var(--up); } .help.bad { color: var(--dn); } .help.bad b { color: var(--dn); }
+  .help .spin { width: 12px; height: 12px; border: 1.5px solid #D7D5CE; border-top-color: var(--acc); border-radius: 50%; }
+  .link-btn { padding: 0; border: 0; background: none; color: var(--acc); font: inherit; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+  .svc { display: grid; grid-template-columns: minmax(0, 1fr) 108px 88px; gap: 8px; margin-bottom: 8px; }
+  .svc.extra { grid-template-columns: minmax(0, 1fr) 108px 88px 32px; margin-right: -40px; }
+  .price { position: relative; } .price::before { content: '$'; position: absolute; left: 12px; top: 12px; color: var(--mut-2); pointer-events: none; }
+  .price .field { padding-left: 24px; }
+  .svc .btn.icon { width: 32px; height: 42px; }
+  .add { display: inline-flex; align-items: center; gap: 6px; margin-top: 1px; padding: 0; border: 0; background: none; color: var(--acc); font-size: 12.5px; font-weight: 500; }
+  .add .ic { width: 14px; height: 14px; }
+  .add[disabled] { color: var(--mut-2); cursor: default; }
+  .days { display: inline-flex; gap: 6px; }
+  .days button { width: 46px; height: 36px; border: 0; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .12); color: var(--mut); font-weight: 500; transition: background-color .15s var(--e), color .15s var(--e), transform .15s var(--e); }
+  .days button:hover { color: var(--ink); } .days button:active { transform: scale(.96); }
+  .days button[aria-pressed="true"] { background: var(--ink); color: #fff; box-shadow: none; }
+  .hours { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+  .hours select.field { width: 112px; height: 36px; }
+  .hours select.tz { width: 140px; }
+  .go { display: flex; align-items: center; gap: 18px; margin-top: 30px; }
+  .cta { display: inline-flex; align-items: center; gap: 14px; height: 46px; padding: 0 6px 0 20px; border: 0; border-radius: 999px; background: var(--ink); color: #fff; font-size: 14.5px; font-weight: 500; white-space: nowrap; transition: background-color .2s var(--e), transform .15s var(--e); }
+  .cta span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, .14); transition: transform .3s var(--e-out); }
+  .cta:hover span { transform: translateX(2px); } .cta:active { transform: scale(.98); }
+  .cta[disabled] { background: #B9B7B0; cursor: not-allowed; } .cta[disabled] span { transform: none; }
+  .go small { color: var(--mut); font-size: 13px; }
+  .go small.why { color: var(--dn); }
+  .cal { display: grid; gap: 8px; }
+  .cal-row { display: flex; align-items: center; gap: 12px; height: 54px; padding: 0 10px 0 14px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .1); }
+  .cal-row .ic { color: var(--mut); }
+  .cal-row b { font-weight: 500; } .cal-row small { display: block; color: var(--mut); font-size: 12px; }
+  .cal-row .btn { margin-left: auto; }
+  .cal-row.on { box-shadow: 0 0 0 1.5px var(--acc); } .cal-row.on .ic { color: var(--acc); }
+  .tog { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(11, 12, 15, .06); }
+  .tog:last-child { border-bottom: 0; } .tog span { flex: 1; } .tog small { display: block; color: var(--mut); font-size: 12px; }
+  .linkbox { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 6px 0 16px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px var(--acc), 0 0 0 4px var(--acc-soft); font-size: 15px; font-weight: 500; }
+  .linkbox .ic { color: var(--acc); } .linkbox .btn { margin-left: auto; }
+  .share { display: grid; gap: 8px; margin-top: 22px; }
+  .share .cal-row .ic { width: 18px; height: 18px; }
+  .after { margin-top: 18px; color: var(--mut); font-size: 13px; }
+  .code { margin-top: 14px; padding: 12px 14px; border-radius: 9px; background: var(--ink); color: #E8E6E1; font: 500 12px/1.6 var(--mono); white-space: pre-wrap; word-break: break-all; }
+
+  .prev { display: flex; flex-direction: column; align-items: center; }
+  .plbl { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; color: var(--mut); font-size: 12px; }
+  .live { width: 7px; height: 7px; border-radius: 50%; background: #0F9D74; box-shadow: 0 0 0 3px rgba(15, 157, 116, .18); }
+  .phone { flex: none; width: 300px; height: 590px; padding: 10px; border-radius: 48px; background: var(--ink); box-shadow: 0 50px 90px -40px rgba(11, 12, 15, .45), 0 0 0 1px rgba(11, 12, 15, .6); }
+  .scr { position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 38px; background: #fff; }
+  .notch { position: absolute; z-index: 2; top: 10px; left: 50%; width: 92px; height: 26px; margin-left: -46px; border-radius: 14px; background: var(--ink); }
+  .pm { flex: 1; overflow: auto; scrollbar-width: none; }
+  .p-url { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 46px; color: var(--mut-2); font-size: 11px; }
+  .p-url .ic { width: 11px; height: 11px; }
+  .p-url .chip { height: 17px; margin-left: 4px; padding: 0 6px; font-size: 10px; }
+  .p-biz { padding: 20px 20px 0; }
+  .p-av { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: var(--acc); color: #fff; font-size: 15px; font-weight: 600; }
+  .p-biz h3 { margin-top: 12px; font-size: 19px; font-weight: 600; letter-spacing: -.025em; overflow-wrap: anywhere; }
+  .p-biz p { margin-top: 2px; color: var(--mut); font-size: 12.5px; }
+  .p-svcs { display: grid; gap: 6px; margin: 16px 20px 0; }
+  .p-svc { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; padding: 11px 14px; border: 0; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .1); text-align: left; transition: box-shadow .15s var(--e); }
+  .p-svc[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--acc); }
+  .p-svc b { display: block; overflow: hidden; font-size: 13.5px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+  .p-svc span { color: var(--mut); font-size: 12px; }
+  .p-svc strong { flex: none; font-size: 14px; font-weight: 600; }
+  .p-cap { display: flex; justify-content: space-between; margin: 18px 20px 0; color: var(--mut-2); font-size: 11.5px; font-weight: 500; }
+  .p-days { display: grid; gap: 6px; margin: 8px 20px 0; }
+  .p-days button { display: grid; place-items: center; gap: 1px; height: 52px; padding: 0; border: 0; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .1); font-size: 15px; font-weight: 600; transition: background-color .15s var(--e); }
+  .p-days.tight button { font-size: 13px; }
+  .p-days small { color: var(--mut-2); font-size: 10.5px; font-weight: 500; }
+  .p-days button[aria-pressed="true"] { background: var(--ink); color: #fff; box-shadow: none; }
+  .p-days button[aria-pressed="true"] small { color: rgba(255, 255, 255, .6); }
+  .p-times { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 20px 16px; }
+  .p-times button { height: 36px; padding: 0; border: 0; border-radius: 9px; background: #fff; box-shadow: 0 0 0 1px rgba(11, 12, 15, .1); font-size: 13px; font-weight: 500; transition: background-color .15s var(--e); }
+  .p-times button:hover { box-shadow: 0 0 0 1px var(--acc); }
+  .p-times button[aria-pressed="true"] { background: var(--acc); color: #fff; box-shadow: none; }
+  .p-none { grid-column: 1 / -1; padding: 10px 0; color: var(--mut); font-size: 12.5px; text-align: center; }
+  .p-book { flex: none; height: 46px; margin: 8px 20px 22px; border: 0; border-radius: 13px; background: var(--acc); color: #fff; font-size: 14px; font-weight: 500; transition: transform .15s var(--e), opacity .2s; }
+  .p-book:active { transform: scale(.98); } .p-book[disabled] { opacity: .4; cursor: default; }
+  .p-done { display: flex; flex-direction: column; align-items: center; padding: 34px 22px 0; text-align: center; animation: rise .4s var(--e-out); }
+  .p-done .ok { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: #E7F4EE; color: var(--up); }
+  .p-done .ok .ic { width: 24px; height: 24px; stroke-width: 2.2; }
+  .p-done h3 { margin-top: 14px; font-size: 21px; font-weight: 600; letter-spacing: -.025em; }
+  .p-when { width: 100%; margin-top: 18px; padding: 14px; border-radius: 12px; background: #F7F6F2; text-align: left; font-size: 13px; line-height: 1.5; }
+  .p-when b { display: block; font-size: 15px; font-weight: 600; }
+  .p-done ul { width: 100%; margin-top: 14px; padding: 0; list-style: none; color: var(--mut); font-size: 12px; line-height: 1.45; text-align: left; }
+  .p-done li { display: flex; gap: 8px; margin-top: 8px; } .p-done li .ic { flex: none; width: 14px; height: 14px; margin-top: 1px; color: var(--acc); }
+  .p-back { margin-top: 14px; }
+  .qr { display: block; width: 180px; height: 180px; margin: 16px auto 4px; }
+
+  @media (max-width: 1000px) { .wbody { grid-template-columns: minmax(0, 1fr) 300px; gap: 32px; padding: 32px; } }
+  @media (max-width: 760px) {
+    .wtop { padding: 0 14px; } .brand, .exit { width: auto; } .wstep > .mut, .segs { display: none; }
+    .wbody { grid-template-columns: minmax(0, 1fr); padding: 24px 16px; }
+    .form h2 { font-size: 28px; }
+    .svc, .svc.extra { grid-template-columns: minmax(0, 1fr) 92px 76px; margin-right: 0; } .svc.extra .btn { display: none; }
+    .days { flex-wrap: wrap; } .days button { width: 42px; }
+    .hours { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body data-app="Slotwise" data-kind="booking app">
+<div class="wiz">
+  <header class="wtop">
+    <div class="brand"><span class="logo"></span>Slotwise</div>
+    <div class="wstep" data-note="Three steps, and the label says what this one is for."><span class="mut" id="step-n">Step 1 of 3</span><b id="step-t">Your booking page</b><span class="segs" id="segs"><span class="on"></span><span></span><span></span></span></div>
+    <div class="exit"><button class="btn ghost" type="button" id="save">Save and exit</button></div>
+  </header>
+  <div class="wbody">
+    <div class="form">
+      <section data-step="1">
+        <h2>Let’s make your booking page.</h2>
+        <p>Three answers and it’s live. You can change any of it later.</p>
+        <div class="f">
+          <label class="lbl" for="name">Business name</label>
+          <input class="field" id="name" value="Hollow Pine Studio" maxlength="40" autocomplete="organization">
+          <div class="help" id="slug" data-note="The link they'll share, reserved while they type." aria-live="polite"></div>
+        </div>
+        <div class="f">
+          <span class="lbl">What do people book?</span>
+          <div id="svcs" data-note="One row sets up the thing they sell."></div>
+          <button class="add" type="button" id="add-svc"><svg class="ic"><use href="#i-plus"/></svg>Add another service</button>
+        </div>
+        <div class="f">
+          <span class="lbl">When are you available?</span>
+          <div class="days" id="days" data-note="Weekdays, 9 to 5, already filled in."></div>
+          <div class="hours"><select class="field" id="from" aria-label="Opens at"></select><span class="mut">to</span><select class="field" id="to" aria-label="Closes at"></select><select class="field tz" id="tz" aria-label="Time zone"><option>Eastern time</option><option>Central time</option><option>Mountain time</option><option>Pacific time</option></select></div>
+        </div>
+        <div class="go"><button class="cta" type="button" id="publish">Publish page<span><svg class="ic"><use href="#i-arrow"/></svg></span></button><small id="why1" data-note="The card comes after their first booking. Until then, this line says what's missing.">No card needed to publish your page.</small></div>
+      </section>
+
+      <section data-step="2" hidden>
+        <h2>Where should bookings go?</h2>
+        <p>We email you every booking. Connect a calendar and your busy times stop showing as free.</p>
+        <div class="f">
+          <label class="lbl" for="email">Email for new bookings</label>
+          <input class="field" id="email" type="email" placeholder="you@yourbusiness.com" autocomplete="email" value="hello@hollowpine.example">
+          <div class="help" id="email-h"></div>
+        </div>
+        <div class="f">
+          <span class="lbl">Your calendar <span class="mut" style="font-weight:400">· optional</span></span>
+          <div class="cal" id="cals" data-note="Optional, and it says what connecting does."></div>
+        </div>
+        <div class="f">
+          <div class="tog"><span>Remind customers a day before<small>Cuts no-shows. Sent by email at the same time of day.</small></span><button class="switch" type="button" role="switch" aria-checked="true" data-opt="remind" aria-label="Remind customers a day before"></button></div>
+          <div class="tog"><span>Let customers cancel or move it<small>Up to 12 hours before the start.</small></span><button class="switch" type="button" role="switch" aria-checked="true" data-opt="cancel" aria-label="Let customers cancel or move it"></button></div>
+        </div>
+        <div class="go"><button class="btn" type="button" data-back style="height:46px;border-radius:999px;padding:0 18px">Back</button><button class="cta" type="button" id="next2">Continue<span><svg class="ic"><use href="#i-arrow"/></svg></span></button><small id="why2"></small></div>
+      </section>
+
+      <section data-step="3" hidden>
+        <h2 id="live-h">Your page is live.</h2>
+        <p>Share the link anywhere people already find you.</p>
+        <div class="linkbox" data-note="The one thing to do next, with a copy button."><svg class="ic"><use href="#i-link"/></svg><span id="live-url"></span><button class="btn ink" type="button" data-copy="url"><svg class="ic"><use href="#i-copy"/></svg>Copy link</button></div>
+        <div class="share">
+          <div class="cal-row"><svg class="ic"><use href="#i-user"/></svg><div><b>Put it in your Instagram bio</b><small>Where most new clients will tap it.</small></div><button class="btn sm" type="button" data-copy="url">Copy</button></div>
+          <div class="cal-row"><svg class="ic"><use href="#i-qr"/></svg><div><b>Print a QR code for the front desk</b><small>For walk-ins who want to book the next one.</small></div><button class="btn sm" type="button" id="qr">Show QR</button></div>
+          <div class="cal-row"><svg class="ic"><use href="#i-code"/></svg><div><b>Add a Book button to your website</b><small>Two lines of code. Works with any site builder.</small></div><button class="btn sm" type="button" id="embed">Get code</button></div>
+        </div>
+        <p class="after">Getting paid comes later. Add a card when you want deposits or no-show fees.</p>
+        <div class="go"><button class="btn" type="button" data-back style="height:46px;border-radius:999px;padding:0 18px">Back</button><button class="cta" type="button" id="dash">Go to your dashboard<span><svg class="ic"><use href="#i-arrow"/></svg></span></button></div>
+      </section>
+    </div>
+
+    <aside class="prev">
+      <div class="plbl" id="plbl"></div>
+      <div class="phone" data-note="Their customer's view, from the first field."><div class="scr" id="scr"></div></div>
+    </aside>
+  </div>
+</div>
+
+<script src="kit.js"></script>
+<script>
+(() => {
+  const { $, $$, ic, esc } = K;
+  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];       // next week is Mon Nov 23 to Sun Nov 29, 2026
+  const BOOKED = [[10, 14], [12, 15], [9, 13], [11, 16], [12, 14], [10], []];  // sample bookings already taken, by weekday
+  const TAKEN = new Set(['yoga', 'massage', 'hair', 'nails', 'pilates', 'fitness', 'salon', 'spa', 'studio', 'barber', 'test']);
+  const TITLES = ['Your booking page', 'Where bookings go', 'Share your link'];
+  const S = {
+    step: 1, name: 'Hollow Pine Studio', slug: 'hollow-pine', slugState: 'free',
+    svcs: [{ n: 'Deep-tissue massage', d: 60, p: 95 }], sel: 0,
+    open: [1, 1, 1, 1, 1, 0, 0], from: 9, to: 17, tz: 'Eastern time',
+    day: 1, time: 10, booked: false, email: 'hello@hollowpine.example', cal: null, remind: true, cancel: true,
+  };
+  const hh = t => `${Math.floor(t)}:${t % 1 ? '30' : '00'}`;
+  const slugify = s => {
+    const w = s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9\s-]/g, '').split(/[\s-]+/).filter(Boolean);
+    const k = w.filter(x => !['studio', 'llc', 'inc', 'ltd', 'the'].includes(x));
+    return (k.length ? k : w).join('-').slice(0, 30);
+  };
+  const initials = s => s.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '·';
+  const svc = () => S.svcs[S.sel] || S.svcs[0];
+  const slots = d => {
+    if (!S.open[d]) return [];
+    const dur = svc().d / 60, step = svc().d <= 30 ? .5 : 1, out = [];
+    for (let t = S.from; t + dur <= S.to; t += step) if (!BOOKED[d].includes(t)) out.push(t);
+    return out.slice(0, 6);
+  };
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // ---------- Step 1 ----------
+  const name = $('#name');
+  let st;
+  name.addEventListener('input', () => {
+    S.name = name.value; S.slug = slugify(name.value); S.slugState = S.slug ? 'checking' : 'empty';
+    clearTimeout(st);
+    if (S.slug) st = setTimeout(() => { S.slugState = TAKEN.has(S.slug) ? 'taken' : 'free'; renderSlug(); check(); }, 450);
+    renderSlug(); check(); phone();
+  });
+  function renderSlug() {
+    const h = $('#slug'), u = `<b>slotwise.co/${esc(S.slug)}</b>`;
+    h.className = 'help' + (S.slugState === 'free' ? ' ok' : S.slugState === 'taken' ? ' bad' : '');
+    h.innerHTML = S.slugState === 'free' ? `${ic('check')}Your link ${u} is free`
+      : S.slugState === 'checking' ? `<i class="spin"></i>Checking ${u}…`
+      : S.slugState === 'taken' ? `${u} is taken. <button class="link-btn" type="button" id="alt">Use slotwise.co/${esc(S.slug)}-${S.slug.endsWith('-co') ? 2 : 'co'}</button>`
+      : 'Your link appears here as you type.';
+    $('#alt')?.addEventListener('click', () => { S.slug += S.slug.endsWith('-co') ? '-2' : '-co'; S.slugState = 'free'; renderSlug(); check(); phone(); });
+  }
+
+  function renderSvcs() {
+    $('#svcs').innerHTML = S.svcs.map((s, i) => `<div class="svc${i ? ' extra' : ''}" data-i="${i}">
+      <input class="field" data-k="n" value="${esc(s.n)}" placeholder="Service name" maxlength="40" aria-label="Service name">
+      <select class="field" data-k="d" aria-label="Length">${[30, 45, 60, 90].map(m => `<option value="${m}"${m === s.d ? ' selected' : ''}>${m} min</option>`).join('')}</select>
+      <span class="price"><input class="field" data-k="p" type="number" min="0" max="9999" inputmode="numeric" value="${s.p}" aria-label="Price in dollars"></span>
+      ${i ? `<button class="btn ghost icon" type="button" data-rm="${i}" aria-label="Remove ${esc(s.n || 'service')}">${ic('x')}</button>` : ''}</div>`).join('');
+    $('#add-svc').disabled = S.svcs.length >= 3;
+    $('#add-svc').lastChild.textContent = S.svcs.length >= 3 ? 'Three is the most for now' : 'Add another service';
+  }
+  $('#svcs').addEventListener('input', e => {
+    const k = e.target.dataset.k, s = S.svcs[e.target.closest('[data-i]').dataset.i];
+    s[k] = k === 'n' ? e.target.value : Math.max(0, Math.min(9999, +e.target.value || 0));
+    check(); phone();
+  });
+  $('#svcs').addEventListener('click', e => {
+    const b = e.target.closest('[data-rm]'); if (!b) return;
+    S.svcs.splice(+b.dataset.rm, 1); S.sel = Math.min(S.sel, S.svcs.length - 1);
+    renderSvcs(); check(); phone();
+  });
+  $('#add-svc').addEventListener('click', () => {
+    S.svcs.push({ n: '', d: 30, p: 45 }); renderSvcs(); check(); phone();
+    $$('#svcs [data-k="n"]').at(-1).focus();
+  });
+
+  $('#days').innerHTML = DAYS.map((d, i) => `<button type="button" aria-pressed="${!!S.open[i]}" data-d="${i}">${d}</button>`).join('');
+  $('#days').addEventListener('click', e => {
+    const b = e.target.closest('[data-d]'); if (!b) return;
+    S.open[b.dataset.d] ^= 1; b.setAttribute('aria-pressed', !!S.open[b.dataset.d]);
+    check(); phone();
+  });
+  const opts = (sel, v) => { sel.innerHTML = Array.from({ length: 16 }, (_, i) => i + 6).map(h => `<option value="${h}"${h === v ? ' selected' : ''}>${h}:00</option>`).join(''); };
+  opts($('#from'), S.from); opts($('#to'), S.to);
+  $('.hours').addEventListener('change', e => { S[e.target.id] = e.target.id === 'tz' ? e.target.value : +e.target.value; check(); phone(); });
+
+  function problem() {
+    if (!S.name.trim()) return 'Add your business name to publish.';
+    if (S.slugState === 'checking') return 'Checking your link…';
+    if (S.slugState === 'taken') return 'Pick a free link to publish.';
+    if (!S.svcs.some(s => s.n.trim())) return 'Name at least one service.';
+    if (!S.open.some(Boolean)) return 'Pick at least one day.';
+    if (S.to <= S.from) return 'Closing time is before opening time.';
+    if ((S.to - S.from) * 60 < Math.max(...S.svcs.map(s => s.d))) return 'Your hours are shorter than a service.';
+    return '';
+  }
+  function check() {
+    const p = problem(), w = $('#why1');
+    $('#publish').disabled = !!p;
+    w.textContent = p || 'No card needed to publish your page.';
+    w.classList.toggle('why', !!p && S.slugState !== 'checking');
+  }
+  $('#publish').addEventListener('click', () => { S.svcs = S.svcs.filter(s => s.n.trim()); S.sel = Math.min(S.sel, S.svcs.length - 1); renderSvcs(); go(2); });
+
+  // ---------- Step 2 ----------
+  const CALS = [['Google Calendar', 'cal'], ['Outlook', 'mail'], ['iCloud', 'cal']];
+  function renderCals() {
+    $('#cals').innerHTML = CALS.map(([n, i]) => {
+      const on = S.cal === n, busy = S.cal === n + '…';
+      return `<div class="cal-row${on ? ' on' : ''}">${ic(on ? 'check' : i)}<div><b>${n}</b><small>${on ? 'Connected. Busy times now block your page.' : 'Checks for clashes. Never shows event names.'}</small></div>
+        <button class="btn sm${on ? ' ghost' : ''}" type="button" data-cal="${n}"${S.cal && !on && !busy ? ' disabled' : ''}>${busy ? '<i class="spin" style="width:12px;height:12px;border:1.5px solid #D7D5CE;border-top-color:var(--acc);border-radius:50%"></i>Connecting' : on ? 'Disconnect' : 'Connect'}</button></div>`;
+    }).join('');
+  }
+  $('#cals').addEventListener('click', e => {
+    const b = e.target.closest('[data-cal]'); if (!b || b.disabled) return;
+    const n = b.dataset.cal;
+    if (S.cal === n) { S.cal = null; return renderCals(); }
+    S.cal = n + '…'; renderCals();
+    setTimeout(() => { S.cal = n; renderCals(); K.toast(`${n} connected (demo)`); }, 1100);
+  });
+  const email = $('#email');
+  const emailCheck = show => {
+    const good = ok.test(email.value.trim()), h = $('#email-h');
+    h.className = 'help' + (good ? '' : show ? ' bad' : '');
+    h.textContent = good ? `New bookings go to ${email.value.trim()}.` : show ? 'That email looks incomplete.' : '';
+    $('#next2').disabled = !good;
+    $('#why2').textContent = good ? '' : 'Add an email to continue.';
+    return good;
+  };
+  email.addEventListener('input', () => { S.email = email.value; emailCheck(false); });
+  email.addEventListener('blur', () => emailCheck(true));
+  $$('[data-opt]').forEach(b => b.addEventListener('click', () => { S[b.dataset.opt] = !S[b.dataset.opt]; b.setAttribute('aria-checked', S[b.dataset.opt]); phone(); }));
+  $('#next2').addEventListener('click', () => emailCheck(true) && go(3));
+
+  // ---------- Step 3 ----------
+  const url = () => `slotwise.co/${S.slug}`;
+  document.addEventListener('click', e => {
+    if (e.target.closest('[data-back]')) go(S.step - 1);
+    if (e.target.closest('[data-copy]')) { navigator.clipboard?.writeText('https://' + url()).catch(() => {}); K.toast('Link copied'); }
+  });
+  $('#qr').addEventListener('click', () => {
+    const r = K.rng([...S.slug].reduce((a, c) => a * 31 + c.charCodeAt(0) | 0, 7)), n = 25, cells = [];
+    const finder = (x, y) => [[0, 0], [n - 7, 0], [0, n - 7]].some(([a, b]) => x >= a && x < a + 7 && y >= b && y < b + 7);
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (!finder(x, y) && r() > .52) cells.push(`M${x} ${y}h1v1h-1z`);
+    const fp = [[0, 0], [n - 7, 0], [0, n - 7]].map(([a, b]) => `M${a} ${b}h7v7h-7zM${a + 1} ${b + 1}v5h5v-5zM${a + 2} ${b + 2}h3v3h-3z`).join('');
+    K.modal(`<h2>QR code for ${esc(S.name)}</h2><p>Points to ${esc(url())}. Print it at any size.</p>
+      <svg class="qr" viewBox="-2 -2 ${n + 4} ${n + 4}" shape-rendering="crispEdges" role="img" aria-label="QR code pattern"><rect x="-2" y="-2" width="${n + 4}" height="${n + 4}" fill="#fff"/><path fill="#0B0C0F" fill-rule="evenodd" d="${fp}${cells.join('')}"/></svg>
+      <p class="mut" style="text-align:center;font-size:12px">A sample pattern in this demo. The real app gives you a print-ready PNG that scans.</p>
+      <div class="m-foot"><button class="btn ink" type="button" data-close>Done</button></div>`);
+  });
+  $('#embed').addEventListener('click', () => {
+    const code = `<a href="https://${url()}" data-slotwise>Book now</a>\n<script src="https://slotwise.co/button.js" async><\/script>`;
+    const m = K.modal(`<h2>Add a Book button</h2><p>Paste this where the button should go. It opens your booking page in a pop-up.</p><div class="code">${esc(code)}</div>
+      <div class="m-foot"><button class="btn" type="button" data-close>Close</button><button class="btn ink" type="button" id="cp">${ic('copy')}Copy code</button></div>`);
+    $('#cp', m).addEventListener('click', () => { navigator.clipboard?.writeText(code).catch(() => {}); K.toast('Code copied'); });
+  });
+  $('#dash').addEventListener('click', () => {
+    const m = K.modal(`<h2>That’s the end of this demo.</h2><p>In the real app this opens your dashboard, with your first booking at the top when it comes in.</p>
+      <div class="m-foot"><button class="btn" type="button" data-close>Close</button><button class="btn ink" type="button" id="again">Start over</button></div>`);
+    $('#again', m).addEventListener('click', () => location.reload());
+  });
+  $('#save').addEventListener('click', () => K.toast('Saved. We emailed you a link to pick up where you left off.'));
+
+  // ---------- Wizard ----------
+  function go(n) {
+    S.step = n; S.booked = n === 2;
+    $$('[data-step]').forEach(s => s.hidden = +s.dataset.step !== n);
+    $('#step-n').textContent = `Step ${n} of 3`; $('#step-t').textContent = TITLES[n - 1];
+    $$('#segs span').forEach((s, i) => s.classList.toggle('on', i < n));
+    if (n === 2) emailCheck(false);
+    if (n === 3) { $('#live-h').textContent = `${S.name.trim()} is live.`; $('#live-url').textContent = url(); }
+    $('.wbody').scrollTop = 0;
+    phone();
+  }
+
+  // ---------- Phone ----------
+  function phone() {
+    const s = svc(), when = `${DAYS[S.day]}, Nov ${23 + S.day} at ${hh(S.time)}`;
+    $('#plbl').innerHTML = S.step === 2 ? `${ic('eye')}What your customer sees after booking` : S.step === 3 ? '<span class="live"></span>Live at ' + esc(url()) : '<span class="live"></span>Live preview · updates as you type';
+    if (S.booked) {
+      $('#scr').innerHTML = `<span class="notch"></span><div class="pm"><div class="p-url">${ic('lock')}${esc(url())}</div><div class="p-done">
+        <span class="ok">${ic('check')}</span><h3>You’re booked</h3>
+        <div class="p-when"><b>${when}</b>${esc(s.n || 'Service')} · ${s.d} min · ${s.p ? '$' + s.p : 'Free'}<br><span class="mut">${esc(S.name.trim() || 'Your business')} · ${esc(S.tz)}</span></div>
+        <ul><li>${ic('mail')}Confirmation sent to your email.</li>${S.remind ? `<li>${ic('bell')}We’ll remind you the day before.</li>` : ''}${S.cancel ? `<li>${ic('refresh')}Cancel or move it up to 12 hours before.</li>` : ''}${S.cal ? `<li>${ic('cal')}Synced with ${esc(S.cal.replace('…', ''))}.</li>` : ''}</ul>
+        ${S.step !== 2 ? `<button class="btn sm p-back" type="button" data-unbook>${ic('left')}Back to the booking page</button>` : ''}</div></div>`;
+      return;
+    }
+    const open = DAYS.map((d, i) => i).filter(i => S.open[i]);
+    if (!S.open[S.day]) S.day = open[0] ?? 0;
+    const t = slots(S.day);
+    if (!t.includes(S.time)) S.time = t[0];
+    $('#scr').innerHTML = `<span class="notch"></span><div class="pm">
+      <div class="p-url">${ic('lock')}${esc(url())}${S.step === 3 ? '<span class="chip ok">Live</span>' : ''}</div>
+      <div class="p-biz"><span class="p-av">${esc(initials(S.name))}</span><h3>${esc(S.name.trim() || 'Your business')}</h3><p>Pick a time that suits you</p></div>
+      <div class="p-svcs">${S.svcs.map((v, i) => `<button class="p-svc" type="button" data-svc="${i}" aria-pressed="${i === S.sel && S.svcs.length > 1}"${S.svcs.length > 1 ? '' : ' tabindex="-1"'}><div style="min-width:0"><b>${esc(v.n || 'Service name')}</b><span>${v.d} min</span></div><strong>${v.p ? '$' + v.p : 'Free'}</strong></button>`).join('')}</div>
+      <div class="p-cap"><span>Next week</span><span>${esc(S.tz)}</span></div>
+      <div class="p-days${open.length > 5 ? ' tight' : ''}" style="grid-template-columns:repeat(${Math.max(1, open.length)},1fr)">${open.map(i => `<button type="button" data-day="${i}" aria-pressed="${i === S.day}"><small>${DAYS[i]}</small>${23 + i}</button>`).join('') || ''}</div>
+      <div class="p-times">${!open.length ? '<p class="p-none">Pick a day to show times.</p>' : t.length ? t.map(x => `<button type="button" data-time="${x}" aria-pressed="${x === S.time}">${hh(x)}</button>`).join('') : '<p class="p-none">Fully booked. Try another day.</p>'}</div></div>
+      <button class="p-book" type="button" id="book"${t.length ? '' : ' disabled'}>${t.length ? `Book ${hh(S.time)} on ${DAYS[S.day]} ${23 + S.day}` : 'No times on this day'}</button>`;
+  }
+  $('#scr').addEventListener('click', e => {
+    const d = e.target.closest('[data-day]'), t = e.target.closest('[data-time]'), v = e.target.closest('[data-svc]');
+    if (d) S.day = +d.dataset.day;
+    else if (t) S.time = +t.dataset.time;
+    else if (v) S.sel = +v.dataset.svc;
+    else if (e.target.closest('#book')) S.booked = true;
+    else if (e.target.closest('[data-unbook]')) S.booked = false;
+    else return;
+    phone();
+  });
+
+  renderSlug(); renderSvcs(); renderCals(); check(); phone();
+})();
+</script>
+</body>
+</html>
