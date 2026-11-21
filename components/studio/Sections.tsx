@@ -810,7 +810,7 @@ export function Rebuilds() {
           {REBUILDS.map(([id, name, kind, stage, line, measure, marks], i) => (
             <Reveal key={id} className={ui.shell} delay={(i % 3) * 90}>
               <article className={`${ui.core} ${ui.rbCard}`}>
-                <a className={ui.rbShot} href={`/rebuilds/live/${id}.html`} aria-label={`Try the ${name} rebuild`}>
+                <a className={ui.rbShot} href={`/rebuilds/live/${id}`} aria-label={`Try the ${name} rebuild`}>
                   {/* eslint-disable-next-line @next/next/no-img-element -- static export, sized webp */}
                   <img src={`/rebuilds/shots/${id}.webp`} alt={`Kyre's rebuild of ${name}, a made-up ${kind.toLowerCase()}`} width={1200} height={760} loading="lazy" decoding="async" />
                 </a>
@@ -831,11 +831,11 @@ export function Rebuilds() {
                     </div>
                   </dl>
                   <div className={ui.rbLinks}>
-                    <a href={`/rebuilds/live/${id}.html`} className={`${ui.btn} ${ui.btnSm}`}>
+                    <a href={`/rebuilds/live/${id}`} className={`${ui.btn} ${ui.btnSm}`}>
                       Try the live app
                       <Arrow />
                     </a>
-                    <a href={`/rebuilds/index.html#${id}`} className={ui.rbText}>
+                    <a href={`/rebuilds#${id}`} className={ui.rbText}>
                       See the teardown
                     </a>
                   </div>
@@ -845,7 +845,7 @@ export function Rebuilds() {
           ))}
         </div>
         <p className={ui.rbFoot}>
-          <a href="/rebuilds/index.html" className={`${ui.btn} ${ui.btnGhost}`}>
+          <a href="/rebuilds" className={`${ui.btn} ${ui.btnGhost}`}>
             Open all six, with the before and after
             <Arrow />
           </a>

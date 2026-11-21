@@ -299,7 +299,7 @@ window.K = (() => {
   if (!embed) {
     const b = document.body.dataset, bar = document.createElement('div');
     bar.className = 'kbar';
-    bar.innerHTML = `<i></i><b>${esc(b.app)}</b><span class="long">is a fictional ${esc(b.kind)}, rebuilt by Kyre. Everything here runs on sample data.</span><a href="../index.html#${esc(b.app.toLowerCase())}">See the AI-built version</a>` +
+    bar.innerHTML = `<i></i><b>${esc(b.app)}</b><span class="long">is a fictional ${esc(b.kind)}, rebuilt by Kyre. Everything here runs on sample data.</span><a href="/rebuilds#${esc(b.app.toLowerCase())}">See the AI-built version</a>` +
       (fine ? `<label>Kyre notes<button class="switch" type="button" role="switch" aria-checked="${notes}" aria-label="Show Kyre's notes on hover"></button></label>` : '');
     document.body.prepend(bar);
     document.documentElement.style.setProperty('--kb', '36px');
